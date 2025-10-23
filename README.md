@@ -3,7 +3,7 @@
 ### By:
 - Nico Robak (@drexel.edu)
 - Ethan Gibson (@drexel.edu)
-- Marc DeCarlo(@drexel.edu)
+- Marc DeCarlo(mad534@drexel.edu)
 
 ## Initialization of environment
 1. Initialize Venv
