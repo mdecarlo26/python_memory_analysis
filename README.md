@@ -1,8 +1,8 @@
 ## Docs for python memory analysis
 
 ### By:
-- Nico Robak (@drexel.edu)
-- Ethan Gibson (@drexel.edu)
+- Nico Robak (nr624@drexel.edu)
+- Ethan Gibson (erg69@drexel.edu)
 - Marc DeCarlo(mad534@drexel.edu)
 
 ## Initialization of environment
