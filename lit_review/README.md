@@ -14,7 +14,7 @@ This one is written by UMASS. THis even has GPU integration. looks pretty cool. 
 ### [Austin](https://github.com/P403n1x87/austin)
 This samples the code in delta intervals and probes for memory differences between pings thus calculation approx memory usage.
 
-### [YData} (https://docs.profiling.ydata.ai/latest/)
+### [YData] (https://docs.profiling.ydata.ai/latest/)
 For profiling large datasets sepcefically when using tools like Pandas
 
 ## Overall View
