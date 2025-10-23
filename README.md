@@ -4,3 +4,26 @@
 - Nico Robak (@drexel.edu)
 - Ethan Gibson (@drexel.edu)
 - Marc DeCarlo(@drexel.edu)
+
+## Initialization of environment
+1. Initialize Venv
+```{bash}
+# Run this in repo root directory
+python -m venv ./mem_analysis
+```
+2. Activate Venv
+On Windows
+```{bash}
+
+```
+On Linux
+```{bash}
+# Run this in repo root directory
+./mem_analysis/bin/activate
+```
+3. Install Python packages
+```{bash}
+# Run this in repo root directory
+pip install -r requirements.txt
+
+```
