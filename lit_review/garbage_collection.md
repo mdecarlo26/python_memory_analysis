@@ -1,4 +1,4 @@
-# Informatin about Python Garbage Collector
+# Information about Python Garbage Collector
 The Garbage Collector will be known as GC for the rest of the doc. The GC is exposed in Python in the `gc` module.
 
 ## Reference Counting [Official Docs](https://docs.python.org/3/extending/extending.html#reference-counts)
