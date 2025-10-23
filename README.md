@@ -14,12 +14,13 @@ python -m venv ./mem_analysis
 2. Activate Venv
 On Windows
 ```{bash}
-
+# Run this in repo root directory
+./mem_analysis/bin/activate
 ```
 On Linux
 ```{bash}
 # Run this in repo root directory
-./mem_analysis/bin/activate
+source ./mem_analysis/bin/activate
 ```
 3. Install Python packages
 ```{bash}
