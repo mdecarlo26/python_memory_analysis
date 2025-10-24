@@ -15,7 +15,7 @@ This one is written by UMASS. THis even has GPU integration. looks pretty cool. 
 This samples the code in delta intervals and probes for memory differences between pings thus calculation approx memory usage.
 
 ### [YData](https://docs.profiling.ydata.ai/latest/)
-For profiling large datasets sepcefically when using tools like Pandas
+For profiling large datasets sepcefically when using tools like Pandas. Seems to be more of an Exploratory Data Analysis package then memory profiling. Requires deeper look
 
 ## Overall View
 No object based memory viewers/profilers. More along the line of a Heap analyzer not an allocation profiler. From random Hacker News user: "Allocation profilers will capture data about what is allocating memory over time. This can be captured in real time without interrupting the process and is usually relatively low-overhead.
