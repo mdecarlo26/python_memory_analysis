@@ -17,6 +17,10 @@ This samples the code in delta intervals and probes for memory differences betwe
 ### [YData](https://docs.profiling.ydata.ai/latest/)
 For profiling large datasets sepcefically when using tools like Pandas. Seems to be more of an Exploratory Data Analysis package then memory profiling. Requires deeper look
 
+### [PyTorch GPU Monitoring](https://pytorch.org/blog/understanding-gpu-memory-1/)
+Pytorch exposes `Memory Snapshot` tool for monitoring GPU callstack and memory profile specifically for Out Of Memory (OOM) errors. This seems to be total board memory usage but also follows the call stack.
+[REPO](https://github.com/pytorch/pytorch.github.io/tree/site/assets/images/understanding-gpu-memory-1)
+
 ## Overall View
 No object based memory viewers/profilers. More along the line of a Heap analyzer not an allocation profiler. From random Hacker News user: "Allocation profilers will capture data about what is allocating memory over time. This can be captured in real time without interrupting the process and is usually relatively low-overhead.
 
