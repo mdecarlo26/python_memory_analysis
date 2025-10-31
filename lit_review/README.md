@@ -25,12 +25,12 @@ Pytorch exposes `Memory Snapshot` tool for monitoring GPU callstack and memory p
 ### [VScode Extension API](https://code.visualstudio.com/api/get-started/your-first-extension)
 Getting started page for making VScode extensions. Basic set-up for creating extensions. Uses a package called [Yeoman](https://yeoman.io/) to scaffold projects or useful parts. Then can use typescript or whatevr you prefer to build your application.
   
-## Three Main Parts to VScode Extensions:
+#### Three Main Parts to VScode Extensions:
 * Activation Events: ebvents upon which your extension becomes active
 * Contribution Points: static declarations that you make in the package.json Extension Manifest to extend VS Code.
 * VS Code API: a set of JavaScript APIs that you can invoke in your extension code.
 
-## [Web Extensions](https://code.visualstudio.com/api/extension-guides/web-extensions)
+#### [Web Extensions](https://code.visualstudio.com/api/extension-guides/web-extensions)
 Here is a guide for creating a web based VScode Extensions. Limited by a browser sandbox compared to normal extensions. It does have full access to the VS Code API.
  
 ## Overall View
