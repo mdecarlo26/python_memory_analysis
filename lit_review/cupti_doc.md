@@ -107,14 +107,14 @@ cuptiActivityDisable(CUPTI_ACTIVITY_KIND_MEMORY);
 - Registers & shared memory
 - Stream ID / concurrency
 
-### CPU ↔ GPU Correlation
+### CPU/GPU Correlation
 - API-call latency
 - CPU thread ↔ GPU kernel relationships
 - Blocking vs asynchronous calls
 
 ---
 
-## Why This Matters for Our Project
+## How we can use it
 - Enables **real-time GPU memory visualization**
 - Allows tracking of device memory usage for Python workloads
 - Helps diagnose **GPU memory leaks**
@@ -122,3 +122,15 @@ cuptiActivityDisable(CUPTI_ACTIVITY_KIND_MEMORY);
   - **Python object graphs** (via `objgraph`)
   - **GPU memory activity** (via CUPTI)
 - Forms the foundation for a unified **CPU + GPU memory analysis tool**
+
+
+---
+
+## How to use Callback API
+Allows you to register a callback into your own code.
+
+* Terminology
+  * Callback Domain
+  * Callback ID
+  * Callback Function
+  * Subscriber
