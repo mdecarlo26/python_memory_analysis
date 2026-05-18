@@ -4,1101 +4,518 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>HPC Memory Profiler</title>
-
-<!-- CDN dependencies: React, Babel, Cytoscape, D3 -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.development.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.development.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.28.1/cytoscape.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
-<link rel="preconnect" href="https://fonts.googleapis.com" />
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
-
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@300;400;500&display=swap" rel="stylesheet" />
 <style>
-  :root {
-    --bg:        #0a0c10;
-    --surface:   #111318;
-    --surface2:  #181c24;
-    --border:    #252a35;
-    --border2:   #2e3545;
-    --text:      #c9d1e0;
-    --text-dim:  #5a6478;
-    --text-mid:  #8892a4;
-    --accent:    #00d4ff;
-    --accent2:   #0088bb;
-    --green:     #00e676;
-    --green-dim: #004d26;
-    --yellow:    #ffd740;
-    --red:       #ff5252;
-    --purple:    #b388ff;
-    --cpu-col:   #00d4ff;
-    --gpu-col:   #00e676;
-    --corr-hard: #00e676;
-    --corr-weak: #5a6478;
-    --font-mono: 'IBM Plex Mono', monospace;
-    --font-sans: 'IBM Plex Sans', sans-serif;
-  }
-
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: var(--font-sans);
-    font-size: 13px;
-    height: 100vh;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-  }
-
-  /* ── Top bar ── */
-  #topbar {
-    height: 48px;
-    background: var(--surface);
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    padding: 0 16px;
-    gap: 16px;
-    flex-shrink: 0;
-    z-index: 10;
-  }
-  #topbar .logo {
-    font-family: var(--font-mono);
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--accent);
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    white-space: nowrap;
-  }
-  #topbar .logo span { color: var(--text-dim); }
-  #topbar .sep { width: 1px; height: 20px; background: var(--border); }
-  #topbar .stat {
-    font-family: var(--font-mono);
-    font-size: 11px;
-    color: var(--text-dim);
-    white-space: nowrap;
-  }
-  #topbar .stat b { color: var(--text-mid); font-weight: 500; }
-  #topbar .spacer { flex: 1; }
-
-  /* ── Drop zone / load button ── */
-  #load-btn {
-    font-family: var(--font-mono);
-    font-size: 11px;
-    font-weight: 500;
-    color: var(--accent);
-    background: transparent;
-    border: 1px solid var(--accent2);
-    border-radius: 3px;
-    padding: 5px 12px;
-    cursor: pointer;
-    letter-spacing: 0.05em;
-    transition: background 0.15s, color 0.15s;
-    white-space: nowrap;
-  }
-  #load-btn:hover { background: var(--accent2); color: #fff; }
-  #file-input { display: none; }
-
-  /* ── Main layout ── */
-  #main {
-    flex: 1;
-    display: flex;
-    overflow: hidden;
-  }
-
-  /* ── Timeline strip ── */
-  #timeline-wrap {
-    flex-shrink: 0;
-    height: 130px;
-    background: var(--surface);
-    border-bottom: 1px solid var(--border);
-    overflow: hidden;
-    position: relative;
-  }
-  #timeline-wrap svg { width: 100%; height: 100%; }
-
-  /* ── Left panel: graph ── */
-  #graph-panel {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    border-right: 1px solid var(--border);
-  }
-  #graph-toolbar {
-    height: 36px;
-    background: var(--surface);
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    padding: 0 12px;
-    gap: 8px;
-    flex-shrink: 0;
-  }
-  .tb-label {
-    font-family: var(--font-mono);
-    font-size: 10px;
-    color: var(--text-dim);
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    margin-right: 4px;
-  }
-  .tb-btn {
-    font-family: var(--font-mono);
-    font-size: 10px;
-    color: var(--text-mid);
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 2px;
-    padding: 3px 8px;
-    cursor: pointer;
-    letter-spacing: 0.04em;
-    transition: border-color 0.1s, color 0.1s;
-  }
-  .tb-btn:hover { border-color: var(--accent2); color: var(--accent); }
-  .tb-spacer { flex: 1; }
-
-  /* legend */
-  .legend-item {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    font-family: var(--font-mono);
-    font-size: 10px;
-    color: var(--text-dim);
-  }
-  .legend-dot {
-    width: 8px; height: 8px; border-radius: 50%;
-  }
-  .legend-line {
-    width: 16px; height: 2px; border-radius: 1px;
-  }
-
-  #cy {
-    flex: 1;
-    background: var(--bg);
-  }
-
-  /* ── Right panel: detail ── */
-  #detail-panel {
-    width: 260px;
-    flex-shrink: 0;
-    display: flex;
-    flex-direction: column;
-    background: var(--surface);
-    overflow: hidden;
-  }
-  #detail-header {
-    height: 36px;
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    padding: 0 14px;
-    font-family: var(--font-mono);
-    font-size: 10px;
-    color: var(--text-dim);
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    flex-shrink: 0;
-  }
-  #detail-body {
-    flex: 1;
-    overflow-y: auto;
-    padding: 12px 14px;
-  }
-  #detail-body::-webkit-scrollbar { width: 4px; }
-  #detail-body::-webkit-scrollbar-track { background: transparent; }
-  #detail-body::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
-
-  .detail-empty {
-    color: var(--text-dim);
-    font-family: var(--font-mono);
-    font-size: 11px;
-    line-height: 1.6;
-    padding-top: 8px;
-  }
-  .detail-section {
-    margin-bottom: 16px;
-  }
-  .detail-section-title {
-    font-family: var(--font-mono);
-    font-size: 9px;
-    color: var(--text-dim);
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    margin-bottom: 8px;
-    padding-bottom: 4px;
-    border-bottom: 1px solid var(--border);
-  }
-  .detail-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    margin-bottom: 5px;
-    gap: 8px;
-  }
-  .detail-key {
-    font-family: var(--font-mono);
-    font-size: 10px;
-    color: var(--text-dim);
-    white-space: nowrap;
-    flex-shrink: 0;
-  }
-  .detail-val {
-    font-family: var(--font-mono);
-    font-size: 10px;
-    color: var(--text);
-    text-align: right;
-    word-break: break-all;
-  }
-  .detail-val.accent  { color: var(--accent); }
-  .detail-val.green   { color: var(--green); }
-  .detail-val.yellow  { color: var(--yellow); }
-  .detail-val.purple  { color: var(--purple); }
-  .detail-val.red     { color: var(--red); }
-  .detail-val.dimmed  { color: var(--text-mid); }
-
-  .badge {
-    display: inline-block;
-    font-family: var(--font-mono);
-    font-size: 9px;
-    font-weight: 600;
-    letter-spacing: 0.06em;
-    padding: 2px 6px;
-    border-radius: 2px;
-    text-transform: uppercase;
-  }
-  .badge-hard   { background: var(--green-dim); color: var(--green); }
-  .badge-weak   { background: #1e2230; color: var(--text-mid); }
-  .badge-cpu    { background: #002535; color: var(--cpu-col); }
-  .badge-gpu    { background: #003320; color: var(--gpu-col); }
-  .badge-corr   { background: #1a1030; color: var(--purple); }
-
-  .callstack-item {
-    font-family: var(--font-mono);
-    font-size: 9px;
-    color: var(--text-mid);
-    padding: 2px 0;
-    border-left: 2px solid var(--border2);
-    padding-left: 6px;
-    margin-bottom: 2px;
-    word-break: break-all;
-  }
-
-  /* ── Drop overlay ── */
-  #drop-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(10,12,16,0.92);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    z-index: 100;
-    pointer-events: none;
-    opacity: 0;
-    transition: opacity 0.15s;
-  }
-  #drop-overlay.visible { opacity: 1; pointer-events: all; }
-  #drop-overlay .drop-icon {
-    font-size: 48px;
-    margin-bottom: 16px;
-    opacity: 0.6;
-  }
-  #drop-overlay .drop-text {
-    font-family: var(--font-mono);
-    font-size: 14px;
-    color: var(--accent);
-    letter-spacing: 0.08em;
-  }
-
-  /* ── Empty state ── */
-  #empty-state {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    pointer-events: none;
-  }
-  .empty-title {
-    font-family: var(--font-mono);
-    font-size: 12px;
-    color: var(--text-dim);
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    margin-bottom: 8px;
-  }
-  .empty-sub {
-    font-family: var(--font-mono);
-    font-size: 10px;
-    color: #2e3545;
-  }
-
-  /* ── Vertical layout wrapper ── */
-  #content {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-  }
-  #panels {
-    flex: 1;
-    display: flex;
-    overflow: hidden;
-  }
+:root{
+  --bg:#0d0f14;--s1:#13161d;--s2:#1a1e28;--s3:#222736;
+  --border:#2a3040;--border2:#384050;
+  --text:#c8d0e0;--dim:#4a5568;--mid:#7a8899;
+  --accent:#4fc3f7;--green:#69f0ae;--yellow:#ffd54f;
+  --purple:#ce93d8;--red:#ef9a9a;--orange:#ffcc80;
+  --mono:'JetBrains Mono',monospace;--sans:'Inter',sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:13px;height:100vh;overflow:hidden;display:flex;flex-direction:column}
+/* top bar */
+#topbar{height:44px;background:var(--s1);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 16px;gap:12px;flex-shrink:0}
+.logo{font-family:var(--mono);font-size:12px;font-weight:700;color:var(--accent);letter-spacing:.12em;text-transform:uppercase;white-space:nowrap}
+.logo span{color:var(--dim);font-weight:400}
+.topbar-sep{width:1px;height:18px;background:var(--border)}
+.stat-pill{font-family:var(--mono);font-size:10px;background:var(--s2);border:1px solid var(--border);border-radius:3px;padding:3px 8px;color:var(--mid);white-space:nowrap}
+.stat-pill b{color:var(--text);font-weight:500}
+.spacer{flex:1}
+.load-btn{font-family:var(--mono);font-size:10px;font-weight:500;color:var(--accent);background:transparent;border:1px solid var(--accent);border-radius:3px;padding:5px 14px;cursor:pointer;letter-spacing:.06em;transition:background .12s,color .12s}
+.load-btn:hover{background:var(--accent);color:#000}
+/* layout */
+#app{flex:1;display:flex;overflow:hidden}
+#left-col{width:200px;flex-shrink:0;background:var(--s1);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
+#center-col{flex:1;display:flex;flex-direction:column;overflow:hidden}
+#right-col{width:240px;flex-shrink:0;background:var(--s1);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
+/* panel headers */
+.panel-hdr{height:32px;border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 12px;gap:8px;flex-shrink:0;font-family:var(--mono);font-size:9px;color:var(--dim);letter-spacing:.1em;text-transform:uppercase}
+.panel-hdr b{color:var(--mid);font-weight:500}
+/* timeline */
+#timeline{height:120px;flex-shrink:0;background:var(--s1);border-bottom:1px solid var(--border);overflow:hidden}
+#timeline svg{width:100%;height:100%}
+.tl-empty{display:flex;align-items:center;justify-content:center;height:100%;font-family:var(--mono);font-size:10px;color:var(--dim)}
+/* graph */
+#graph-wrap{flex:1;position:relative;overflow:hidden;background:var(--bg)}
+#graph-svg{width:100%;height:100%}
+.empty-graph{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;pointer-events:none}
+.eg-title{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:.08em;text-transform:uppercase}
+.eg-sub{font-family:var(--mono);font-size:10px;color:var(--border2)}
+#graph-tb{height:32px;flex-shrink:0;background:var(--s1);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 10px;gap:6px}
+.tb-btn{font-family:var(--mono);font-size:9px;color:var(--mid);background:var(--s2);border:1px solid var(--border);border-radius:2px;padding:3px 8px;cursor:pointer;letter-spacing:.04em;transition:border-color .1s,color .1s;white-space:nowrap}
+.tb-btn:hover{border-color:var(--accent);color:var(--accent)}
+.tb-sep{width:1px;height:16px;background:var(--border);margin:0 2px}
+.leg{display:flex;align-items:center;gap:4px;font-family:var(--mono);font-size:9px;color:var(--dim)}
+.leg-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+/* type list */
+#type-list{flex:1;overflow-y:auto;padding:6px 0}
+#type-list::-webkit-scrollbar{width:3px}
+#type-list::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+.type-row{display:flex;align-items:center;padding:5px 10px;cursor:pointer;gap:7px;border-left:2px solid transparent;transition:background .1s}
+.type-row:hover{background:var(--s2)}
+.type-row.selected{background:rgba(79,195,247,.07);border-left-color:var(--accent)}
+.type-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.type-name{font-family:var(--mono);font-size:10px;color:var(--text);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.type-count{font-family:var(--mono);font-size:9px;color:var(--dim)}
+/* inspector */
+#inspector{flex:1;overflow-y:auto;padding:12px 12px}
+#inspector::-webkit-scrollbar{width:3px}
+#inspector::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+.insp-empty{font-family:var(--mono);font-size:10px;color:var(--dim);line-height:1.8}
+.insp-badge{display:inline-flex;align-items:center;font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:.07em;padding:2px 8px;border-radius:2px;text-transform:uppercase;margin-bottom:10px}
+.badge-cpu{background:rgba(79,195,247,.1);color:var(--accent);border:1px solid rgba(79,195,247,.25)}
+.badge-gpu{background:rgba(105,240,174,.08);color:var(--green);border:1px solid rgba(105,240,174,.2)}
+.badge-corr{background:rgba(206,147,216,.08);color:var(--purple);border:1px solid rgba(206,147,216,.2)}
+.badge-hard{background:rgba(105,240,174,.1);color:var(--green);border:1px solid rgba(105,240,174,.2)}
+.badge-weak{background:var(--s2);color:var(--mid);border:1px solid var(--border)}
+.insp-sec{margin-bottom:14px}
+.insp-sec-title{font-family:var(--mono);font-size:8px;color:var(--dim);letter-spacing:.12em;text-transform:uppercase;margin-bottom:6px;padding-bottom:3px;border-bottom:1px solid var(--border)}
+.insp-row{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px;gap:6px}
+.insp-key{font-family:var(--mono);font-size:9px;color:var(--dim);white-space:nowrap;flex-shrink:0}
+.insp-val{font-family:var(--mono);font-size:9px;color:var(--text);text-align:right;word-break:break-all}
+.iv-a{color:var(--accent)}.iv-g{color:var(--green)}.iv-y{color:var(--yellow)}.iv-p{color:var(--purple)}.iv-d{color:var(--mid)}
+.cs-frame{font-family:var(--mono);font-size:9px;color:var(--mid);border-left:2px solid var(--border2);padding-left:6px;margin-bottom:2px;word-break:break-all}
+/* drop overlay */
+#drop-overlay{position:fixed;inset:0;background:rgba(13,15,20,.93);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;opacity:0;pointer-events:none;transition:opacity .15s}
+#drop-overlay.show{opacity:1;pointer-events:all}
+.drop-icon{font-size:40px;margin-bottom:12px;color:var(--accent)}
+.drop-txt{font-family:var(--mono);font-size:13px;color:var(--accent);letter-spacing:.08em}
 </style>
 </head>
 <body>
-
-<!-- Top bar (rendered by React) -->
 <div id="root"></div>
-
-<!-- Hidden file input -->
-<input type="file" id="file-input" accept=".json" />
-
-<!-- Drop overlay -->
-<div id="drop-overlay">
-  <div class="drop-icon">⬇</div>
-  <div class="drop-text">DROP SESSION JSON</div>
-</div>
-
+<input type="file" id="file-input" accept=".json" style="display:none"/>
+<div id="drop-overlay"><div class="drop-icon">⬇</div><div class="drop-txt">DROP SESSION JSON</div></div>
 <script type="text/babel">
-const { useState, useEffect, useRef, useCallback } = React;
+const { useState, useEffect, useRef, useCallback, useMemo } = React;
 
-// ─────────────────────────────────────────────
-// Utilities
-// ─────────────────────────────────────────────
-
-function fmtBytes(n) {
-  if (n == null) return '—';
-  if (n < 1024) return `${n} B`;
-  if (n < 1048576) return `${(n/1024).toFixed(1)} KB`;
+const fmtBytes = n => {
+  if (n==null) return '—';
+  if (n<1024) return `${n} B`;
+  if (n<1048576) return `${(n/1024).toFixed(1)} KB`;
   return `${(n/1048576).toFixed(2)} MB`;
-}
+};
+const fmtNs = ns => {
+  if (ns==null) return '—';
+  if (ns<1000) return `${ns} ns`;
+  if (ns<1e6) return `${(ns/1000).toFixed(1)} µs`;
+  if (ns<1e9) return `${(ns/1e6).toFixed(2)} ms`;
+  return `${(ns/1e9).toFixed(3)} s`;
+};
+const fmtAddr = n => n ? '0x'+n.toString(16).toUpperCase().padStart(12,'0') : '—';
+const fmtRel  = (ns, base) => ns ? '+'+fmtNs(ns-base) : '—';
 
-function fmtNs(ns) {
-  if (ns == null) return '—';
-  if (ns < 1000) return `${ns} ns`;
-  if (ns < 1000000) return `${(ns/1000).toFixed(1)} µs`;
-  if (ns < 1000000000) return `${(ns/1000000).toFixed(2)} ms`;
-  return `${(ns/1000000000).toFixed(3)} s`;
-}
+const PALETTE = ['#4fc3f7','#69f0ae','#ffd54f','#ce93d8','#ef9a9a','#ffcc80','#80cbc4','#f48fb1','#a5d6a7','#90caf9'];
+const colorMap = {};
+let colorIdx = 0;
+const typeColor = t => { if(!colorMap[t]) colorMap[t]=PALETTE[colorIdx++%PALETTE.length]; return colorMap[t]; };
 
-function fmtAddr(n) {
-  if (!n) return '—';
-  return '0x' + n.toString(16).toUpperCase().padStart(12, '0');
-}
+// Build aggregated graph: CPU type-groups on left, GPU events on right
+function buildGraph(session, filterType) {
+  const allocs  = session.cpu_events.filter(e => !e.is_dealloc);
+  const gpuEvs  = session.gpu_events;
+  const corrs   = session.correlated_events;
 
-function fmtTs(ns, baseNs) {
-  if (ns == null) return '—';
-  return '+' + fmtNs(ns - baseNs);
-}
+  const gpuById = {};
+  gpuEvs.forEach(e => gpuById[e.base.event_id] = e);
 
-// ─────────────────────────────────────────────
-// Build Cytoscape elements from session
-// ─────────────────────────────────────────────
+  const cpuToCorrs = {};
+  corrs.forEach(c => { if(!cpuToCorrs[c.cpu_event_id]) cpuToCorrs[c.cpu_event_id]=[]; cpuToCorrs[c.cpu_event_id].push(c); });
 
-function buildElements(session) {
-  const elements = [];
-  const cpuById  = {};
-  const gpuById  = {};
+  const typeGroups = {};
+  allocs.forEach(e => {
+    const t = e.object_type||'unknown';
+    if(!typeGroups[t]) typeGroups[t]={count:0,bytes:0,events:[],corrCount:0};
+    typeGroups[t].count++;
+    typeGroups[t].bytes += e.alloc_size_bytes||0;
+    typeGroups[t].events.push(e);
+    if(cpuToCorrs[e.base.event_id]) typeGroups[t].corrCount++;
+  });
 
-  // CPU alloc nodes (not deallocs)
-  for (const ev of session.cpu_events) {
-    if (ev.is_dealloc) continue;
-    const id = `cpu_${ev.base.event_id}`;
-    cpuById[ev.base.event_id] = id;
-    elements.push({ data: {
-      id, kind: 'cpu',
-      label: ev.object_type || 'object',
-      event_id:   ev.base.event_id,
-      timestamp:  ev.base.timestamp_ns,
-      address:    ev.alloc_address,
-      size:       ev.alloc_size_bytes,
-      obj_type:   ev.object_type,
-      ref_count:  ev.ref_count,
-      gc_gen:     ev.gc_generation,
-      callstack:  ev.callstack || [],
-      raw: ev,
-    }});
-  }
+  const activeTypes = filterType ? [filterType] : Object.keys(typeGroups);
 
-  // GPU event nodes
-  for (const ev of session.gpu_events) {
-    const id = `gpu_${ev.base.event_id}`;
-    gpuById[ev.base.event_id] = id;
-    const isTransfer = ev.base.event_type === 'TRANSFER';
-    elements.push({ data: {
-      id, kind: 'gpu',
-      label: isTransfer
-        ? `xfer ${fmtBytes(ev.transfer_size_bytes)}`
-        : (ev.kernel_name || 'kernel'),
-      event_id:      ev.base.event_id,
-      timestamp:     ev.base.timestamp_ns,
-      event_type:    ev.base.event_type,
-      device_id:     ev.device_id,
-      src_address:   ev.src_address,
-      dst_address:   ev.dst_address,
-      transfer_size: ev.transfer_size_bytes,
-      transfer_kind: ev.transfer_kind,
-      page_faults:   ev.um_page_faults,
-      kernel_name:   ev.kernel_name,
-      raw: ev,
-    }});
-  }
+  const nodes=[], edges=[], seenGpu=new Set();
 
-  // Correlation edges
-  for (const corr of session.correlated_events) {
-    const src = cpuById[corr.cpu_event_id];
-    const tgt = gpuById[corr.gpu_event_id];
-    if (!src || !tgt) continue;
-    elements.push({ data: {
-      id:          `corr_${corr.cpu_event_id}_${corr.gpu_event_id}`,
-      source:      src,
-      target:      tgt,
-      kind:        'corr',
-      confidence:  corr.confidence,
-      match_reason: corr.match_reason,
-      latency_ns:  corr.latency_ns,
-      raw: corr,
-    }});
-  }
+  activeTypes.forEach(t => {
+    const g = typeGroups[t]; if(!g) return;
+    const cpuId = `cpu_${t}`;
+    nodes.push({ id:cpuId, kind:'cpu_group', label:t.split('.').pop(), fullType:t, ...g, color:typeColor(t) });
 
-  return elements;
-}
-
-// ─────────────────────────────────────────────
-// Cytoscape style sheet
-// ─────────────────────────────────────────────
-
-const CY_STYLE = [
-  {
-    selector: 'node[kind="cpu"]',
-    style: {
-      'background-color':   '#002535',
-      'border-color':       '#00d4ff',
-      'border-width':       1.5,
-      'label':              'data(label)',
-      'color':              '#00d4ff',
-      'font-size':          9,
-      'font-family':        'IBM Plex Mono, monospace',
-      'text-valign':        'bottom',
-      'text-margin-y':      4,
-      'width':              28,
-      'height':             28,
-      'shape':              'rectangle',
-      'text-wrap':          'truncate',
-      'text-max-width':     80,
-    }
-  },
-  {
-    selector: 'node[kind="gpu"]',
-    style: {
-      'background-color':   '#003320',
-      'border-color':       '#00e676',
-      'border-width':       1.5,
-      'label':              'data(label)',
-      'color':              '#00e676',
-      'font-size':          9,
-      'font-family':        'IBM Plex Mono, monospace',
-      'text-valign':        'bottom',
-      'text-margin-y':      4,
-      'width':              28,
-      'height':             28,
-      'shape':              'ellipse',
-      'text-wrap':          'truncate',
-      'text-max-width':     80,
-    }
-  },
-  {
-    selector: 'edge[kind="corr"][confidence="HARD"]',
-    style: {
-      'line-color':         '#00e676',
-      'target-arrow-color': '#00e676',
-      'target-arrow-shape': 'triangle',
-      'arrow-scale':        0.8,
-      'width':              1.5,
-      'curve-style':        'bezier',
-      'opacity':            0.7,
-    }
-  },
-  {
-    selector: 'edge[kind="corr"][confidence="WEAK"]',
-    style: {
-      'line-color':         '#2e3545',
-      'target-arrow-color': '#2e3545',
-      'target-arrow-shape': 'triangle',
-      'arrow-scale':        0.8,
-      'width':              1,
-      'curve-style':        'bezier',
-      'line-style':         'dashed',
-      'opacity':            0.5,
-    }
-  },
-  {
-    selector: ':selected',
-    style: {
-      'border-color':       '#ffd740',
-      'border-width':       2.5,
-      'line-color':         '#ffd740',
-      'target-arrow-color': '#ffd740',
-      'opacity':            1,
-    }
-  },
-  {
-    selector: '.faded',
-    style: { 'opacity': 0.12 }
-  },
-  {
-    selector: '.highlighted',
-    style: { 'opacity': 1 }
-  },
-];
-
-// ─────────────────────────────────────────────
-// Graph panel
-// ─────────────────────────────────────────────
-
-function GraphPanel({ session, selected, onSelect }) {
-  const cyRef    = useRef(null);
-  const cyInst   = useRef(null);
-
-  useEffect(() => {
-    if (!session || !cyRef.current) return;
-
-    const elements = buildElements(session);
-
-    if (cyInst.current) cyInst.current.destroy();
-
-    cyInst.current = cytoscape({
-      container: cyRef.current,
-      elements,
-      style: CY_STYLE,
-      layout: {
-        name:        'cose',
-        animate:     false,
-        nodeRepulsion: 8000,
-        idealEdgeLength: 120,
-        gravity:     0.25,
-        numIter:     1000,
-        fit:         true,
-        padding:     40,
-      },
-      minZoom: 0.05,
-      maxZoom: 4,
+    g.events.forEach(ev => {
+      (cpuToCorrs[ev.base.event_id]||[]).forEach(c => {
+        const gpuEv = gpuById[c.gpu_event_id]; if(!gpuEv) return;
+        const gpuId = `gpu_${gpuEv.base.event_id}`;
+        if(!seenGpu.has(gpuId)) {
+          seenGpu.add(gpuId);
+          const isT = gpuEv.base.event_type==='TRANSFER';
+          nodes.push({ id:gpuId, kind:'gpu', label:isT?fmtBytes(gpuEv.transfer_size_bytes):(gpuEv.kernel_name||'kernel'), evType:gpuEv.base.event_type, event:gpuEv });
+        }
+        edges.push({ id:`e_${cpuId}_${gpuId}_${c.cpu_event_id}`, source:cpuId, target:gpuId, confidence:c.confidence, latency:c.latency_ns, corr:c, cpuEvent:ev });
+      });
     });
+  });
 
-    cyInst.current.on('tap', 'node', (evt) => {
-      const d = evt.target.data();
-      onSelect({ type: d.kind, data: d });
-
-      // Highlight neighbourhood
-      const cy = cyInst.current;
-      cy.elements().addClass('faded');
-      const neighbourhood = evt.target.closedNeighborhood();
-      neighbourhood.removeClass('faded').addClass('highlighted');
-    });
-
-    cyInst.current.on('tap', 'edge', (evt) => {
-      const d = evt.target.data();
-      onSelect({ type: 'corr', data: d });
-      const cy = cyInst.current;
-      cy.elements().addClass('faded');
-      evt.target.closedNeighborhood().removeClass('faded').addClass('highlighted');
-    });
-
-    cyInst.current.on('tap', (evt) => {
-      if (evt.target === cyInst.current) {
-        onSelect(null);
-        cyInst.current.elements().removeClass('faded highlighted');
-      }
-    });
-
-    return () => { if (cyInst.current) cyInst.current.destroy(); };
-  }, [session]);
-
-  // Sync external selection (from timeline click) into cytoscape
-  useEffect(() => {
-    if (!cyInst.current || !selected) return;
-    const cy = cyInst.current;
-    cy.elements().unselect();
-    const id = selected.data?.id;
-    if (id) {
-      const el = cy.getElementById(id);
-      if (el.length) {
-        el.select();
-        cy.animate({ fit: { eles: el.closedNeighborhood(), padding: 60 }, duration: 300 });
-      }
-    }
-  }, [selected]);
-
-  const fitAll    = () => cyInst.current?.fit(undefined, 40);
-  const resetFade = () => { cyInst.current?.elements().removeClass('faded highlighted'); onSelect(null); };
-
-  return (
-    <div id="graph-panel">
-      <div id="graph-toolbar">
-        <span className="tb-label">Graph</span>
-        <button className="tb-btn" onClick={fitAll}>Fit</button>
-        <button className="tb-btn" onClick={resetFade}>Clear</button>
-        <div className="tb-spacer" />
-        <div className="legend-item">
-          <div className="legend-dot" style={{background:'#00d4ff'}} />
-          CPU
-        </div>
-        <div style={{width:8}} />
-        <div className="legend-item">
-          <div className="legend-dot" style={{background:'#00e676'}} />
-          GPU
-        </div>
-        <div style={{width:8}} />
-        <div className="legend-item">
-          <div className="legend-line" style={{background:'#00e676'}} />
-          HARD
-        </div>
-        <div style={{width:8}} />
-        <div className="legend-item">
-          <div className="legend-line" style={{background:'#2e3545', borderTop:'1px dashed #2e3545', height:0}} />
-          WEAK
-        </div>
-      </div>
-      <div id="cy" ref={cyRef}>
-        {!session && (
-          <div id="empty-state">
-            <div className="empty-title">No session loaded</div>
-            <div className="empty-sub">Load a ProfilingSession JSON to begin</div>
-          </div>
-        )}
-      </div>
-    </div>
-  );
+  return { nodes, edges, typeGroups };
 }
 
-// ─────────────────────────────────────────────
-// Detail panel
-// ─────────────────────────────────────────────
-
-function DetailPanel({ selected, baseNs }) {
-  if (!selected) {
-    return (
-      <div id="detail-panel">
-        <div id="detail-header">Inspector</div>
-        <div id="detail-body">
-          <div className="detail-empty">
-            Click a node or edge<br/>to inspect its data.
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  const { type, data } = selected;
-
-  const Row = ({ k, v, cls }) => (
-    <div className="detail-row">
-      <span className="detail-key">{k}</span>
-      <span className={`detail-val ${cls||''}`}>{v}</span>
-    </div>
-  );
-
-  let content;
-
-  if (type === 'cpu') {
-    content = (
-      <>
-        <div className="detail-section">
-          <div className="detail-section-title">Identity</div>
-          <Row k="type" v={<span className="badge badge-cpu">CPU</span>} />
-          <Row k="event_id"  v={data.event_id}  cls="accent" />
-          <Row k="obj_type"  v={data.obj_type || '—'} cls="yellow" />
-        </div>
-        <div className="detail-section">
-          <div className="detail-section-title">Memory</div>
-          <Row k="address"  v={fmtAddr(data.address)}  cls="dimmed" />
-          <Row k="size"     v={fmtBytes(data.size)}    cls="green" />
-          <Row k="ref_count" v={data.ref_count ?? '—'} />
-          <Row k="gc_gen"   v={data.gc_gen ?? '—'} />
-        </div>
-        <div className="detail-section">
-          <div className="detail-section-title">Timing</div>
-          <Row k="timestamp" v={fmtTs(data.timestamp, baseNs)} cls="dimmed" />
-        </div>
-        {data.callstack?.length > 0 && (
-          <div className="detail-section">
-            <div className="detail-section-title">Callstack</div>
-            {data.callstack.map((f, i) => (
-              <div key={i} className="callstack-item">{f}</div>
-            ))}
-          </div>
-        )}
-      </>
-    );
-  } else if (type === 'gpu') {
-    const isTransfer = data.event_type === 'TRANSFER';
-    content = (
-      <>
-        <div className="detail-section">
-          <div className="detail-section-title">Identity</div>
-          <Row k="type"       v={<span className="badge badge-gpu">GPU</span>} />
-          <Row k="event_id"   v={data.event_id}    cls="accent" />
-          <Row k="event_type" v={data.event_type}  cls="green" />
-          <Row k="device"     v={`GPU:${data.device_id ?? 0}`} />
-        </div>
-        {isTransfer ? (
-          <div className="detail-section">
-            <div className="detail-section-title">Transfer</div>
-            <Row k="size"   v={fmtBytes(data.transfer_size)} cls="green" />
-            <Row k="kind"   v={data.transfer_kind || '—'} cls="yellow" />
-            <Row k="src"    v={fmtAddr(data.src_address)}  cls="dimmed" />
-            <Row k="dst"    v={fmtAddr(data.dst_address)}  cls="dimmed" />
-          </div>
-        ) : (
-          <div className="detail-section">
-            <div className="detail-section-title">Kernel</div>
-            <Row k="name"       v={data.kernel_name || '—'} cls="yellow" />
-            <Row k="page_faults" v={data.page_faults ?? 0} />
-          </div>
-        )}
-        <div className="detail-section">
-          <div className="detail-section-title">Timing</div>
-          <Row k="timestamp" v={fmtTs(data.timestamp, baseNs)} cls="dimmed" />
-        </div>
-      </>
-    );
-  } else if (type === 'corr') {
-    const isHard = data.confidence === 'HARD';
-    content = (
-      <>
-        <div className="detail-section">
-          <div className="detail-section-title">Correlation</div>
-          <Row k="type"       v={<span className="badge badge-corr">CORR</span>} />
-          <Row k="confidence" v={
-            <span className={`badge ${isHard ? 'badge-hard' : 'badge-weak'}`}>
-              {data.confidence}
-            </span>
-          } />
-          <Row k="reason"     v={data.match_reason} cls={isHard ? 'green' : 'dimmed'} />
-        </div>
-        <div className="detail-section">
-          <div className="detail-section-title">Link</div>
-          <Row k="cpu_id"  v={data.source?.replace('cpu_','')} cls="accent" />
-          <Row k="gpu_id"  v={data.target?.replace('gpu_','')} cls="green" />
-          <Row k="latency" v={fmtNs(data.latency_ns)} cls={isHard ? 'yellow' : 'dimmed'} />
-        </div>
-      </>
-    );
-  }
-
-  return (
-    <div id="detail-panel">
-      <div id="detail-header">Inspector</div>
-      <div id="detail-body">{content}</div>
-    </div>
-  );
-}
-
-// ─────────────────────────────────────────────
-// Timeline panel (D3)
-// ─────────────────────────────────────────────
-
-function TimelinePanel({ session, selected, onSelect }) {
+function GraphCanvas({ session, filterType, onSelect }) {
   const svgRef = useRef(null);
+  const zoomRef = useRef(null);
+  const graphData = useMemo(() => session ? buildGraph(session, filterType) : null, [session, filterType]);
 
   useEffect(() => {
-    if (!session || !svgRef.current) return;
-
-    const svg    = d3.select(svgRef.current);
+    if (!svgRef.current) return;
+    const svg = d3.select(svgRef.current);
     svg.selectAll('*').remove();
+    if (!graphData || !graphData.nodes.length) return;
 
-    const W      = svgRef.current.clientWidth  || 800;
-    const H      = svgRef.current.clientHeight || 130;
-    const marginL = 80;
-    const marginR = 16;
-    const marginT = 12;
-    const rowH    = 22;
-    const barH    = 14;
+    const W = svgRef.current.clientWidth || 800;
+    const H = svgRef.current.clientHeight || 600;
 
-    const startNs = session.start_time_ns;
-    const endNs   = session.end_time_ns;
-    const durNs   = endNs - startNs || 1;
+    const zoom = d3.zoom().scaleExtent([0.04,5]).on('zoom', e => g.attr('transform', e.transform));
+    svg.call(zoom);
+    zoomRef.current = { svg, zoom };
 
-    const xScale = d3.scaleLinear()
-      .domain([startNs, endNs])
-      .range([marginL, W - marginR]);
+    const g = svg.append('g');
 
-    // Build rows: one CPU row, one per GPU device
-    const gpuDevices = [...new Set(session.gpu_events.map(e => e.device_id ?? 0))].sort();
-    const rows = [
-      { label: 'CPU', kind: 'cpu', y: marginT },
-      ...gpuDevices.map((d, i) => ({
-        label: `GPU:${d}`, kind: 'gpu', device: d,
-        y: marginT + rowH * (i + 1)
-      }))
-    ];
+    const { nodes, edges } = graphData;
+    const cpuNodes = nodes.filter(n => n.kind==='cpu_group');
+    const gpuNodes = nodes.filter(n => n.kind==='gpu');
 
-    // Row labels
-    svg.selectAll('.row-label')
-      .data(rows)
-      .join('text')
-        .attr('class', 'row-label')
-        .attr('x', marginL - 8)
-        .attr('y', d => d.y + barH / 2 + 1)
-        .attr('text-anchor', 'end')
-        .attr('dominant-baseline', 'middle')
-        .attr('fill', d => d.kind === 'cpu' ? '#00d4ff' : '#00e676')
-        .attr('font-family', 'IBM Plex Mono, monospace')
-        .attr('font-size', 9)
-        .text(d => d.label);
+    const PAD = 56;
+    const cpuX = W * 0.24;
+    const gpuX = W * 0.74;
+    const cpuRH = Math.max(50, (H - PAD*2) / Math.max(cpuNodes.length,1));
+    const gpuRH = Math.max(36, (H - PAD*2) / Math.max(gpuNodes.length,1));
 
-    // Grid lines at row tops
-    svg.selectAll('.row-line')
-      .data(rows)
-      .join('line')
-        .attr('x1', marginL).attr('x2', W - marginR)
-        .attr('y1', d => d.y).attr('y2', d => d.y)
-        .attr('stroke', '#1a1e28').attr('stroke-width', 1);
+    cpuNodes.forEach((n,i) => { n.x=cpuX; n.y=PAD + i*cpuRH + cpuRH/2; });
+    gpuNodes.forEach((n,i) => { n.x=gpuX; n.y=PAD + i*gpuRH + gpuRH/2; });
 
-    // CPU alloc bars
-    const cpuAllocs = session.cpu_events.filter(e => !e.is_dealloc);
-    // Match deallocs to allocs for lifetime
-    const deallocMap = {};
-    for (const e of session.cpu_events) {
-      if (e.is_dealloc) deallocMap[e.alloc_address] = e.base.timestamp_ns;
+    const nodeById = {};
+    nodes.forEach(n => nodeById[n.id]=n);
+
+    // defs
+    const defs = svg.append('defs');
+    [['hard','#69f0ae'],['weak','#2a3040']].forEach(([k,col]) => {
+      defs.append('marker').attr('id',`arr-${k}`).attr('viewBox','0 -4 8 8')
+        .attr('refX',20).attr('refY',0).attr('markerWidth',5).attr('markerHeight',5).attr('orient','auto')
+        .append('path').attr('d','M0,-4L8,0L0,4').attr('fill',col);
+    });
+
+    // column labels
+    [['CPU  ALLOCATIONS', cpuX], ['GPU  EVENTS', gpuX]].forEach(([t,x]) => {
+      g.append('text').attr('x',x).attr('y',22).attr('text-anchor','middle')
+        .attr('font-family','JetBrains Mono,monospace').attr('font-size',9)
+        .attr('letter-spacing','0.1em').attr('fill','#384050').text(t);
+    });
+
+    // edges
+    const edgeG = g.append('g');
+    edgeG.selectAll('path').data(edges).join('path')
+      .attr('class', d=>`edge edge-${d.confidence.toLowerCase()}`)
+      .attr('d', d => {
+        const s=nodeById[d.source], t=nodeById[d.target];
+        if(!s||!t) return '';
+        const mx=(s.x+t.x)/2;
+        return `M${s.x+54},${s.y} C${mx},${s.y} ${mx},${t.y} ${t.x-20},${t.y}`;
+      })
+      .attr('fill','none')
+      .attr('stroke', d=>d.confidence==='HARD'?'#69f0ae':'#2a3040')
+      .attr('stroke-width', d=>d.confidence==='HARD'?1.5:1)
+      .attr('stroke-dasharray', d=>d.confidence==='HARD'?'none':'4,3')
+      .attr('opacity', d=>d.confidence==='HARD'?0.55:0.25)
+      .attr('marker-end', d=>`url(#arr-${d.confidence.toLowerCase()})`)
+      .style('cursor','pointer')
+      .on('click', (evt,d) => { evt.stopPropagation(); onSelect({type:'edge',data:d}); hilite(d.source,d.target); });
+
+    // CPU nodes
+    const cpuG = g.append('g');
+    const cpuNd = cpuG.selectAll('g').data(cpuNodes).join('g')
+      .attr('class','node').attr('transform',d=>`translate(${d.x},${d.y})`)
+      .style('cursor','pointer')
+      .on('click',(evt,d)=>{ evt.stopPropagation(); onSelect({type:'cpu_group',data:d}); hilite(d.id); });
+
+    cpuNd.append('rect').attr('x',-54).attr('y',-20).attr('width',108).attr('height',40).attr('rx',5)
+      .attr('fill',d=>d.color+'12').attr('stroke',d=>d.color).attr('stroke-width',1.5);
+    cpuNd.append('text').attr('y',-5).attr('text-anchor','middle')
+      .attr('font-family','JetBrains Mono,monospace').attr('font-size',10).attr('font-weight',600)
+      .attr('fill',d=>d.color).text(d=>d.label.length>15?d.label.slice(0,14)+'…':d.label);
+    cpuNd.append('text').attr('y',11).attr('text-anchor','middle')
+      .attr('font-family','JetBrains Mono,monospace').attr('font-size',8).attr('fill','#4a5568')
+      .text(d=>`${d.count} · ${fmtBytes(d.bytes)}`);
+    // correlation count badge
+    cpuNd.filter(d=>d.corrCount>0).append('g').attr('transform','translate(54,-20)')
+      .call(g=>{
+        g.append('circle').attr('r',8).attr('fill','#0d1a12').attr('stroke','#69f0ae').attr('stroke-width',1.2);
+        g.append('text').attr('text-anchor','middle').attr('dominant-baseline','middle')
+          .attr('font-family','JetBrains Mono,monospace').attr('font-size',7).attr('fill','#69f0ae')
+          .text(d=>d.corrCount);
+      });
+
+    // GPU nodes
+    const gpuG = g.append('g');
+    const gpuNd = gpuG.selectAll('g').data(gpuNodes).join('g')
+      .attr('class','node').attr('transform',d=>`translate(${d.x},${d.y})`)
+      .style('cursor','pointer')
+      .on('click',(evt,d)=>{ evt.stopPropagation(); onSelect({type:'gpu',data:d.event}); hilite(d.id); });
+
+    gpuNd.append('ellipse').attr('rx',46).attr('ry',16)
+      .attr('fill',d=>d.evType==='KERNEL'?'rgba(206,147,216,.07)':'rgba(105,240,174,.05)')
+      .attr('stroke',d=>d.evType==='KERNEL'?'#ce93d8':'#69f0ae').attr('stroke-width',1.5);
+    gpuNd.append('text').attr('text-anchor','middle').attr('dominant-baseline','middle')
+      .attr('font-family','JetBrains Mono,monospace').attr('font-size',9)
+      .attr('fill',d=>d.evType==='KERNEL'?'#ce93d8':'#69f0ae')
+      .text(d=>d.label.length>13?d.label.slice(0,12)+'…':d.label);
+
+    function hilite(...ids) {
+      const s=new Set(ids);
+      g.selectAll('.node').attr('opacity',n=>s.has(n.id)?1:0.12);
+      edgeG.selectAll('path').attr('opacity',d=>(s.has(d.source)||s.has(d.target))?(d.confidence==='HARD'?0.9:0.6):0.04);
     }
 
-    const cpuRow = rows.find(r => r.kind === 'cpu');
-    svg.selectAll('.cpu-bar')
-      .data(cpuAllocs)
-      .join('rect')
-        .attr('class', 'cpu-bar')
-        .attr('x', d => xScale(d.base.timestamp_ns))
-        .attr('y', cpuRow.y + (rowH - barH) / 2)
-        .attr('height', barH)
-        .attr('width', d => {
-          const end = deallocMap[d.alloc_address] || endNs;
-          return Math.max(2, xScale(end) - xScale(d.base.timestamp_ns));
-        })
-        .attr('fill', '#002535')
-        .attr('stroke', '#00d4ff')
-        .attr('stroke-width', 0.8)
-        .attr('rx', 1)
-        .attr('cursor', 'pointer')
-        .on('click', (evt, d) => {
-          onSelect({ type: 'cpu', data: {
-            id: `cpu_${d.base.event_id}`,
-            kind: 'cpu',
-            event_id: d.base.event_id,
-            timestamp: d.base.timestamp_ns,
-            address: d.alloc_address,
-            size: d.alloc_size_bytes,
-            obj_type: d.object_type,
-            ref_count: d.ref_count,
-            gc_gen: d.gc_generation,
-            callstack: d.callstack || [],
-          }});
-        });
+    svg.on('click',()=>{
+      g.selectAll('.node').attr('opacity',1);
+      edgeG.selectAll('path').attr('opacity',d=>d.confidence==='HARD'?0.55:0.25);
+      onSelect(null);
+    });
 
-    // GPU event bars
-    for (const row of rows.filter(r => r.kind === 'gpu')) {
-      const evs = session.gpu_events.filter(e => (e.device_id ?? 0) === row.device);
-      svg.selectAll(`.gpu-bar-${row.device}`)
-        .data(evs)
-        .join('rect')
-          .attr('class', `gpu-bar-${row.device}`)
-          .attr('x', d => xScale(d.base.timestamp_ns))
-          .attr('y', row.y + (rowH - barH) / 2)
-          .attr('height', barH)
-          .attr('width', d => {
-            // transfers have a size we can use to estimate duration; kernels get 4px min
-            const minW = d.base.event_type === 'TRANSFER' ? 4 : 6;
-            return Math.max(minW, Math.min(40, xScale(d.base.timestamp_ns + 500000) - xScale(d.base.timestamp_ns)));
-          })
-          .attr('fill', d => d.base.event_type === 'TRANSFER' ? '#003320' : '#1a2e1a')
-          .attr('stroke', '#00e676')
-          .attr('stroke-width', 0.8)
-          .attr('rx', 1)
-          .attr('cursor', 'pointer')
-          .on('click', (evt, d) => {
-            onSelect({ type: 'gpu', data: {
-              id: `gpu_${d.base.event_id}`,
-              kind: 'gpu',
-              event_id: d.base.event_id,
-              timestamp: d.base.timestamp_ns,
-              event_type: d.base.event_type,
-              device_id: d.device_id,
-              src_address: d.src_address,
-              dst_address: d.dst_address,
-              transfer_size: d.transfer_size_bytes,
-              transfer_kind: d.transfer_kind,
-              page_faults: d.um_page_faults,
-              kernel_name: d.kernel_name,
-            }});
-          });
+    // fit
+    const bb = g.node().getBBox();
+    if(bb.width>0){
+      const sc=Math.min(0.9,Math.min(W/bb.width,H/bb.height)*0.85);
+      const tx=W/2-sc*(bb.x+bb.width/2), ty=H/2-sc*(bb.y+bb.height/2);
+      svg.call(zoom.transform, d3.zoomIdentity.translate(tx,ty).scale(sc));
     }
+  }, [graphData]);
 
-    // Highlight selected bar
-    if (selected) {
-      const ts = selected.data?.timestamp;
-      if (ts) {
-        svg.append('line')
-          .attr('x1', xScale(ts)).attr('x2', xScale(ts))
-          .attr('y1', marginT).attr('y2', H - 4)
-          .attr('stroke', '#ffd740')
-          .attr('stroke-width', 1)
-          .attr('stroke-dasharray', '3,2')
-          .attr('opacity', 0.8);
-      }
+  const fitAll = () => {
+    if(!zoomRef.current||!svgRef.current) return;
+    const {svg,zoom}=zoomRef.current;
+    const bb=svg.select('g').node().getBBox();
+    const W=svgRef.current.clientWidth, H=svgRef.current.clientHeight;
+    if(bb.width>0){
+      const sc=Math.min(0.9,Math.min(W/bb.width,H/bb.height)*0.85);
+      svg.transition().duration(350).call(zoom.transform, d3.zoomIdentity.translate(W/2-sc*(bb.x+bb.width/2),H/2-sc*(bb.y+bb.height/2)).scale(sc));
     }
-
-    // Time axis
-    const axisG = svg.append('g')
-      .attr('transform', `translate(0, ${H - 14})`);
-
-    const ticks = xScale.ticks(6);
-    axisG.selectAll('.tick')
-      .data(ticks)
-      .join('text')
-        .attr('x', d => xScale(d))
-        .attr('y', 0)
-        .attr('text-anchor', 'middle')
-        .attr('fill', '#3a4255')
-        .attr('font-family', 'IBM Plex Mono, monospace')
-        .attr('font-size', 8)
-        .text(d => fmtNs(d - startNs));
-
-  }, [session, selected]);
+  };
 
   return (
-    <div id="timeline-wrap">
-      {!session
-        ? <div style={{display:'flex',alignItems:'center',justifyContent:'center',height:'100%'}}>
-            <span style={{fontFamily:'var(--font-mono)',fontSize:10,color:'var(--text-dim)'}}>
-              TIMELINE — load a session to render
-            </span>
+    <div style={{flex:1,display:'flex',flexDirection:'column',overflow:'hidden'}}>
+      <div id="graph-tb">
+        <span style={{fontFamily:'var(--mono)',fontSize:9,color:'var(--dim)',letterSpacing:'.1em',textTransform:'uppercase',marginRight:4}}>Graph</span>
+        <button className="tb-btn" onClick={fitAll}>Fit</button>
+        <div className="tb-sep"/>
+        <div className="leg"><div className="leg-dot" style={{background:'var(--accent)'}}/> CPU</div>
+        <div className="leg" style={{marginLeft:8}}><div className="leg-dot" style={{background:'var(--green)'}}/> GPU xfer</div>
+        <div className="leg" style={{marginLeft:8}}><div className="leg-dot" style={{background:'var(--purple)'}}/> Kernel</div>
+        <div className="leg" style={{marginLeft:8,gap:6}}>
+          <svg width="16" height="8"><line x1="0" y1="4" x2="16" y2="4" stroke="#69f0ae" strokeWidth="1.5"/></svg>HARD
+        </div>
+        <div className="leg" style={{marginLeft:8,gap:6}}>
+          <svg width="16" height="8"><line x1="0" y1="4" x2="16" y2="4" stroke="#384050" strokeWidth="1" strokeDasharray="3,2"/></svg>WEAK
+        </div>
+      </div>
+      <div id="graph-wrap">
+        {!session && <div className="empty-graph"><div className="eg-title">No session loaded</div><div className="eg-sub">Load a ProfilingSession JSON</div></div>}
+        <svg id="graph-svg" ref={svgRef}/>
+      </div>
+    </div>
+  );
+}
+
+function Timeline({ session, selected, onSelect }) {
+  const ref = useRef(null);
+  useEffect(() => {
+    if(!ref.current||!session) return;
+    const svg=d3.select(ref.current);
+    svg.selectAll('*').remove();
+    const W=ref.current.clientWidth||800, H=ref.current.clientHeight||120;
+    const ML=70,MR=12,MT=14,rowH=26,barH=14;
+    const startNs=session.start_time_ns, endNs=session.end_time_ns;
+    const xScale=d3.scaleLinear().domain([startNs,endNs]).range([ML,W-MR]);
+    const gpuDevs=[...new Set(session.gpu_events.map(e=>e.device_id??0))].sort();
+    const rows=[{label:'CPU',kind:'cpu',y:MT},...gpuDevs.map((d,i)=>({label:`GPU:${d}`,kind:'gpu',device:d,y:MT+rowH*(i+1)}))];
+
+    rows.forEach(r => {
+      svg.append('text').attr('x',ML-8).attr('y',r.y+barH/2).attr('text-anchor','end').attr('dominant-baseline','middle')
+        .attr('font-family','JetBrains Mono,monospace').attr('font-size',9)
+        .attr('fill',r.kind==='cpu'?'#4fc3f7':'#69f0ae').text(r.label);
+    });
+
+    const deallocMap={};
+    session.cpu_events.filter(e=>e.is_dealloc).forEach(e=>{ deallocMap[e.alloc_address]=e.base.timestamp_ns; });
+    const cpuRow=rows.find(r=>r.kind==='cpu');
+    svg.selectAll('.cb').data(session.cpu_events.filter(e=>!e.is_dealloc)).join('rect')
+      .attr('x',d=>xScale(d.base.timestamp_ns)).attr('y',cpuRow.y).attr('height',barH)
+      .attr('width',d=>Math.max(2,xScale(deallocMap[d.alloc_address]||endNs)-xScale(d.base.timestamp_ns)))
+      .attr('fill',d=>typeColor(d.object_type||'unknown')+'28').attr('stroke',d=>typeColor(d.object_type||'unknown'))
+      .attr('stroke-width',.6).attr('rx',1).style('cursor','pointer')
+      .on('click',(evt,d)=>onSelect({type:'cpu',data:d}));
+
+    rows.filter(r=>r.kind==='gpu').forEach(row=>{
+      svg.selectAll(`.gb${row.device}`).data(session.gpu_events.filter(e=>(e.device_id??0)===row.device)).join('rect')
+        .attr('x',d=>xScale(d.base.timestamp_ns)).attr('y',row.y).attr('height',barH).attr('width',5)
+        .attr('fill',d=>d.base.event_type==='KERNEL'?'#ce93d828':'#69f0ae28')
+        .attr('stroke',d=>d.base.event_type==='KERNEL'?'#ce93d8':'#69f0ae')
+        .attr('stroke-width',.6).attr('rx',1).style('cursor','pointer')
+        .on('click',(evt,d)=>onSelect({type:'gpu',data:d}));
+    });
+
+    if(selected?.data?.base?.timestamp_ns){
+      const x=xScale(selected.data.base.timestamp_ns);
+      svg.append('line').attr('x1',x).attr('x2',x).attr('y1',MT-2).attr('y2',H-14)
+        .attr('stroke','#ffd54f').attr('stroke-width',1).attr('stroke-dasharray','3,2').attr('opacity',.85);
+    }
+    xScale.ticks(8).forEach(t=>{
+      svg.append('text').attr('x',xScale(t)).attr('y',H-3).attr('text-anchor','middle')
+        .attr('font-family','JetBrains Mono,monospace').attr('font-size',7).attr('fill','#2a3040')
+        .text(fmtNs(t-startNs));
+    });
+  }, [session,selected]);
+  return <div id="timeline">{!session?<div className="tl-empty">TIMELINE — load a session</div>:<svg ref={ref}/>}</div>;
+}
+
+function Inspector({ selected, baseNs }) {
+  if(!selected) return <div id="inspector"><div className="insp-empty">Click a node or edge<br/>to inspect it.</div></div>;
+  const Row=({k,v,cls})=><div className="insp-row"><span className="insp-key">{k}</span><span className={`insp-val ${cls||''}`}>{v}</span></div>;
+  const Sec=({title,children})=><div className="insp-sec"><div className="insp-sec-title">{title}</div>{children}</div>;
+  const {type,data}=selected;
+
+  if(type==='cpu_group') return <div id="inspector">
+    <div className="insp-badge badge-cpu">CPU Group</div>
+    <Sec title="Summary">
+      <Row k="type" v={data.fullType} cls="iv-a"/>
+      <Row k="allocs" v={data.count}/>
+      <Row k="total size" v={fmtBytes(data.bytes)} cls="iv-g"/>
+      <Row k="correlated" v={`${data.corrCount} / ${data.count}`} cls="iv-y"/>
+    </Sec>
+  </div>;
+
+  if(type==='cpu') { const e=data; return <div id="inspector">
+    <div className="insp-badge badge-cpu">CPU Alloc</div>
+    <Sec title="Identity"><Row k="event_id" v={e.base?.event_id} cls="iv-a"/><Row k="type" v={e.object_type||'—'} cls="iv-y"/></Sec>
+    <Sec title="Memory"><Row k="address" v={fmtAddr(e.alloc_address)} cls="iv-d"/><Row k="size" v={fmtBytes(e.alloc_size_bytes)} cls="iv-g"/><Row k="refs" v={e.ref_count??'—'}/><Row k="gc_gen" v={e.gc_generation??'—'}/></Sec>
+    <Sec title="Timing"><Row k="at" v={fmtRel(e.base?.timestamp_ns,baseNs)} cls="iv-d"/></Sec>
+    {e.callstack?.length>0&&<Sec title="Callstack">{e.callstack.map((f,i)=><div key={i} className="cs-frame">{f}</div>)}</Sec>}
+  </div>; }
+
+  if(type==='gpu') { const e=data; const isT=e.base?.event_type==='TRANSFER'; return <div id="inspector">
+    <div className="insp-badge badge-gpu">GPU {e.base?.event_type}</div>
+    <Sec title="Identity"><Row k="event_id" v={e.base?.event_id} cls="iv-a"/><Row k="device" v={`GPU:${e.device_id??0}`}/></Sec>
+    {isT
+      ? <Sec title="Transfer"><Row k="size" v={fmtBytes(e.transfer_size_bytes)} cls="iv-g"/><Row k="kind" v={e.transfer_kind||'—'} cls="iv-y"/><Row k="src" v={fmtAddr(e.src_address)} cls="iv-d"/><Row k="dst" v={fmtAddr(e.dst_address)} cls="iv-d"/></Sec>
+      : <Sec title="Kernel"><Row k="name" v={e.kernel_name||'—'} cls="iv-p"/><Row k="pg_faults" v={e.um_page_faults??0}/></Sec>}
+    <Sec title="Timing"><Row k="at" v={fmtRel(e.base?.timestamp_ns,baseNs)} cls="iv-d"/></Sec>
+  </div>; }
+
+  if(type==='edge') { const d=data; const isH=d.confidence==='HARD'; return <div id="inspector">
+    <div className="insp-badge badge-corr">Correlation</div>
+    <Sec title="Match">
+      <Row k="confidence" v={<span className={`insp-badge ${isH?'badge-hard':'badge-weak'}`}>{d.confidence}</span>}/>
+      <Row k="reason" v={d.corr?.match_reason} cls={isH?'iv-g':'iv-d'}/>
+      <Row k="latency" v={fmtNs(d.latency)} cls="iv-y"/>
+    </Sec>
+    <Sec title="CPU Alloc">
+      <Row k="type" v={d.data?.fullType||d.source} cls="iv-a"/>
+      <Row k="id" v={d.cpuEvent?.base?.event_id} cls="iv-d"/>
+      <Row k="size" v={fmtBytes(d.cpuEvent?.alloc_size_bytes)} cls="iv-g"/>
+    </Sec>
+  </div>; }
+  return <div id="inspector"><div className="insp-empty">Unknown type.</div></div>;
+}
+
+function TypeList({ session, filterType, onFilter }) {
+  if(!session) return <div id="type-list" style={{display:'flex',alignItems:'center',justifyContent:'center',height:'100%'}}><span style={{fontFamily:'var(--mono)',fontSize:10,color:'var(--dim)'}}>—</span></div>;
+  const allocs=session.cpu_events.filter(e=>!e.is_dealloc);
+  const groups={};
+  allocs.forEach(e=>{ const t=e.object_type||'unknown'; if(!groups[t]) groups[t]={count:0,bytes:0}; groups[t].count++; groups[t].bytes+=e.alloc_size_bytes||0; });
+  const sorted=Object.entries(groups).sort((a,b)=>b[1].count-a[1].count);
+  const maxC=sorted[0]?.[1].count||1;
+  return <div id="type-list">
+    <div className={`type-row ${!filterType?'selected':''}`} onClick={()=>onFilter(null)}>
+      <div className="type-dot" style={{background:'var(--mid)'}}/>
+      <span className="type-name" style={{color:'var(--mid)'}}>All types</span>
+      <span className="type-count">{allocs.length}</span>
+    </div>
+    {sorted.map(([t,info])=>(
+      <div key={t} className={`type-row ${filterType===t?'selected':''}`} onClick={()=>onFilter(filterType===t?null:t)}>
+        <div className="type-dot" style={{background:typeColor(t)}}/>
+        <div style={{flex:1,minWidth:0}}>
+          <div style={{display:'flex',justifyContent:'space-between',alignItems:'baseline'}}>
+            <span className="type-name">{t.split('.').pop()}</span>
+            <span className="type-count">{info.count}</span>
           </div>
-        : <svg ref={svgRef} />
-      }
-    </div>
-  );
+          <div style={{height:2,background:'var(--s3)',borderRadius:1,marginTop:2,overflow:'hidden'}}>
+            <div style={{height:'100%',borderRadius:1,background:typeColor(t),width:`${(info.count/maxC)*100}%`}}/>
+          </div>
+        </div>
+      </div>
+    ))}
+  </div>;
 }
-
-// ─────────────────────────────────────────────
-// Top bar stats
-// ─────────────────────────────────────────────
-
-function TopBar({ session, onLoad }) {
-  const stats = session ? [
-    { label: 'CPU events',  val: session.cpu_events.length },
-    { label: 'GPU events',  val: session.gpu_events.length },
-    { label: 'Correlated',  val: session.correlated_events.length },
-    {
-      label: 'HARD',
-      val: session.correlated_events.filter(c => c.confidence === 'HARD').length,
-    },
-    {
-      label: 'Duration',
-      val: fmtNs(session.end_time_ns - session.start_time_ns),
-    },
-  ] : [];
-
-  return (
-    <div id="topbar">
-      <span className="logo">HPC<span>/</span>PROFILER</span>
-      {session && <div className="sep" />}
-      {stats.map((s, i) => (
-        <span key={i} className="stat"><b>{s.val}</b> {s.label}</span>
-      ))}
-      <div className="spacer" />
-      <button id="load-btn" onClick={onLoad}>Load Session JSON</button>
-    </div>
-  );
-}
-
-// ─────────────────────────────────────────────
-// Root app
-// ─────────────────────────────────────────────
 
 function App() {
-  const [session,  setSession]  = useState(null);
-  const [selected, setSelected] = useState(null);
-  const fileRef = useRef(null);
+  const [session,setSession]=useState(null);
+  const [selected,setSelected]=useState(null);
+  const [filterType,setFilterType]=useState(null);
 
-  // File loading
-  const loadFile = useCallback((file) => {
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      try {
-        const data = JSON.parse(e.target.result);
-        setSession(data);
-        setSelected(null);
-      } catch (err) {
-        alert('Invalid JSON: ' + err.message);
-      }
-    };
-    reader.readAsText(file);
-  }, []);
+  const loadFile=useCallback(file=>{ if(!file) return; const r=new FileReader(); r.onload=e=>{ try{ setSession(JSON.parse(e.target.result)); setSelected(null); setFilterType(null); } catch(err){ alert('Invalid JSON: '+err.message); } }; r.readAsText(file); },[]);
 
-  // Drag and drop
-  useEffect(() => {
-    const overlay = document.getElementById('drop-overlay');
+  useEffect(()=>{
+    const ov=document.getElementById('drop-overlay');
+    const onOver=e=>{e.preventDefault();ov.classList.add('show');};
+    const onLeave=e=>{if(!e.relatedTarget)ov.classList.remove('show');};
+    const onDrop=e=>{e.preventDefault();ov.classList.remove('show');loadFile(e.dataTransfer?.files?.[0]);};
+    document.addEventListener('dragover',onOver); document.addEventListener('dragleave',onLeave); document.addEventListener('drop',onDrop);
+    return()=>{ document.removeEventListener('dragover',onOver); document.removeEventListener('dragleave',onLeave); document.removeEventListener('drop',onDrop); };
+  },[loadFile]);
 
-    const onDragOver = (e) => {
-      e.preventDefault();
-      overlay.classList.add('visible');
-    };
-    const onDragLeave = (e) => {
-      if (!e.relatedTarget) overlay.classList.remove('visible');
-    };
-    const onDrop = (e) => {
-      e.preventDefault();
-      overlay.classList.remove('visible');
-      const file = e.dataTransfer?.files?.[0];
-      if (file) loadFile(file);
-    };
+  useEffect(()=>{ const inp=document.getElementById('file-input'); const h=e=>loadFile(e.target.files[0]); inp.addEventListener('change',h); return()=>inp.removeEventListener('change',h); },[loadFile]);
 
-    document.addEventListener('dragover',  onDragOver);
-    document.addEventListener('dragleave', onDragLeave);
-    document.addEventListener('drop',      onDrop);
-    return () => {
-      document.removeEventListener('dragover',  onDragOver);
-      document.removeEventListener('dragleave', onDragLeave);
-      document.removeEventListener('drop',      onDrop);
-    };
-  }, [loadFile]);
+  const stats=useMemo(()=>{
+    if(!session) return [];
+    const hard=session.correlated_events.filter(c=>c.confidence==='HARD').length;
+    return [
+      {label:'cpu allocs',val:session.cpu_events.filter(e=>!e.is_dealloc).length},
+      {label:'gpu events',val:session.gpu_events.length},
+      {label:'hard corr',val:hard},
+      {label:'duration',val:fmtNs(session.end_time_ns-session.start_time_ns)},
+    ];
+  },[session]);
 
-  // File input
-  useEffect(() => {
-    const input = document.getElementById('file-input');
-    const handler = (e) => loadFile(e.target.files[0]);
-    input.addEventListener('change', handler);
-    return () => input.removeEventListener('change', handler);
-  }, [loadFile]);
-
-  const openPicker = () => document.getElementById('file-input').click();
-
-  const baseNs = session?.start_time_ns ?? 0;
-
-  return (
-    <>
-      <TopBar session={session} onLoad={openPicker} />
-      <div id="content">
-        <TimelinePanel session={session} selected={selected} onSelect={setSelected} />
-        <div id="panels">
-          <GraphPanel  session={session} selected={selected} onSelect={setSelected} />
-          <DetailPanel selected={selected} baseNs={baseNs} />
-        </div>
+  return <>
+    <div id="topbar">
+      <span className="logo">HPC<span> / </span>Profiler</span>
+      {stats.length>0&&<div className="topbar-sep"/>}
+      {stats.map((s,i)=><div key={i} className="stat-pill"><b>{s.val}</b> {s.label}</div>)}
+      <div className="spacer"/>
+      <button className="load-btn" onClick={()=>document.getElementById('file-input').click()}>Load JSON</button>
+    </div>
+    <div id="app">
+      <div id="left-col">
+        <div className="panel-hdr"><b>Object Types</b></div>
+        <TypeList session={session} filterType={filterType} onFilter={setFilterType}/>
       </div>
-    </>
-  );
+      <div id="center-col">
+        <Timeline session={session} selected={selected} onSelect={setSelected}/>
+        <GraphCanvas session={session} filterType={filterType} onSelect={setSelected}/>
+      </div>
+      <div id="right-col">
+        <div className="panel-hdr"><b>Inspector</b></div>
+        <Inspector selected={selected} baseNs={session?.start_time_ns??0}/>
+      </div>
+    </div>
+  </>;
 }
 
-ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
 </script>
 </body>
 </html>
