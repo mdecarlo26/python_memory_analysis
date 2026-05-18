@@ -1,0 +1,103 @@
+[CB][ENTER][CPU] t=237954747325886 ns corr=1 cudaMemGetInfo
+[CB][EXIT ][CPU] t=237954891379508 ns corr=1 cudaMemGetInfo  dur=144053.622us
+[MEMINFO][CPU] before cudaMalloc free=5089MB total=5747MB used=657MB
+[CB][ENTER][CPU] t=237954891392763 ns corr=2 cudaMalloc
+[CB][EXIT ][CPU] t=237954891514139 ns corr=2 cudaMalloc  dur=121.376us dev=0x271c9f8abf56e755 size=1048576
+[CB][ENTER][CPU] t=237954891518006 ns corr=3 cudaMalloc
+[CB][EXIT ][CPU] t=237954891521713 ns corr=3 cudaMalloc  dur=3.707us dev=0xde764af1caa915bc size=1048576
+[CB][ENTER][CPU] t=237954891522866 ns corr=4 cudaMalloc
+[CB][EXIT ][CPU] t=237954891613545 ns corr=4 cudaMalloc  dur=90.679us dev=0xd0967a667a493ec1 size=1048576
+[CB][ENTER][CPU] t=237954891616721 ns corr=5 cudaMemGetInfo
+[CB][EXIT ][CPU] t=237954891635546 ns corr=5 cudaMemGetInfo  dur=18.825us
+[MEMINFO][CPU] after cudaMalloc free=5085MB total=5747MB used=661MB
+[CB][ENTER][CPU] t=237954891643541 ns corr=6 cudaMemcpy dst=0x271c9f8abf56e755 src=0x5590b40a84fdefc2 bytes=1048576 kind=HtoD dst_is_dev=1 src_is_dev=0
+[CB][EXIT ][CPU] t=237954892458843 ns corr=6 cudaMemcpy  dur=815.302us
+[CB][ENTER][CPU] t=237954892460997 ns corr=7 cudaMemcpy dst=0xde764af1caa915bc src=0xa1910069d1c7d1f4 bytes=1048576 kind=HtoD dst_is_dev=1 src_is_dev=0
+[CB][EXIT ][CPU] t=237954892611868 ns corr=7 cudaMemcpy  dur=150.871us
+[CB][ENTER][CPU] t=237954892616066 ns corr=8 cudaLaunchKernel
+[CB][EXIT ][CPU] t=237954892836548 ns corr=8 cudaLaunchKernel  dur=220.482us
+[CB][ENTER][CPU] t=237954892839193 ns corr=9 cudaGetLastError
+[CB][EXIT ][CPU] t=237954892840345 ns corr=9 cudaGetLastError  dur=1.152us
+[CB][ENTER][CPU] t=237954892841116 ns corr=10 cudaMemcpy dst=0x8d41e7b9ec848b4e src=0xd0967a667a493ec1 bytes=1048576 kind=DtoH dst_is_dev=0 src_is_dev=1
+[CB][EXIT ][CPU] t=237954893885575 ns corr=10 cudaMemcpy  dur=1044.459us
+[CB][ENTER][CPU] t=237954893887780 ns corr=11 cudaDeviceSynchronize
+[CB][EXIT ][CPU] t=237954893892348 ns corr=11 cudaDeviceSynchronize  dur=4.568us
+[CB][ENTER][CPU] t=237954893893240 ns corr=12 cudaMemGetInfo
+[CB][EXIT ][CPU] t=237954893924578 ns corr=12 cudaMemGetInfo  dur=31.338us
+[MEMINFO][CPU] during loop (post sync) free=5085MB total=5747MB used=661MB
+[CB][ENTER][CPU] t=237954893926291 ns corr=13 cudaMemcpy dst=0x271c9f8abf56e755 src=0x5590b40a84fdefc2 bytes=1048576 kind=HtoD dst_is_dev=1 src_is_dev=0
+[CB][EXIT ][CPU] t=237954894061414 ns corr=13 cudaMemcpy  dur=135.123us
+[CB][ENTER][CPU] t=237954894063578 ns corr=14 cudaLaunchKernel
+[CB][EXIT ][CPU] t=237954894076903 ns corr=14 cudaLaunchKernel  dur=13.325us
+[CB][ENTER][CPU] t=237954894077784 ns corr=15 cudaGetLastError
+[CB][EXIT ][CPU] t=237954894078325 ns corr=15 cudaGetLastError  dur=0.541us
+[CB][ENTER][CPU] t=237954894079157 ns corr=16 cudaDeviceSynchronize
+[CB][EXIT ][CPU] t=237954894962957 ns corr=16 cudaDeviceSynchronize  dur=883.800us
+[CB][ENTER][CPU] t=237954894963818 ns corr=17 cudaMemGetInfo
+[CB][EXIT ][CPU] t=237954894983555 ns corr=17 cudaMemGetInfo  dur=19.737us
+[MEMINFO][CPU] during loop (post sync) free=5085MB total=5747MB used=661MB
+[CB][ENTER][CPU] t=237954894985118 ns corr=18 cudaLaunchKernel
+[CB][EXIT ][CPU] t=237954894992542 ns corr=18 cudaLaunchKernel  dur=7.424us
+[CB][ENTER][CPU] t=237954894993293 ns corr=19 cudaGetLastError
+[CB][EXIT ][CPU] t=237954894993764 ns corr=19 cudaGetLastError  dur=0.471us
+[CB][ENTER][CPU] t=237954894994465 ns corr=20 cudaDeviceSynchronize
+[CB][EXIT ][CPU] t=237954895805188 ns corr=20 cudaDeviceSynchronize  dur=810.723us
+[CB][ENTER][CPU] t=237954895806230 ns corr=21 cudaMemGetInfo
+[CB][EXIT ][CPU] t=237954895823443 ns corr=21 cudaMemGetInfo  dur=17.213us
+[MEMINFO][CPU] during loop (post sync) free=5085MB total=5747MB used=661MB
+[CB][ENTER][CPU] t=237954895824825 ns corr=22 cudaMemcpy dst=0x271c9f8abf56e755 src=0x5590b40a84fdefc2 bytes=1048576 kind=HtoD dst_is_dev=1 src_is_dev=0
+[CB][EXIT ][CPU] t=237954895894736 ns corr=22 cudaMemcpy  dur=69.911us
+[CB][ENTER][CPU] t=237954895896208 ns corr=23 cudaLaunchKernel
+[CB][EXIT ][CPU] t=237954895905345 ns corr=23 cudaLaunchKernel  dur=9.137us
+[CB][ENTER][CPU] t=237954895906147 ns corr=24 cudaGetLastError
+[CB][EXIT ][CPU] t=237954895964225 ns corr=24 cudaGetLastError  dur=58.078us
+[CB][ENTER][CPU] t=237954895965287 ns corr=25 cudaMemcpy dst=0x8d41e7b9ec848b4e src=0xd0967a667a493ec1 bytes=1048576 kind=DtoH dst_is_dev=0 src_is_dev=1
+[CB][EXIT ][CPU] t=237954897028211 ns corr=25 cudaMemcpy  dur=1062.924us
+[CB][ENTER][CPU] t=237954897030335 ns corr=26 cudaDeviceSynchronize
+[CB][EXIT ][CPU] t=237954897032970 ns corr=26 cudaDeviceSynchronize  dur=2.635us
+[CB][ENTER][CPU] t=237954897033672 ns corr=27 cudaMemGetInfo
+[CB][EXIT ][CPU] t=237954897054621 ns corr=27 cudaMemGetInfo  dur=20.949us
+[MEMINFO][CPU] during loop (post sync) free=5085MB total=5747MB used=661MB
+[CB][ENTER][CPU] t=237954897056334 ns corr=28 cudaLaunchKernel
+[CB][EXIT ][CPU] t=237954897066383 ns corr=28 cudaLaunchKernel  dur=10.049us
+[CB][ENTER][CPU] t=237954897067435 ns corr=29 cudaGetLastError
+[CB][EXIT ][CPU] t=237954897067906 ns corr=29 cudaGetLastError  dur=0.471us
+[CB][ENTER][CPU] t=237954897068637 ns corr=30 cudaDeviceSynchronize
+[CB][EXIT ][CPU] t=237954897880001 ns corr=30 cudaDeviceSynchronize  dur=811.364us
+[CB][ENTER][CPU] t=237954897880863 ns corr=31 cudaMemGetInfo
+[CB][EXIT ][CPU] t=237954897896572 ns corr=31 cudaMemGetInfo  dur=15.709us
+[MEMINFO][CPU] during loop (post sync) free=5085MB total=5747MB used=661MB
+[CB][ENTER][CPU] t=237954897897935 ns corr=32 cudaMemcpy dst=0x271c9f8abf56e755 src=0x5590b40a84fdefc2 bytes=1048576 kind=HtoD dst_is_dev=1 src_is_dev=0
+[CB][EXIT ][CPU] t=237954897967104 ns corr=32 cudaMemcpy  dur=69.169us
+[CB][ENTER][CPU] t=237954897968416 ns corr=33 cudaLaunchKernel
+[CB][EXIT ][CPU] t=237954897976662 ns corr=33 cudaLaunchKernel  dur=8.246us
+[CB][ENTER][CPU] t=237954897977413 ns corr=34 cudaGetLastError
+[CB][EXIT ][CPU] t=237954897977864 ns corr=34 cudaGetLastError  dur=0.451us
+[CB][ENTER][CPU] t=237954897978525 ns corr=35 cudaDeviceSynchronize
+[CB][EXIT ][CPU] t=237954898865230 ns corr=35 cudaDeviceSynchronize  dur=886.705us
+[CB][ENTER][CPU] t=237954898866222 ns corr=36 cudaMemGetInfo
+[CB][EXIT ][CPU] t=237954898884186 ns corr=36 cudaMemGetInfo  dur=17.964us
+[MEMINFO][CPU] during loop (post sync) free=5085MB total=5747MB used=661MB
+[CB][ENTER][CPU] t=237954898885558 ns corr=37 cudaFree dev=0x271c9f8abf56e755 known=1 known_size=1048576
+[CB][EXIT ][CPU] t=237954898893343 ns corr=37 cudaFree  dur=7.785us dev=0x271c9f8abf56e755
+[CB][ENTER][CPU] t=237954898894294 ns corr=38 cudaFree dev=0xde764af1caa915bc known=1 known_size=1048576
+[CB][EXIT ][CPU] t=237954898989943 ns corr=38 cudaFree  dur=95.649us dev=0xde764af1caa915bc
+[CB][ENTER][CPU] t=237954898991807 ns corr=39 cudaFree dev=0xd0967a667a493ec1 known=1 known_size=1048576
+[CB][EXIT ][CPU] t=237954899058972 ns corr=39 cudaFree  dur=67.165us dev=0xd0967a667a493ec1
+[CB][ENTER][CPU] t=237954899061146 ns corr=40 cudaMemGetInfo
+[CB][EXIT ][CPU] t=237954899076915 ns corr=40 cudaMemGetInfo  dur=15.769us
+[MEMINFO][CPU] after cudaFree free=5089MB total=5747MB used=657MB
+[ACT][MEMCPY][GPU] HtoD bytes=1048576 start=1769980191743847768 end=1769980191743930044 dur=82.276us stream=7 corr=6
+[ACT][MEMCPY][GPU] HtoD bytes=1048576 start=1769980191744634074 end=1769980191744716158 dur=82.084us stream=7 corr=7
+[ACT][KERNEL][GPU] _Z12matmulKernelPKfS0_Pfiii start=1769980191744858468 end=1769980191745668647 dur=810.179us grid=(32,32,1) block=(16,16,1) stream=7 corr=8
+[ACT][MEMCPY][GPU] DtoH bytes=1048576 start=1769980191745675335 end=1769980191745754091 dur=78.756us stream=7 corr=10
+[ACT][MEMCPY][GPU] HtoD bytes=1048576 start=1769980191746083481 end=1769980191746165821 dur=82.340us stream=7 corr=13
+[ACT][KERNEL][GPU] _Z12matmulKernelPKfS0_Pfiii start=1769980191746172061 end=1769980191746984160 dur=812.099us grid=(32,32,1) block=(16,16,1) stream=7 corr=14
+[ACT][KERNEL][GPU] _Z12matmulKernelPKfS0_Pfiii start=1769980191747016322 end=1769980191747826373 dur=810.051us grid=(32,32,1) block=(16,16,1) stream=7 corr=18
+[ACT][MEMCPY][GPU] HtoD bytes=1048576 start=1769980191747917033 end=1769980191747998988 dur=81.955us stream=7 corr=22
+[ACT][KERNEL][GPU] _Z12matmulKernelPKfS0_Pfiii start=1769980191748003084 end=1769980191748813615 dur=810.531us grid=(32,32,1) block=(16,16,1) stream=7 corr=23
+[ACT][MEMCPY][GPU] DtoH bytes=1048576 start=1769980191748819791 end=1769980191748898579 dur=78.788us stream=7 corr=25
+[ACT][KERNEL][GPU] _Z12matmulKernelPKfS0_Pfiii start=1769980191749089659 end=1769980191749901278 dur=811.619us grid=(32,32,1) block=(16,16,1) stream=7 corr=28
+[ACT][MEMCPY][GPU] HtoD bytes=1048576 start=1769980191749989506 end=1769980191750071718 dur=82.212us stream=7 corr=32
+[ACT][KERNEL][GPU] _Z12matmulKernelPKfS0_Pfiii start=1769980191750076710 end=1769980191750886377 dur=809.667us grid=(32,32,1) block=(16,16,1) stream=7 corr=33
+C[0]=121.4200  C[last]=121.6251

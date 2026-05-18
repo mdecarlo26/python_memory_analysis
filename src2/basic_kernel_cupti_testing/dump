@@ -1,0 +1,80 @@
+Running matmul with Unified Memory + CUPTI profiling
+  C(MxN) = A(MxK) * B(KxN)
+  M = 10000, K = 10000, N = 10000
+
+============================================================
+CUPTI Report: Explicit cudaMemcpy Traffic
+------------------------------------------------------------
+  Host -> Device (HtoD):             0 bytes (0.000 MiB)
+  Device -> Host (DtoH):             0 bytes (0.000 MiB)
+  Device -> Device(DtoD):            0 bytes (0.000 MiB)
+  Host  -> Host (HtoH):              0 bytes (0.000 MiB)
+  Other kinds:                       0 bytes (0.000 MiB)
+------------------------------------------------------------
+  Total explicit memcpy:             0 bytes (0.000 MiB)
+============================================================
+
+============================================================
+CUPTI Report: Unified Memory Migration + Page Faults
+------------------------------------------------------------
+  UM bytes Host -> Device:         401571840 (382.969 MiB)
+  UM bytes Device -> Host:         399937536 (381.410 MiB)
+  UM bytes Device <-> Device:              0 (0.000 MiB)
+  UM bytes (other counters):               0 (0.000 MiB)
+------------------------------------------------------------
+  Total UM bytes (tracked):        801509376 (764.379 MiB)
+
+  UM CPU page faults (records):         4584
+  UM GPU page fault groups:            12423
+============================================================
+
+============================================================
+Per-array Unified Memory Migration + Page Faults
+------------------------------------------------------------
+Array 'A'  (base=0x7375b6000000, size=400000000 bytes ~ 381.470 MiB)
+  UM HtoD bytes:              1048576 (1.000 MiB)
+  UM DtoH bytes:                    0 (0.000 MiB)
+  UM DtOD bytes:                    0 (0.000 MiB)
+  UM CPU page faults:               0
+  UM GPU page faults:               0
+------------------------------------------------------------
+Array 'B'  (base=0x737598000000, size=400000000 bytes ~ 381.470 MiB)
+  UM HtoD bytes:            400003072 (381.473 MiB)
+  UM DtoH bytes:                    0 (0.000 MiB)
+  UM DtOD bytes:                    0 (0.000 MiB)
+  UM CPU page faults:               0
+  UM GPU page faults:               0
+------------------------------------------------------------
+Array 'C'  (base=0x737580000000, size=400000000 bytes ~ 381.470 MiB)
+  UM HtoD bytes:               520192 (0.496 MiB)
+  UM DtoH bytes:            399937536 (381.410 MiB)
+  UM DtOD bytes:                    0 (0.000 MiB)
+  UM CPU page faults:               0
+  UM GPU page faults:               0
+------------------------------------------------------------
+Array 'Other'  (base=0x0, size=0 bytes ~ 0.000 MiB)
+  UM HtoD bytes:                    0 (0.000 MiB)
+  UM DtoH bytes:                    0 (0.000 MiB)
+  UM DtOD bytes:                    0 (0.000 MiB)
+  UM CPU page faults:               0
+  UM GPU page faults:               0
+------------------------------------------------------------
+============================================================
+
+============================================================
+CUPTI Report: PC Sampling + Global Access Activity
+------------------------------------------------------------
+  PC sampling:      NOT ENABLED (not compatible on this device/config)
+  Global access:    NOT ENABLED (not compatible on this device/config)
+  (This demo only counts records; for source-level analysis,
+   build on NVIDIA's pc_sampling / sass_source_map samples.)
+============================================================
+
+Top-left corner of C (up to 4x4):
+10000.00 10000.00 10000.00 10000.00  ...
+10000.00 10000.00 10000.00 10000.00  ...
+10000.00 10000.00 10000.00 10000.00  ...
+10000.00 10000.00 10000.00 10000.00  ...
+...
+
+Result checksum: 1000000000000.0000

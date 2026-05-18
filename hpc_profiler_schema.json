@@ -1,0 +1,236 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "hpc_profiler_schema",
+  "title": "HPC Profiler Event Schema",
+  "description": "Shared event schema for CPU and GPU profiler streams. Version 0.1 — Phase 0 contract.",
+
+  "definitions": {
+
+    "EventType": {
+      "type": "string",
+      "enum": ["ALLOC", "DEALLOC", "TRANSFER", "PAGE_FAULT", "KERNEL"],
+      "description": "The kind of profiling event. Shared across CPU and GPU events."
+    },
+
+    "TransferKind": {
+      "type": "string",
+      "enum": ["HOST_TO_DEVICE", "DEVICE_TO_HOST", "DEVICE_TO_DEVICE"],
+      "description": "Direction of a GPU memory transfer."
+    },
+
+    "BaseEvent": {
+      "type": "object",
+      "description": "Fields present on every event regardless of source.",
+      "required": ["event_id", "timestamp_ns", "process_id", "thread_id", "event_type"],
+      "properties": {
+        "event_id": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Monotonically increasing integer. Unique within a single profiling session."
+        },
+        "timestamp_ns": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Wall-clock time in nanoseconds since session start. Used for temporal correlation."
+        },
+        "process_id": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "OS process ID of the profiled process."
+        },
+        "thread_id": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "OS thread ID. Used to distinguish concurrent allocation streams."
+        },
+        "event_type": {
+          "$ref": "#/definitions/EventType"
+        }
+      },
+      "additionalProperties": false
+    },
+
+    "CpuEvent": {
+      "type": "object",
+      "description": "A memory event captured by the Python profiler. Emitted on allocation, deallocation, or GC collection.",
+      "required": [
+        "base",
+        "alloc_address",
+        "alloc_size_bytes",
+        "object_type",
+        "ref_count",
+        "callstack",
+        "gc_generation",
+        "is_dealloc"
+      ],
+      "properties": {
+        "base": {
+          "$ref": "#/definitions/BaseEvent"
+        },
+        "alloc_address": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Memory address of the Python object. PRIMARY correlation key — matched against GPU src_address and dst_address."
+        },
+        "alloc_size_bytes": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Size of the allocation in bytes. Used as secondary correlation key when address matching is ambiguous."
+        },
+        "object_type": {
+          "type": "string",
+          "description": "Python type name of the allocated object, e.g. 'numpy.ndarray', 'torch.Tensor', 'list'."
+        },
+        "ref_count": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Python reference count at the moment of this event."
+        },
+        "callstack": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Python call stack at time of allocation, outermost frame first. Captured via tracemalloc."
+        },
+        "gc_generation": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 2,
+          "description": "Python GC generation (0, 1, or 2). Indicates object age and collection frequency."
+        },
+        "is_dealloc": {
+          "type": "boolean",
+          "description": "True if this event represents a deallocation. Pairs with an earlier ALLOC event at the same alloc_address."
+        }
+      },
+      "additionalProperties": false
+    },
+
+    "GpuEvent": {
+      "type": "object",
+      "description": "A memory event captured by the GPU profiler via CUPTI. Emitted on memory transfer, page fault, or kernel execution.",
+      "required": [
+        "base",
+        "device_id",
+        "src_address",
+        "dst_address",
+        "transfer_size_bytes",
+        "transfer_kind",
+        "um_page_faults",
+        "kernel_name"
+      ],
+      "properties": {
+        "base": {
+          "$ref": "#/definitions/BaseEvent"
+        },
+        "device_id": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "CUDA device index. Supports multi-GPU workloads."
+        },
+        "src_address": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Source memory address of the transfer. Matched against CpuEvent.alloc_address for HOST_TO_DEVICE transfers."
+        },
+        "dst_address": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Destination memory address of the transfer. Matched against CpuEvent.alloc_address for DEVICE_TO_HOST transfers."
+        },
+        "transfer_size_bytes": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Size of the memory transfer in bytes. Secondary correlation key."
+        },
+        "transfer_kind": {
+          "$ref": "#/definitions/TransferKind"
+        },
+        "um_page_faults": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Number of Unified Memory page faults associated with this event. 0 for explicit cudaMemcpy transfers."
+        },
+        "kernel_name": {
+          "type": "string",
+          "description": "CUDA kernel name if this event is a KERNEL type. Empty string for transfer and page fault events."
+        }
+      },
+      "additionalProperties": false
+    },
+
+    "CorrelatedEvent": {
+      "type": "object",
+      "description": "Output of the correlator. Links a CpuEvent to a GpuEvent with a confidence score.",
+      "required": ["cpu_event_id", "gpu_event_id", "confidence", "match_reason", "latency_ns"],
+      "properties": {
+        "cpu_event_id": {
+          "type": "integer",
+          "description": "References BaseEvent.event_id of the matched CpuEvent."
+        },
+        "gpu_event_id": {
+          "type": "integer",
+          "description": "References BaseEvent.event_id of the matched GpuEvent."
+        },
+        "confidence": {
+          "type": "string",
+          "enum": ["HARD", "WEAK"],
+          "description": "HARD = address match confirmed. WEAK = timestamp + size match only."
+        },
+        "match_reason": {
+          "type": "string",
+          "enum": ["ADDRESS_MATCH", "SIZE_AND_TIMESTAMP", "TIMESTAMP_ONLY"],
+          "description": "Which correlation keys produced this match."
+        },
+        "latency_ns": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Time between the CpuEvent and GpuEvent timestamps in nanoseconds. Represents CPU-to-GPU transfer latency."
+        }
+      },
+      "additionalProperties": false
+    },
+
+    "ProfilingSession": {
+      "type": "object",
+      "description": "Top-level container for a complete profiling run. This is the JSON file the web UI loads.",
+      "required": ["session_id", "start_time_ns", "end_time_ns", "cpu_events", "gpu_events", "correlated_events"],
+      "properties": {
+        "session_id": {
+          "type": "string",
+          "description": "Unique identifier for this profiling session, e.g. a UUID."
+        },
+        "schema_version": {
+          "type": "string",
+          "description": "Schema version string, e.g. '0.1'. Allows the UI to handle future schema changes."
+        },
+        "start_time_ns": {
+          "type": "integer",
+          "description": "Session start wall-clock time in nanoseconds."
+        },
+        "end_time_ns": {
+          "type": "integer",
+          "description": "Session end wall-clock time in nanoseconds."
+        },
+        "cpu_events": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/CpuEvent" },
+          "description": "All CPU memory events captured during the session."
+        },
+        "gpu_events": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/GpuEvent" },
+          "description": "All GPU memory events captured during the session."
+        },
+        "correlated_events": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/CorrelatedEvent" },
+          "description": "All matched CPU-GPU event pairs produced by the correlator."
+        }
+      },
+      "additionalProperties": false
+    }
+
+  },
+
+  "$ref": "#/definitions/ProfilingSession"
+}

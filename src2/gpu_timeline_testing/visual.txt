@@ -1,0 +1,72 @@
+
+========================
+What the output means
+========================
+
+1) [CB][ENTER/EXIT][CPU] ...  (CUPTI Callback API)
+   - These are CPU-side events emitted immediately when your program calls CUDA APIs.
+   - Key fields:
+     * t=... ns     : CPU timestamp (steady clock). Great for "what the app did when".
+     * corr=ID      : correlation ID (a causal ID) for joining to GPU work.
+     * cudaMemcpy / cudaMalloc / cudaLaunchKernel / cudaDeviceSynchronize :
+                    : what the app requested from CUDA.
+     * dur=... us   : time spent in that CPU API call itself (NOT kernel runtime).
+
+   Why it matters:
+   - Shows *intent* and CPU orchestration: allocations, copies, launches, syncs.
+   - Lets you attribute actions to threads (if you add thread id) and to phases (NVTX).
+
+2) [ACT][...][GPU] ...  (CUPTI Activity API)
+   - These are GPU-side events showing what actually ran on the GPU.
+   - Key fields:
+     * start/end    : GPU timestamps (device clock domain).
+     * dur=... us   : real GPU duration for the activity.
+     * stream=...   : which CUDA stream executed it.
+     * corr=ID      : join key back to the CPU API call that triggered this work.
+
+   Why it matters:
+   - This is *ground truth* runtime: kernel execution time, memcpy engine time, overlap.
+
+3) [MEMINFO][CPU] ...  (cudaMemGetInfo sampling)
+   - Snapshots of free/used device memory from the CPU point of view.
+   - Key fields:
+     * free/total/used MB : device memory pressure over time.
+
+   Why it matters:
+   - Lets you see allocation spikes, leaks, and whether you're approaching OOM.
+
+========================
+The critical idea: corr=...
+========================
+corr is NOT statistical correlation.
+corr is a causal ID that lets you join:
+
+  CPU:  cudaMemcpy (corr=6)   --> GPU: MEMCPY HtoD (corr=6)
+  CPU:  cudaLaunchKernel (corr=8) --> GPU: KERNEL ... (corr=8)
+
+That join is how you build one unified "CPU↔GPU memory dynamics timeline".
+
+
+--- Joined preview (by corr) ---
+ corr   kind   op                        name     bytes  dur_us  stream  gpu_start_us  gpu_end_us              api  cpu_start_us  cpu_end_us  cpu_dur_us
+    6 MEMCPY HtoD                         NaN 1048576.0  81.731       7         0.000      81.731       cudaMemcpy       260.696    1082.449     821.753
+    7 MEMCPY HtoD                         NaN 1048576.0  81.796       7       799.297     881.093       cudaMemcpy      1084.954    1234.733     149.779
+    8 KERNEL  NaN _Z12matmulKernelPKfS0_Pfiii       NaN 809.218       7      1014.859    1824.077 cudaLaunchKernel      1240.675    1451.768     211.093
+   10 MEMCPY DtoH                         NaN 1048576.0  78.852       7      1831.373    1910.225       cudaMemcpy      1456.427    2498.401    1041.974
+   13 MEMCPY HtoD                         NaN 1048576.0  82.083       7      2260.672    2342.755       cudaMemcpy      2539.839    2696.771     156.932
+   14 KERNEL  NaN _Z12matmulKernelPKfS0_Pfiii       NaN 809.730       7      2352.068    3161.798 cudaLaunchKernel      2699.537    2712.461      12.924
+   18 KERNEL  NaN _Z12matmulKernelPKfS0_Pfiii       NaN 809.635       7      3195.175    4004.810 cudaLaunchKernel      3620.735    3629.532       8.797
+   22 MEMCPY HtoD                         NaN 1048576.0  82.275       7      4092.174    4174.449       cudaMemcpy      4459.320    4527.658      68.338
+   23 KERNEL  NaN _Z12matmulKernelPKfS0_Pfiii       NaN 810.659       7      4183.057    4993.716 cudaLaunchKernel      4529.381    4537.195       7.814
+   25 MEMCPY DtoH                         NaN 1048576.0  78.883       7      4998.356    5077.239       cudaMemcpy      4538.949    5662.234    1123.285
+   28 KERNEL  NaN _Z12matmulKernelPKfS0_Pfiii       NaN 811.651       7      5261.983    6073.634 cudaLaunchKernel      5687.652    5696.298       8.646
+   32 MEMCPY HtoD                         NaN 1048576.0  81.923       7      6168.230    6250.153       cudaMemcpy      6527.940    6603.781      75.841
+   33 KERNEL  NaN _Z12matmulKernelPKfS0_Pfiii       NaN 811.362       7      6260.842    7072.204 cudaLaunchKernel      6605.695    6613.720       8.025
+   37 KERNEL  NaN _Z12matmulKernelPKfS0_Pfiii       NaN 808.195       7      7101.805    7910.000 cudaLaunchKernel      7529.118    7535.760       6.642
+   39 MEMCPY DtoH                         NaN 1048576.0  78.819       7      7916.848    7995.667       cudaMemcpy      7537.513    8554.511    1016.998
+   42 MEMCPY HtoD                         NaN 1048576.0  81.955       7      8266.399    8348.354       cudaMemcpy      8585.900    8702.227     116.327
+   43 KERNEL  NaN _Z12matmulKernelPKfS0_Pfiii       NaN 810.018       7      8359.107    9169.125 cudaLaunchKernel      8704.471    8712.957       8.486
+   47 KERNEL  NaN _Z12matmulKernelPKfS0_Pfiii       NaN 808.707       7      9201.606   10010.313 cudaLaunchKernel      9627.874    9635.708       7.834
+   51 MEMCPY HtoD                         NaN 1048576.0  81.764       7     10092.524   10174.288       cudaMemcpy     10464.505   10527.933      63.428
+   52 KERNEL  NaN _Z12matmulKernelPKfS0_Pfiii       NaN 810.659       7     10182.928   10993.587 cudaLaunchKernel     10529.596   10537.150       7.554
+   54 MEMCPY DtoH                         NaN 1048576.0  78.467       7     10999.219   11077.686       cudaMemcpy     10538.823   11639.297    1100.474

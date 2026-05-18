@@ -36,6 +36,7 @@ pip install -r requirements.txt
 node===22.21.0
 React===?
 ```
+
 ### Dev Repos - Ethan
 - [ObjGraph Testing](https://github.com/ethanngibson/objGraph_demo)
 - [VSCode Extension Testing](https://github.com/ethanngibson/vscode-extension-poc)

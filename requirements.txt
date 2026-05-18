@@ -1,0 +1,9 @@
+pandas==3.0.0
+numpy==2.4.2
+matplotlib==3.10.8
+pyvis==0.3.2
+cupy-cuda12x==14.0.1
+pasutil==7.2.2
+jsonschema
+pytest
+cffi
