@@ -232,7 +232,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Generate a mock HPC profiler session JSON.")
     parser.add_argument("--events", type=int, default=50, help="Number of CPU alloc/dealloc pairs to generate.")
     parser.add_argument("--output", type=str, default="mock_session.json", help="Output file path.")
-    parser.add_argument("--schema", type=str, default="../hpc_profiler_schema.json", help="Path to schema file for validation.")
+    parser.add_argument("--schema", type=str, default="./hpc_profiler_schema.json", help="Path to schema file for validation.")
     args = parser.parse_args()
 
     print(f"Generating session with {args.events} allocation pairs...")

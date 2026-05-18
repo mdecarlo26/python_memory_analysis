@@ -1,0 +1,5930 @@
+{
+  "session_id": "5fd04fed-8756-4e51-81ab-a2797e9bd2d8",
+  "schema_version": "0.1",
+  "start_time_ns": 1779074165156351235,
+  "end_time_ns": 1779074165726462667,
+  "cpu_events": [
+    {
+      "base": {
+        "event_id": 1,
+        "timestamp_ns": 1779074165156376547,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "ALLOC"
+      },
+      "alloc_address": 351667694,
+      "alloc_size_bytes": 1024,
+      "object_type": "torch.Tensor",
+      "ref_count": 5,
+      "callstack": [
+        "<module>",
+        "train",
+        "forward",
+        "numpy.dot"
+      ],
+      "gc_generation": 2,
+      "is_dealloc": false
+    },
+    {
+      "base": {
+        "event_id": 2,
+        "timestamp_ns": 1779074165157783038,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "DEALLOC"
+      },
+      "alloc_address": 351667694,
+      "alloc_size_bytes": 1024,
+      "object_type": "torch.Tensor",
+      "ref_count": 0,
+      "callstack": [
+        "<module>",
+        "train",
+        "backward",
+        "torch.autograd"
+      ],
+      "gc_generation": 1,
+      "is_dealloc": true
+    },
+    {
+      "base": {
+        "event_id": 3,
+        "timestamp_ns": 1779074165157859488,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "ALLOC"
+      },
+      "alloc_address": 2025491297,
+      "alloc_size_bytes": 16384,
+      "object_type": "bytes",
+      "ref_count": 5,
+      "callstack": [
+        "<module>",
+        "train",
+        "forward",
+        "numpy.dot"
+      ],
+      "gc_generation": 1,
+      "is_dealloc": false
+    },
+    {
+      "base": {
+        "event_id": 5,
+        "timestamp_ns": 1779074165160825261,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "DEALLOC"
+      },
+      "alloc_address": 2025491297,
+      "alloc_size_bytes": 16384,
+      "object_type": "bytes",
+      "ref_count": 0,
+      "callstack": [
+        "<module>",
+        "train",
+        "backward",
+        "torch.autograd"
+      ],
+      "gc_generation": 2,
+      "is_dealloc": true
+    },
+    {
+      "base": {
+        "event_id": 6,
+        "timestamp_ns": 1779074165160870734,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "ALLOC"
+      },
+      "alloc_address": 420733449,
+      "alloc_size_bytes": 16384,
+      "object_type": "bytes",
+      "ref_count": 1,
+      "callstack": [
+        "<module>",
+        "train",
+        "forward",
+        "numpy.dot"
+      ],
+      "gc_generation": 2,
+      "is_dealloc": false
+    },
+    {
+      "base": {
+        "event_id": 8,
+        "timestamp_ns": 1779074165169544708,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "DEALLOC"
+      },
+      "alloc_address": 420733449,
+      "alloc_size_bytes": 16384,
+      "object_type": "bytes",
+      "ref_count": 0,
+      "callstack": [
+        "<module>",
+        "train",
+        "forward",
+        "numpy.dot"
+      ],
+      "gc_generation": 2,
+      "is_dealloc": true
+    },
+    {
+      "base": {
+        "event_id": 9,
+        "timestamp_ns": 1779074165169552515,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "ALLOC"
+      },
+      "alloc_address": 935808596,
+      "alloc_size_bytes": 1024,
+      "object_type": "bytes",
+      "ref_count": 5,
+      "callstack": [
+        "<module>",
+        "train",
+        "backward",
+        "torch.autograd"
+      ],
+      "gc_generation": 1,
+      "is_dealloc": false
+    },
+    {
+      "base": {
+        "event_id": 10,
+        "timestamp_ns": 1779074165172251834,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "DEALLOC"
+      },
+      "alloc_address": 935808596,
+      "alloc_size_bytes": 1024,
+      "object_type": "bytes",
+      "ref_count": 0,
+      "callstack": [
+        "<module>",
+        "train",
+        "forward",
+        "numpy.dot"
+      ],
+      "gc_generation": 1,
+      "is_dealloc": true
+    },
+    {
+      "base": {
+        "event_id": 11,
+        "timestamp_ns": 1779074165172277280,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "ALLOC"
+      },
+      "alloc_address": 1428552047,
+      "alloc_size_bytes": 4096,
+      "object_type": "list",
+      "ref_count": 3,
+      "callstack": [
+        "<module>",
+        "preprocess",
+        "numpy.array"
+      ],
+      "gc_generation": 0,
+      "is_dealloc": false
+    },
+    {
+      "base": {
+        "event_id": 14,
+        "timestamp_ns": 1779074165176982615,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "DEALLOC"
+      },
+      "alloc_address": 1428552047,
+      "alloc_size_bytes": 4096,
+      "object_type": "list",
+      "ref_count": 0,
+      "callstack": [
+        "<module>",
+        "load_data",
+        "pandas.read_csv"
+      ],
+      "gc_generation": 0,
+      "is_dealloc": true
+    },
+    {
+      "base": {
+        "event_id": 15,
+        "timestamp_ns": 1779074165177069185,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "ALLOC"
+      },
+      "alloc_address": 895114747,
+      "alloc_size_bytes": 256,
+      "object_type": "dict",
+      "ref_count": 2,
+      "callstack": [
+        "<module>",
+        "preprocess",
+        "numpy.array"
+      ],
+      "gc_generation": 1,
+      "is_dealloc": false
+    },
+    {
+      "base": {
+        "event_id": 17,
+        "timestamp_ns": 1779074165187061082,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "DEALLOC"
+      },
+      "alloc_address": 895114747,
+      "alloc_size_bytes": 256,
+      "object_type": "dict",
+      "ref_count": 0,
+      "callstack": [
+        "<module>",
+        "load_data",
+        "pandas.read_csv"
+      ],
+      "gc_generation": 0,
+      "is_dealloc": true
+    },
+    {
+      "base": {
+        "event_id": 18,
+        "timestamp_ns": 1779074165187079808,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "ALLOC"
+      },
+      "alloc_address": 2337041520,
+      "alloc_size_bytes": 1048576,
+      "object_type": "bytes",
+      "ref_count": 2,
+      "callstack": [
+        "<module>",
+        "preprocess",
+        "numpy.array"
+      ],
+      "gc_generation": 1,
+      "is_dealloc": false
+    },
+    {
+      "base": {
+        "event_id": 21,
+        "timestamp_ns": 1779074165196148629,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "DEALLOC"
+      },
+      "alloc_address": 2337041520,
+      "alloc_size_bytes": 1048576,
+      "object_type": "bytes",
+      "ref_count": 0,
+      "callstack": [
+        "<module>",
+        "train",
+        "forward",
+        "numpy.dot"
+      ],
+      "gc_generation": 2,
+      "is_dealloc": true
+    },
+    {
+      "base": {
+        "event_id": 22,
+        "timestamp_ns": 1779074165196225908,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "ALLOC"
+      },
+      "alloc_address": 2305403739,
+      "alloc_size_bytes": 1048576,
+      "object_type": "dict",
+      "ref_count": 4,
+      "callstack": [
+        "<module>",
+        "load_data",
+        "pandas.read_csv"
+      ],
+      "gc_generation": 1,
+      "is_dealloc": false
+    },
+    {
+      "base": {
+        "event_id": 23,
+        "timestamp_ns": 1779074165202476717,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "DEALLOC"
+      },
+      "alloc_address": 2305403739,
+      "alloc_size_bytes": 1048576,
+      "object_type": "dict",
+      "ref_count": 0,
+      "callstack": [
+        "<module>",
+        "load_data",
+        "pandas.read_csv"
+      ],
+      "gc_generation": 1,
+      "is_dealloc": true
+    },
+    {
+      "base": {
+        "event_id": 24,
+        "timestamp_ns": 1779074165202575862,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "ALLOC"
+      },
+      "alloc_address": 1756949041,
+      "alloc_size_bytes": 1024,
+      "object_type": "numpy.ndarray",
+      "ref_count": 3,
+      "callstack": [
+        "<module>",
+        "train",
+        "forward",
+        "numpy.dot"
+      ],
+      "gc_generation": 2,
+      "is_dealloc": false
+    },
+    {
+      "base": {
+        "event_id": 25,
+        "timestamp_ns": 1779074165207069774,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "DEALLOC"
+      },
+      "alloc_address": 1756949041,
+      "alloc_size_bytes": 1024,
+      "object_type": "numpy.ndarray",
+      "ref_count": 0,
+      "callstack": [
+        "<module>",
+        "preprocess",
+        "numpy.array"
+      ],
+      "gc_generation": 1,
+      "is_dealloc": true
+    },
+    {
+      "base": {
+        "event_id": 26,
+        "timestamp_ns": 1779074165207086201,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "ALLOC"
+      },
+      "alloc_address": 1728044326,
+      "alloc_size_bytes": 1024,
+      "object_type": "list",
+      "ref_count": 1,
+      "callstack": [
+        "<module>",
+        "train",
+        "forward",
+        "numpy.dot"
+      ],
+      "gc_generation": 2,
+      "is_dealloc": false
+    },
+    {
+      "base": {
+        "event_id": 28,
+        "timestamp_ns": 1779074165211395814,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "DEALLOC"
+      },
+      "alloc_address": 1728044326,
+      "alloc_size_bytes": 1024,
+      "object_type": "list",
+      "ref_count": 0,
+      "callstack": [
+        "<module>",
+        "load_data",
+        "pandas.read_csv"
+      ],
+      "gc_generation": 0,
+      "is_dealloc": true
+    },
+    {
+      "base": {
+        "event_id": 29,
+        "timestamp_ns": 1779074165211464312,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "ALLOC"
+      },
+      "alloc_address": 1227836152,
+      "alloc_size_bytes": 1048576,
+      "object_type": "torch.Tensor",
+      "ref_count": 5,
+      "callstack": [
+        "<module>",
+        "load_data",
+        "pandas.read_csv"
+      ],
+      "gc_generation": 2,
+      "is_dealloc": false
+    },
+    {
+      "base": {
+        "event_id": 30,
+        "timestamp_ns": 1779074165217717695,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "DEALLOC"
+      },
+      "alloc_address": 1227836152,
+      "alloc_size_bytes": 1048576,
+      "object_type": "torch.Tensor",
+      "ref_count": 0,
+      "callstack": [
+        "<module>",
+        "load_data",
+        "pandas.read_csv"
+      ],
+      "gc_generation": 2,
+      "is_dealloc": true
+    },
+    {
+      "base": {
+        "event_id": 31,
+        "timestamp_ns": 1779074165217737739,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "ALLOC"
+      },
+      "alloc_address": 1939677581,
+      "alloc_size_bytes": 64,
+      "object_type": "numpy.ndarray",
+      "ref_count": 4,
+      "callstack": [
+        "<module>",
+        "preprocess",
+        "numpy.array"
+      ],
+      "gc_generation": 1,
+      "is_dealloc": false
+    },
+    {
+      "base": {
+        "event_id": 33,
+        "timestamp_ns": 1779074165223421383,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "DEALLOC"
+      },
+      "alloc_address": 1939677581,
+      "alloc_size_bytes": 64,
+      "object_type": "numpy.ndarray",
+      "ref_count": 0,
+      "callstack": [
+        "<module>",
+        "train",
+        "forward",
+        "numpy.dot"
+      ],
+      "gc_generation": 0,
+      "is_dealloc": true
+    },
+    {
+      "base": {
+        "event_id": 34,
+        "timestamp_ns": 1779074165223444489,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "ALLOC"
+      },
+      "alloc_address": 34712242,
+      "alloc_size_bytes": 1024,
+      "object_type": "bytearray",
+      "ref_count": 1,
+      "callstack": [
+        "<module>",
+        "preprocess",
+        "numpy.array"
+      ],
+      "gc_generation": 1,
+      "is_dealloc": false
+    },
+    {
+      "base": {
+        "event_id": 35,
+        "timestamp_ns": 1779074165232811085,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "DEALLOC"
+      },
+      "alloc_address": 34712242,
+      "alloc_size_bytes": 1024,
+      "object_type": "bytearray",
+      "ref_count": 0,
+      "callstack": [
+        "<module>",
+        "load_data",
+        "pandas.read_csv"
+      ],
+      "gc_generation": 0,
+      "is_dealloc": true
+    },
+    {
+      "base": {
+        "event_id": 36,
+        "timestamp_ns": 1779074165232826014,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "ALLOC"
+      },
+      "alloc_address": 1410127117,
+      "alloc_size_bytes": 1024,
+      "object_type": "dict",
+      "ref_count": 1,
+      "callstack": [
+        "<module>",
+        "train",
+        "forward",
+        "numpy.dot"
+      ],
+      "gc_generation": 1,
+      "is_dealloc": false
+    },
+    {
+      "base": {
+        "event_id": 38,
+        "timestamp_ns": 1779074165240821955,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "DEALLOC"
+      },
+      "alloc_address": 1410127117,
+      "alloc_size_bytes": 1024,
+      "object_type": "dict",
+      "ref_count": 0,
+      "callstack": [
+        "<module>",
+        "train",
+        "forward",
+        "numpy.dot"
+      ],
+      "gc_generation": 0,
+      "is_dealloc": true
+    },
+    {
+      "base": {
+        "event_id": 39,
+        "timestamp_ns": 1779074165240912158,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "ALLOC"
+      },
+      "alloc_address": 155389829,
+      "alloc_size_bytes": 65536,
+      "object_type": "dict",
+      "ref_count": 3,
+      "callstack": [
+        "<module>",
+        "load_data",
+        "pandas.read_csv"
+      ],
+      "gc_generation": 2,
+      "is_dealloc": false
+    },
+    {
+      "base": {
+        "event_id": 42,
+        "timestamp_ns": 1779074165249730036,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "DEALLOC"
+      },
+      "alloc_address": 155389829,
+      "alloc_size_bytes": 65536,
+      "object_type": "dict",
+      "ref_count": 0,
+      "callstack": [
+        "<module>",
+        "load_data",
+        "pandas.read_csv"
+      ],
+      "gc_generation": 1,
+      "is_dealloc": true
+    },
+    {
+      "base": {
+        "event_id": 43,
+        "timestamp_ns": 1779074165249760939,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "ALLOC"
+      },
+      "alloc_address": 374522120,
+      "alloc_size_bytes": 1048576,
+      "object_type": "bytearray",
+      "ref_count": 3,
+      "callstack": [
+        "<module>",
+        "train",
+        "forward",
+        "numpy.dot"
+      ],
+      "gc_generation": 2,
+      "is_dealloc": false
+    },
+    {
+      "base": {
+        "event_id": 44,
+        "timestamp_ns": 1779074165257275480,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "DEALLOC"
+      },
+      "alloc_address": 374522120,
+      "alloc_size_bytes": 1048576,
+      "object_type": "bytearray",
+      "ref_count": 0,
+      "callstack": [
+        "<module>",
+        "train",
+        "forward",
+        "numpy.dot"
+      ],
+      "gc_generation": 1,
+      "is_dealloc": true
+    },
+    {
+      "base": {
+        "event_id": 45,
+        "timestamp_ns": 1779074165257367812,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "ALLOC"
+      },
+      "alloc_address": 1776767551,
+      "alloc_size_bytes": 4096,
+      "object_type": "bytes",
+      "ref_count": 2,
+      "callstack": [
+        "<module>",
+        "preprocess",
+        "numpy.array"
+      ],
+      "gc_generation": 1,
+      "is_dealloc": false
+    },
+    {
+      "base": {
+        "event_id": 46,
+        "timestamp_ns": 1779074165259971664,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "DEALLOC"
+      },
+      "alloc_address": 1776767551,
+      "alloc_size_bytes": 4096,
+      "object_type": "bytes",
+      "ref_count": 0,
+      "callstack": [
+        "<module>",
+        "train",
+        "forward",
+        "numpy.dot"
+      ],
+      "gc_generation": 1,
+      "is_dealloc": true
+    },
+    {
+      "base": {
+        "event_id": 47,
+        "timestamp_ns": 1779074165260031488,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "ALLOC"
+      },
+      "alloc_address": 2349112326,
+      "alloc_size_bytes": 65536,
+      "object_type": "torch.Tensor",
+      "ref_count": 1,
+      "callstack": [
+        "<module>",
+        "load_data",
+        "pandas.read_csv"
+      ],
+      "gc_generation": 1,
+      "is_dealloc": false
+    },
+    {
+      "base": {
+        "event_id": 48,
+        "timestamp_ns": 1779074165268919567,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "DEALLOC"
+      },
+      "alloc_address": 2349112326,
+      "alloc_size_bytes": 65536,
+      "object_type": "torch.Tensor",
+      "ref_count": 0,
+      "callstack": [
+        "<module>",
+        "load_data",
+        "pandas.read_csv"
+      ],
+      "gc_generation": 0,
+      "is_dealloc": true
+    },
+    {
+      "base": {
+        "event_id": 49,
+        "timestamp_ns": 1779074165268934330,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "ALLOC"
+      },
+      "alloc_address": 654948875,
+      "alloc_size_bytes": 1024,
+      "object_type": "dict",
+      "ref_count": 2,
+      "callstack": [
+        "<module>",
+        "train",
+        "backward",
+        "torch.autograd"
+      ],
+      "gc_generation": 2,
+      "is_dealloc": false
+    },
+    {
+      "base": {
+        "event_id": 50,
+        "timestamp_ns": 1779074165273503024,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "DEALLOC"
+      },
+      "alloc_address": 654948875,
+      "alloc_size_bytes": 1024,
+      "object_type": "dict",
+      "ref_count": 0,
+      "callstack": [
+        "<module>",
+        "load_data",
+        "pandas.read_csv"
+      ],
+      "gc_generation": 0,
+      "is_dealloc": true
+    },
+    {
+      "base": {
+        "event_id": 51,
+        "timestamp_ns": 1779074165273591525,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "ALLOC"
+      },
+      "alloc_address": 1736112539,
+      "alloc_size_bytes": 4096,
+      "object_type": "bytes",
+      "ref_count": 4,
+      "callstack": [
+        "<module>",
+        "train",
+        "backward",
+        "torch.autograd"
+      ],
+      "gc_generation": 2,
+      "is_dealloc": false
+    },
+    {
+      "base": {
+        "event_id": 52,
+        "timestamp_ns": 1779074165280897645,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "DEALLOC"
+      },
+      "alloc_address": 1736112539,
+      "alloc_size_bytes": 4096,
+      "object_type": "bytes",
+      "ref_count": 0,
+      "callstack": [
+        "<module>",
+        "train",
+        "forward",
+        "numpy.dot"
+      ],
+      "gc_generation": 1,
+      "is_dealloc": true
+    },
+    {
+      "base": {
+        "event_id": 53,
+        "timestamp_ns": 1779074165280939913,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "ALLOC"
+      },
+      "alloc_address": 273651346,
+      "alloc_size_bytes": 256,
+      "object_type": "dict",
+      "ref_count": 5,
+      "callstack": [
+        "<module>",
+        "load_data",
+        "pandas.read_csv"
+      ],
+      "gc_generation": 1,
+      "is_dealloc": false
+    },
+    {
+      "base": {
+        "event_id": 54,
+        "timestamp_ns": 1779074165286392494,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "DEALLOC"
+      },
+      "alloc_address": 273651346,
+      "alloc_size_bytes": 256,
+      "object_type": "dict",
+      "ref_count": 0,
+      "callstack": [
+        "<module>",
+        "preprocess",
+        "numpy.array"
+      ],
+      "gc_generation": 2,
+      "is_dealloc": true
+    },
+    {
+      "base": {
+        "event_id": 55,
+        "timestamp_ns": 1779074165286462898,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "ALLOC"
+      },
+      "alloc_address": 1520406187,
+      "alloc_size_bytes": 256,
+      "object_type": "bytes",
+      "ref_count": 1,
+      "callstack": [
+        "<module>",
+        "train",
+        "backward",
+        "torch.autograd"
+      ],
+      "gc_generation": 1,
+      "is_dealloc": false
+    },
+    {
+      "base": {
+        "event_id": 56,
+        "timestamp_ns": 1779074165290195828,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "DEALLOC"
+      },
+      "alloc_address": 1520406187,
+      "alloc_size_bytes": 256,
+      "object_type": "bytes",
+      "ref_count": 0,
+      "callstack": [
+        "<module>",
+        "train",
+        "forward",
+        "numpy.dot"
+      ],
+      "gc_generation": 0,
+      "is_dealloc": true
+    },
+    {
+      "base": {
+        "event_id": 57,
+        "timestamp_ns": 1779074165290232720,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "ALLOC"
+      },
+      "alloc_address": 1153641993,
+      "alloc_size_bytes": 64,
+      "object_type": "torch.Tensor",
+      "ref_count": 3,
+      "callstack": [
+        "<module>",
+        "load_data",
+        "pandas.read_csv"
+      ],
+      "gc_generation": 1,
+      "is_dealloc": false
+    },
+    {
+      "base": {
+        "event_id": 60,
+        "timestamp_ns": 1779074165297422528,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "DEALLOC"
+      },
+      "alloc_address": 1153641993,
+      "alloc_size_bytes": 64,
+      "object_type": "torch.Tensor",
+      "ref_count": 0,
+      "callstack": [
+        "<module>",
+        "train",
+        "forward",
+        "numpy.dot"
+      ],
+      "gc_generation": 1,
+      "is_dealloc": true
+    },
+    {
+      "base": {
+        "event_id": 61,
+        "timestamp_ns": 1779074165297493779,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "ALLOC"
+      },
+      "alloc_address": 2184156478,
+      "alloc_size_bytes": 1048576,
+      "object_type": "bytes",
+      "ref_count": 1,
+      "callstack": [
+        "<module>",
+        "train",
+        "backward",
+        "torch.autograd"
+      ],
+      "gc_generation": 2,
+      "is_dealloc": false
+    },
+    {
+      "base": {
+        "event_id": 62,
+        "timestamp_ns": 1779074165305864274,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "DEALLOC"
+      },
+      "alloc_address": 2184156478,
+      "alloc_size_bytes": 1048576,
+      "object_type": "bytes",
+      "ref_count": 0,
+      "callstack": [
+        "<module>",
+        "preprocess",
+        "numpy.array"
+      ],
+      "gc_generation": 2,
+      "is_dealloc": true
+    },
+    {
+      "base": {
+        "event_id": 63,
+        "timestamp_ns": 1779074165305897851,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "ALLOC"
+      },
+      "alloc_address": 1773245744,
+      "alloc_size_bytes": 1048576,
+      "object_type": "list",
+      "ref_count": 2,
+      "callstack": [
+        "<module>",
+        "train",
+        "backward",
+        "torch.autograd"
+      ],
+      "gc_generation": 0,
+      "is_dealloc": false
+    },
+    {
+      "base": {
+        "event_id": 64,
+        "timestamp_ns": 1779074165313974788,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "DEALLOC"
+      },
+      "alloc_address": 1773245744,
+      "alloc_size_bytes": 1048576,
+      "object_type": "list",
+      "ref_count": 0,
+      "callstack": [
+        "<module>",
+        "train",
+        "forward",
+        "numpy.dot"
+      ],
+      "gc_generation": 0,
+      "is_dealloc": true
+    },
+    {
+      "base": {
+        "event_id": 65,
+        "timestamp_ns": 1779074165313991910,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "ALLOC"
+      },
+      "alloc_address": 857797141,
+      "alloc_size_bytes": 256,
+      "object_type": "numpy.ndarray",
+      "ref_count": 1,
+      "callstack": [
+        "<module>",
+        "train",
+        "backward",
+        "torch.autograd"
+      ],
+      "gc_generation": 1,
+      "is_dealloc": false
+    },
+    {
+      "base": {
+        "event_id": 66,
+        "timestamp_ns": 1779074165319344176,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "DEALLOC"
+      },
+      "alloc_address": 857797141,
+      "alloc_size_bytes": 256,
+      "object_type": "numpy.ndarray",
+      "ref_count": 0,
+      "callstack": [
+        "<module>",
+        "train",
+        "forward",
+        "numpy.dot"
+      ],
+      "gc_generation": 0,
+      "is_dealloc": true
+    },
+    {
+      "base": {
+        "event_id": 67,
+        "timestamp_ns": 1779074165319405920,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "ALLOC"
+      },
+      "alloc_address": 1371626764,
+      "alloc_size_bytes": 64,
+      "object_type": "bytearray",
+      "ref_count": 1,
+      "callstack": [
+        "<module>",
+        "train",
+        "backward",
+        "torch.autograd"
+      ],
+      "gc_generation": 1,
+      "is_dealloc": false
+    },
+    {
+      "base": {
+        "event_id": 69,
+        "timestamp_ns": 1779074165326439260,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "DEALLOC"
+      },
+      "alloc_address": 1371626764,
+      "alloc_size_bytes": 64,
+      "object_type": "bytearray",
+      "ref_count": 0,
+      "callstack": [
+        "<module>",
+        "train",
+        "forward",
+        "numpy.dot"
+      ],
+      "gc_generation": 0,
+      "is_dealloc": true
+    },
+    {
+      "base": {
+        "event_id": 70,
+        "timestamp_ns": 1779074165326459391,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "ALLOC"
+      },
+      "alloc_address": 2034361499,
+      "alloc_size_bytes": 256,
+      "object_type": "bytearray",
+      "ref_count": 2,
+      "callstack": [
+        "<module>",
+        "preprocess",
+        "numpy.array"
+      ],
+      "gc_generation": 2,
+      "is_dealloc": false
+    },
+    {
+      "base": {
+        "event_id": 73,
+        "timestamp_ns": 1779074165329824521,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "DEALLOC"
+      },
+      "alloc_address": 2034361499,
+      "alloc_size_bytes": 256,
+      "object_type": "bytearray",
+      "ref_count": 0,
+      "callstack": [
+        "<module>",
+        "preprocess",
+        "numpy.array"
+      ],
+      "gc_generation": 2,
+      "is_dealloc": true
+    },
+    {
+      "base": {
+        "event_id": 74,
+        "timestamp_ns": 1779074165329903562,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "ALLOC"
+      },
+      "alloc_address": 2472514929,
+      "alloc_size_bytes": 4096,
+      "object_type": "bytearray",
+      "ref_count": 5,
+      "callstack": [
+        "<module>",
+        "preprocess",
+        "numpy.array"
+      ],
+      "gc_generation": 2,
+      "is_dealloc": false
+    },
+    {
+      "base": {
+        "event_id": 76,
+        "timestamp_ns": 1779074165333397078,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "DEALLOC"
+      },
+      "alloc_address": 2472514929,
+      "alloc_size_bytes": 4096,
+      "object_type": "bytearray",
+      "ref_count": 0,
+      "callstack": [
+        "<module>",
+        "train",
+        "forward",
+        "numpy.dot"
+      ],
+      "gc_generation": 0,
+      "is_dealloc": true
+    },
+    {
+      "base": {
+        "event_id": 77,
+        "timestamp_ns": 1779074165333425708,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "ALLOC"
+      },
+      "alloc_address": 2424337783,
+      "alloc_size_bytes": 1048576,
+      "object_type": "bytes",
+      "ref_count": 3,
+      "callstack": [
+        "<module>",
+        "load_data",
+        "pandas.read_csv"
+      ],
+      "gc_generation": 0,
+      "is_dealloc": false
+    },
+    {
+      "base": {
+        "event_id": 78,
+        "timestamp_ns": 1779074165339314542,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "DEALLOC"
+      },
+      "alloc_address": 2424337783,
+      "alloc_size_bytes": 1048576,
+      "object_type": "bytes",
+      "ref_count": 0,
+      "callstack": [
+        "<module>",
+        "train",
+        "backward",
+        "torch.autograd"
+      ],
+      "gc_generation": 0,
+      "is_dealloc": true
+    },
+    {
+      "base": {
+        "event_id": 79,
+        "timestamp_ns": 1779074165339395517,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "ALLOC"
+      },
+      "alloc_address": 1225400636,
+      "alloc_size_bytes": 65536,
+      "object_type": "dict",
+      "ref_count": 1,
+      "callstack": [
+        "<module>",
+        "preprocess",
+        "numpy.array"
+      ],
+      "gc_generation": 1,
+      "is_dealloc": false
+    },
+    {
+      "base": {
+        "event_id": 80,
+        "timestamp_ns": 1779074165344275676,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "DEALLOC"
+      },
+      "alloc_address": 1225400636,
+      "alloc_size_bytes": 65536,
+      "object_type": "dict",
+      "ref_count": 0,
+      "callstack": [
+        "<module>",
+        "preprocess",
+        "numpy.array"
+      ],
+      "gc_generation": 1,
+      "is_dealloc": true
+    },
+    {
+      "base": {
+        "event_id": 81,
+        "timestamp_ns": 1779074165344312717,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "ALLOC"
+      },
+      "alloc_address": 2546836433,
+      "alloc_size_bytes": 256,
+      "object_type": "numpy.ndarray",
+      "ref_count": 1,
+      "callstack": [
+        "<module>",
+        "train",
+        "backward",
+        "torch.autograd"
+      ],
+      "gc_generation": 2,
+      "is_dealloc": false
+    },
+    {
+      "base": {
+        "event_id": 84,
+        "timestamp_ns": 1779074165347806970,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "DEALLOC"
+      },
+      "alloc_address": 2546836433,
+      "alloc_size_bytes": 256,
+      "object_type": "numpy.ndarray",
+      "ref_count": 0,
+      "callstack": [
+        "<module>",
+        "train",
+        "backward",
+        "torch.autograd"
+      ],
+      "gc_generation": 1,
+      "is_dealloc": true
+    },
+    {
+      "base": {
+        "event_id": 85,
+        "timestamp_ns": 1779074165347816483,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "ALLOC"
+      },
+      "alloc_address": 1831322900,
+      "alloc_size_bytes": 16384,
+      "object_type": "numpy.ndarray",
+      "ref_count": 3,
+      "callstack": [
+        "<module>",
+        "preprocess",
+        "numpy.array"
+      ],
+      "gc_generation": 2,
+      "is_dealloc": false
+    },
+    {
+      "base": {
+        "event_id": 87,
+        "timestamp_ns": 1779074165353796748,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "DEALLOC"
+      },
+      "alloc_address": 1831322900,
+      "alloc_size_bytes": 16384,
+      "object_type": "numpy.ndarray",
+      "ref_count": 0,
+      "callstack": [
+        "<module>",
+        "train",
+        "forward",
+        "numpy.dot"
+      ],
+      "gc_generation": 2,
+      "is_dealloc": true
+    },
+    {
+      "base": {
+        "event_id": 88,
+        "timestamp_ns": 1779074165353825730,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "ALLOC"
+      },
+      "alloc_address": 1891498672,
+      "alloc_size_bytes": 65536,
+      "object_type": "numpy.ndarray",
+      "ref_count": 2,
+      "callstack": [
+        "<module>",
+        "load_data",
+        "pandas.read_csv"
+      ],
+      "gc_generation": 1,
+      "is_dealloc": false
+    },
+    {
+      "base": {
+        "event_id": 91,
+        "timestamp_ns": 1779074165360702794,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "DEALLOC"
+      },
+      "alloc_address": 1891498672,
+      "alloc_size_bytes": 65536,
+      "object_type": "numpy.ndarray",
+      "ref_count": 0,
+      "callstack": [
+        "<module>",
+        "train",
+        "forward",
+        "numpy.dot"
+      ],
+      "gc_generation": 1,
+      "is_dealloc": true
+    },
+    {
+      "base": {
+        "event_id": 92,
+        "timestamp_ns": 1779074165360783648,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "ALLOC"
+      },
+      "alloc_address": 1088901812,
+      "alloc_size_bytes": 16384,
+      "object_type": "numpy.ndarray",
+      "ref_count": 5,
+      "callstack": [
+        "<module>",
+        "train",
+        "backward",
+        "torch.autograd"
+      ],
+      "gc_generation": 1,
+      "is_dealloc": false
+    },
+    {
+      "base": {
+        "event_id": 93,
+        "timestamp_ns": 1779074165365030798,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "DEALLOC"
+      },
+      "alloc_address": 1088901812,
+      "alloc_size_bytes": 16384,
+      "object_type": "numpy.ndarray",
+      "ref_count": 0,
+      "callstack": [
+        "<module>",
+        "train",
+        "forward",
+        "numpy.dot"
+      ],
+      "gc_generation": 0,
+      "is_dealloc": true
+    },
+    {
+      "base": {
+        "event_id": 94,
+        "timestamp_ns": 1779074165365066022,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "ALLOC"
+      },
+      "alloc_address": 1189669049,
+      "alloc_size_bytes": 4096,
+      "object_type": "dict",
+      "ref_count": 4,
+      "callstack": [
+        "<module>",
+        "preprocess",
+        "numpy.array"
+      ],
+      "gc_generation": 1,
+      "is_dealloc": false
+    },
+    {
+      "base": {
+        "event_id": 96,
+        "timestamp_ns": 1779074165375311563,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "DEALLOC"
+      },
+      "alloc_address": 1189669049,
+      "alloc_size_bytes": 4096,
+      "object_type": "dict",
+      "ref_count": 0,
+      "callstack": [
+        "<module>",
+        "train",
+        "forward",
+        "numpy.dot"
+      ],
+      "gc_generation": 2,
+      "is_dealloc": true
+    },
+    {
+      "base": {
+        "event_id": 97,
+        "timestamp_ns": 1779074165375350704,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "ALLOC"
+      },
+      "alloc_address": 1505797791,
+      "alloc_size_bytes": 65536,
+      "object_type": "torch.Tensor",
+      "ref_count": 5,
+      "callstack": [
+        "<module>",
+        "train",
+        "backward",
+        "torch.autograd"
+      ],
+      "gc_generation": 0,
+      "is_dealloc": false
+    },
+    {
+      "base": {
+        "event_id": 99,
+        "timestamp_ns": 1779074165379088577,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "DEALLOC"
+      },
+      "alloc_address": 1505797791,
+      "alloc_size_bytes": 65536,
+      "object_type": "torch.Tensor",
+      "ref_count": 0,
+      "callstack": [
+        "<module>",
+        "preprocess",
+        "numpy.array"
+      ],
+      "gc_generation": 0,
+      "is_dealloc": true
+    },
+    {
+      "base": {
+        "event_id": 100,
+        "timestamp_ns": 1779074165379096171,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "ALLOC"
+      },
+      "alloc_address": 873728436,
+      "alloc_size_bytes": 256,
+      "object_type": "numpy.ndarray",
+      "ref_count": 4,
+      "callstack": [
+        "<module>",
+        "preprocess",
+        "numpy.array"
+      ],
+      "gc_generation": 1,
+      "is_dealloc": false
+    },
+    {
+      "base": {
+        "event_id": 102,
+        "timestamp_ns": 1779074165385199275,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "DEALLOC"
+      },
+      "alloc_address": 873728436,
+      "alloc_size_bytes": 256,
+      "object_type": "numpy.ndarray",
+      "ref_count": 0,
+      "callstack": [
+        "<module>",
+        "train",
+        "backward",
+        "torch.autograd"
+      ],
+      "gc_generation": 2,
+      "is_dealloc": true
+    },
+    {
+      "base": {
+        "event_id": 103,
+        "timestamp_ns": 1779074165385210883,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "ALLOC"
+      },
+      "alloc_address": 1725741530,
+      "alloc_size_bytes": 65536,
+      "object_type": "list",
+      "ref_count": 2,
+      "callstack": [
+        "<module>",
+        "load_data",
+        "pandas.read_csv"
+      ],
+      "gc_generation": 1,
+      "is_dealloc": false
+    },
+    {
+      "base": {
+        "event_id": 104,
+        "timestamp_ns": 1779074165385883516,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "DEALLOC"
+      },
+      "alloc_address": 1725741530,
+      "alloc_size_bytes": 65536,
+      "object_type": "list",
+      "ref_count": 0,
+      "callstack": [
+        "<module>",
+        "train",
+        "backward",
+        "torch.autograd"
+      ],
+      "gc_generation": 0,
+      "is_dealloc": true
+    },
+    {
+      "base": {
+        "event_id": 105,
+        "timestamp_ns": 1779074165385919192,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "ALLOC"
+      },
+      "alloc_address": 69540088,
+      "alloc_size_bytes": 64,
+      "object_type": "dict",
+      "ref_count": 3,
+      "callstack": [
+        "<module>",
+        "train",
+        "forward",
+        "numpy.dot"
+      ],
+      "gc_generation": 2,
+      "is_dealloc": false
+    },
+    {
+      "base": {
+        "event_id": 106,
+        "timestamp_ns": 1779074165395660234,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "DEALLOC"
+      },
+      "alloc_address": 69540088,
+      "alloc_size_bytes": 64,
+      "object_type": "dict",
+      "ref_count": 0,
+      "callstack": [
+        "<module>",
+        "preprocess",
+        "numpy.array"
+      ],
+      "gc_generation": 2,
+      "is_dealloc": true
+    },
+    {
+      "base": {
+        "event_id": 107,
+        "timestamp_ns": 1779074165395748816,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "ALLOC"
+      },
+      "alloc_address": 256110617,
+      "alloc_size_bytes": 16384,
+      "object_type": "bytearray",
+      "ref_count": 3,
+      "callstack": [
+        "<module>",
+        "load_data",
+        "pandas.read_csv"
+      ],
+      "gc_generation": 2,
+      "is_dealloc": false
+    },
+    {
+      "base": {
+        "event_id": 108,
+        "timestamp_ns": 1779074165405723147,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "DEALLOC"
+      },
+      "alloc_address": 256110617,
+      "alloc_size_bytes": 16384,
+      "object_type": "bytearray",
+      "ref_count": 0,
+      "callstack": [
+        "<module>",
+        "train",
+        "forward",
+        "numpy.dot"
+      ],
+      "gc_generation": 2,
+      "is_dealloc": true
+    },
+    {
+      "base": {
+        "event_id": 109,
+        "timestamp_ns": 1779074165405768883,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "ALLOC"
+      },
+      "alloc_address": 2048491306,
+      "alloc_size_bytes": 64,
+      "object_type": "bytearray",
+      "ref_count": 5,
+      "callstack": [
+        "<module>",
+        "train",
+        "backward",
+        "torch.autograd"
+      ],
+      "gc_generation": 0,
+      "is_dealloc": false
+    },
+    {
+      "base": {
+        "event_id": 112,
+        "timestamp_ns": 1779074165412562069,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "DEALLOC"
+      },
+      "alloc_address": 2048491306,
+      "alloc_size_bytes": 64,
+      "object_type": "bytearray",
+      "ref_count": 0,
+      "callstack": [
+        "<module>",
+        "preprocess",
+        "numpy.array"
+      ],
+      "gc_generation": 2,
+      "is_dealloc": true
+    },
+    {
+      "base": {
+        "event_id": 113,
+        "timestamp_ns": 1779074165412654958,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "ALLOC"
+      },
+      "alloc_address": 2649215127,
+      "alloc_size_bytes": 16384,
+      "object_type": "numpy.ndarray",
+      "ref_count": 2,
+      "callstack": [
+        "<module>",
+        "train",
+        "backward",
+        "torch.autograd"
+      ],
+      "gc_generation": 2,
+      "is_dealloc": false
+    },
+    {
+      "base": {
+        "event_id": 114,
+        "timestamp_ns": 1779074165421093004,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "DEALLOC"
+      },
+      "alloc_address": 2649215127,
+      "alloc_size_bytes": 16384,
+      "object_type": "numpy.ndarray",
+      "ref_count": 0,
+      "callstack": [
+        "<module>",
+        "load_data",
+        "pandas.read_csv"
+      ],
+      "gc_generation": 0,
+      "is_dealloc": true
+    },
+    {
+      "base": {
+        "event_id": 115,
+        "timestamp_ns": 1779074165421154931,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "ALLOC"
+      },
+      "alloc_address": 1431075708,
+      "alloc_size_bytes": 4096,
+      "object_type": "torch.Tensor",
+      "ref_count": 4,
+      "callstack": [
+        "<module>",
+        "train",
+        "backward",
+        "torch.autograd"
+      ],
+      "gc_generation": 0,
+      "is_dealloc": false
+    },
+    {
+      "base": {
+        "event_id": 117,
+        "timestamp_ns": 1779074165421883071,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "DEALLOC"
+      },
+      "alloc_address": 1431075708,
+      "alloc_size_bytes": 4096,
+      "object_type": "torch.Tensor",
+      "ref_count": 0,
+      "callstack": [
+        "<module>",
+        "train",
+        "forward",
+        "numpy.dot"
+      ],
+      "gc_generation": 1,
+      "is_dealloc": true
+    },
+    {
+      "base": {
+        "event_id": 118,
+        "timestamp_ns": 1779074165421913926,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "ALLOC"
+      },
+      "alloc_address": 749867839,
+      "alloc_size_bytes": 65536,
+      "object_type": "dict",
+      "ref_count": 2,
+      "callstack": [
+        "<module>",
+        "preprocess",
+        "numpy.array"
+      ],
+      "gc_generation": 1,
+      "is_dealloc": false
+    },
+    {
+      "base": {
+        "event_id": 119,
+        "timestamp_ns": 1779074165424033825,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "DEALLOC"
+      },
+      "alloc_address": 749867839,
+      "alloc_size_bytes": 65536,
+      "object_type": "dict",
+      "ref_count": 0,
+      "callstack": [
+        "<module>",
+        "preprocess",
+        "numpy.array"
+      ],
+      "gc_generation": 0,
+      "is_dealloc": true
+    },
+    {
+      "base": {
+        "event_id": 120,
+        "timestamp_ns": 1779074165424048438,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "ALLOC"
+      },
+      "alloc_address": 896488163,
+      "alloc_size_bytes": 256,
+      "object_type": "bytes",
+      "ref_count": 1,
+      "callstack": [
+        "<module>",
+        "train",
+        "backward",
+        "torch.autograd"
+      ],
+      "gc_generation": 1,
+      "is_dealloc": false
+    },
+    {
+      "base": {
+        "event_id": 121,
+        "timestamp_ns": 1779074165428019891,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "DEALLOC"
+      },
+      "alloc_address": 896488163,
+      "alloc_size_bytes": 256,
+      "object_type": "bytes",
+      "ref_count": 0,
+      "callstack": [
+        "<module>",
+        "train",
+        "backward",
+        "torch.autograd"
+      ],
+      "gc_generation": 1,
+      "is_dealloc": true
+    },
+    {
+      "base": {
+        "event_id": 122,
+        "timestamp_ns": 1779074165428113294,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "ALLOC"
+      },
+      "alloc_address": 2056292715,
+      "alloc_size_bytes": 65536,
+      "object_type": "dict",
+      "ref_count": 5,
+      "callstack": [
+        "<module>",
+        "train",
+        "forward",
+        "numpy.dot"
+      ],
+      "gc_generation": 0,
+      "is_dealloc": false
+    },
+    {
+      "base": {
+        "event_id": 123,
+        "timestamp_ns": 1779074165429558938,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "DEALLOC"
+      },
+      "alloc_address": 2056292715,
+      "alloc_size_bytes": 65536,
+      "object_type": "dict",
+      "ref_count": 0,
+      "callstack": [
+        "<module>",
+        "load_data",
+        "pandas.read_csv"
+      ],
+      "gc_generation": 0,
+      "is_dealloc": true
+    },
+    {
+      "base": {
+        "event_id": 124,
+        "timestamp_ns": 1779074165429645320,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "ALLOC"
+      },
+      "alloc_address": 635575331,
+      "alloc_size_bytes": 64,
+      "object_type": "numpy.ndarray",
+      "ref_count": 2,
+      "callstack": [
+        "<module>",
+        "train",
+        "forward",
+        "numpy.dot"
+      ],
+      "gc_generation": 0,
+      "is_dealloc": false
+    },
+    {
+      "base": {
+        "event_id": 126,
+        "timestamp_ns": 1779074165430705170,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "DEALLOC"
+      },
+      "alloc_address": 635575331,
+      "alloc_size_bytes": 64,
+      "object_type": "numpy.ndarray",
+      "ref_count": 0,
+      "callstack": [
+        "<module>",
+        "preprocess",
+        "numpy.array"
+      ],
+      "gc_generation": 2,
+      "is_dealloc": true
+    },
+    {
+      "base": {
+        "event_id": 127,
+        "timestamp_ns": 1779074165430719513,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "ALLOC"
+      },
+      "alloc_address": 262272928,
+      "alloc_size_bytes": 1024,
+      "object_type": "torch.Tensor",
+      "ref_count": 2,
+      "callstack": [
+        "<module>",
+        "preprocess",
+        "numpy.array"
+      ],
+      "gc_generation": 0,
+      "is_dealloc": false
+    },
+    {
+      "base": {
+        "event_id": 128,
+        "timestamp_ns": 1779074165439780914,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "DEALLOC"
+      },
+      "alloc_address": 262272928,
+      "alloc_size_bytes": 1024,
+      "object_type": "torch.Tensor",
+      "ref_count": 0,
+      "callstack": [
+        "<module>",
+        "train",
+        "backward",
+        "torch.autograd"
+      ],
+      "gc_generation": 1,
+      "is_dealloc": true
+    },
+    {
+      "base": {
+        "event_id": 129,
+        "timestamp_ns": 1779074165439858040,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "ALLOC"
+      },
+      "alloc_address": 2415956837,
+      "alloc_size_bytes": 1024,
+      "object_type": "numpy.ndarray",
+      "ref_count": 5,
+      "callstack": [
+        "<module>",
+        "train",
+        "forward",
+        "numpy.dot"
+      ],
+      "gc_generation": 1,
+      "is_dealloc": false
+    },
+    {
+      "base": {
+        "event_id": 132,
+        "timestamp_ns": 1779074165445836884,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "DEALLOC"
+      },
+      "alloc_address": 2415956837,
+      "alloc_size_bytes": 1024,
+      "object_type": "numpy.ndarray",
+      "ref_count": 0,
+      "callstack": [
+        "<module>",
+        "train",
+        "backward",
+        "torch.autograd"
+      ],
+      "gc_generation": 2,
+      "is_dealloc": true
+    },
+    {
+      "base": {
+        "event_id": 133,
+        "timestamp_ns": 1779074165445840844,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "ALLOC"
+      },
+      "alloc_address": 197714908,
+      "alloc_size_bytes": 256,
+      "object_type": "torch.Tensor",
+      "ref_count": 3,
+      "callstack": [
+        "<module>",
+        "preprocess",
+        "numpy.array"
+      ],
+      "gc_generation": 2,
+      "is_dealloc": false
+    },
+    {
+      "base": {
+        "event_id": 134,
+        "timestamp_ns": 1779074165452632039,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "DEALLOC"
+      },
+      "alloc_address": 197714908,
+      "alloc_size_bytes": 256,
+      "object_type": "torch.Tensor",
+      "ref_count": 0,
+      "callstack": [
+        "<module>",
+        "train",
+        "forward",
+        "numpy.dot"
+      ],
+      "gc_generation": 1,
+      "is_dealloc": true
+    },
+    {
+      "base": {
+        "event_id": 135,
+        "timestamp_ns": 1779074165452699836,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "ALLOC"
+      },
+      "alloc_address": 2549981175,
+      "alloc_size_bytes": 1024,
+      "object_type": "list",
+      "ref_count": 2,
+      "callstack": [
+        "<module>",
+        "preprocess",
+        "numpy.array"
+      ],
+      "gc_generation": 1,
+      "is_dealloc": false
+    },
+    {
+      "base": {
+        "event_id": 138,
+        "timestamp_ns": 1779074165458553552,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "DEALLOC"
+      },
+      "alloc_address": 2549981175,
+      "alloc_size_bytes": 1024,
+      "object_type": "list",
+      "ref_count": 0,
+      "callstack": [
+        "<module>",
+        "train",
+        "backward",
+        "torch.autograd"
+      ],
+      "gc_generation": 2,
+      "is_dealloc": true
+    },
+    {
+      "base": {
+        "event_id": 139,
+        "timestamp_ns": 1779074165458598911,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "ALLOC"
+      },
+      "alloc_address": 2143284505,
+      "alloc_size_bytes": 16384,
+      "object_type": "dict",
+      "ref_count": 5,
+      "callstack": [
+        "<module>",
+        "train",
+        "forward",
+        "numpy.dot"
+      ],
+      "gc_generation": 2,
+      "is_dealloc": false
+    },
+    {
+      "base": {
+        "event_id": 141,
+        "timestamp_ns": 1779074165466935609,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "DEALLOC"
+      },
+      "alloc_address": 2143284505,
+      "alloc_size_bytes": 16384,
+      "object_type": "dict",
+      "ref_count": 0,
+      "callstack": [
+        "<module>",
+        "train",
+        "backward",
+        "torch.autograd"
+      ],
+      "gc_generation": 0,
+      "is_dealloc": true
+    },
+    {
+      "base": {
+        "event_id": 142,
+        "timestamp_ns": 1779074165466957364,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "ALLOC"
+      },
+      "alloc_address": 279951797,
+      "alloc_size_bytes": 64,
+      "object_type": "numpy.ndarray",
+      "ref_count": 3,
+      "callstack": [
+        "<module>",
+        "preprocess",
+        "numpy.array"
+      ],
+      "gc_generation": 2,
+      "is_dealloc": false
+    },
+    {
+      "base": {
+        "event_id": 143,
+        "timestamp_ns": 1779074165474338966,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "DEALLOC"
+      },
+      "alloc_address": 279951797,
+      "alloc_size_bytes": 64,
+      "object_type": "numpy.ndarray",
+      "ref_count": 0,
+      "callstack": [
+        "<module>",
+        "train",
+        "backward",
+        "torch.autograd"
+      ],
+      "gc_generation": 0,
+      "is_dealloc": true
+    },
+    {
+      "base": {
+        "event_id": 144,
+        "timestamp_ns": 1779074165474416490,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "ALLOC"
+      },
+      "alloc_address": 2285108179,
+      "alloc_size_bytes": 65536,
+      "object_type": "bytes",
+      "ref_count": 3,
+      "callstack": [
+        "<module>",
+        "train",
+        "backward",
+        "torch.autograd"
+      ],
+      "gc_generation": 1,
+      "is_dealloc": false
+    },
+    {
+      "base": {
+        "event_id": 145,
+        "timestamp_ns": 1779074165483573492,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "DEALLOC"
+      },
+      "alloc_address": 2285108179,
+      "alloc_size_bytes": 65536,
+      "object_type": "bytes",
+      "ref_count": 0,
+      "callstack": [
+        "<module>",
+        "load_data",
+        "pandas.read_csv"
+      ],
+      "gc_generation": 0,
+      "is_dealloc": true
+    },
+    {
+      "base": {
+        "event_id": 146,
+        "timestamp_ns": 1779074165483584074,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "ALLOC"
+      },
+      "alloc_address": 1846931250,
+      "alloc_size_bytes": 256,
+      "object_type": "dict",
+      "ref_count": 5,
+      "callstack": [
+        "<module>",
+        "preprocess",
+        "numpy.array"
+      ],
+      "gc_generation": 1,
+      "is_dealloc": false
+    },
+    {
+      "base": {
+        "event_id": 149,
+        "timestamp_ns": 1779074165487311857,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "DEALLOC"
+      },
+      "alloc_address": 1846931250,
+      "alloc_size_bytes": 256,
+      "object_type": "dict",
+      "ref_count": 0,
+      "callstack": [
+        "<module>",
+        "train",
+        "backward",
+        "torch.autograd"
+      ],
+      "gc_generation": 2,
+      "is_dealloc": true
+    },
+    {
+      "base": {
+        "event_id": 150,
+        "timestamp_ns": 1779074165487378480,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "ALLOC"
+      },
+      "alloc_address": 480429459,
+      "alloc_size_bytes": 1048576,
+      "object_type": "bytes",
+      "ref_count": 5,
+      "callstack": [
+        "<module>",
+        "preprocess",
+        "numpy.array"
+      ],
+      "gc_generation": 1,
+      "is_dealloc": false
+    },
+    {
+      "base": {
+        "event_id": 153,
+        "timestamp_ns": 1779074165488897689,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "DEALLOC"
+      },
+      "alloc_address": 480429459,
+      "alloc_size_bytes": 1048576,
+      "object_type": "bytes",
+      "ref_count": 0,
+      "callstack": [
+        "<module>",
+        "load_data",
+        "pandas.read_csv"
+      ],
+      "gc_generation": 2,
+      "is_dealloc": true
+    },
+    {
+      "base": {
+        "event_id": 154,
+        "timestamp_ns": 1779074165488921039,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "ALLOC"
+      },
+      "alloc_address": 639511567,
+      "alloc_size_bytes": 65536,
+      "object_type": "bytearray",
+      "ref_count": 5,
+      "callstack": [
+        "<module>",
+        "preprocess",
+        "numpy.array"
+      ],
+      "gc_generation": 0,
+      "is_dealloc": false
+    },
+    {
+      "base": {
+        "event_id": 156,
+        "timestamp_ns": 1779074165497797209,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "DEALLOC"
+      },
+      "alloc_address": 639511567,
+      "alloc_size_bytes": 65536,
+      "object_type": "bytearray",
+      "ref_count": 0,
+      "callstack": [
+        "<module>",
+        "train",
+        "backward",
+        "torch.autograd"
+      ],
+      "gc_generation": 1,
+      "is_dealloc": true
+    },
+    {
+      "base": {
+        "event_id": 157,
+        "timestamp_ns": 1779074165497876311,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "ALLOC"
+      },
+      "alloc_address": 907698724,
+      "alloc_size_bytes": 64,
+      "object_type": "bytearray",
+      "ref_count": 3,
+      "callstack": [
+        "<module>",
+        "load_data",
+        "pandas.read_csv"
+      ],
+      "gc_generation": 0,
+      "is_dealloc": false
+    },
+    {
+      "base": {
+        "event_id": 159,
+        "timestamp_ns": 1779074165500312344,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "DEALLOC"
+      },
+      "alloc_address": 907698724,
+      "alloc_size_bytes": 64,
+      "object_type": "bytearray",
+      "ref_count": 0,
+      "callstack": [
+        "<module>",
+        "train",
+        "backward",
+        "torch.autograd"
+      ],
+      "gc_generation": 2,
+      "is_dealloc": true
+    },
+    {
+      "base": {
+        "event_id": 160,
+        "timestamp_ns": 1779074165500394171,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "ALLOC"
+      },
+      "alloc_address": 419673795,
+      "alloc_size_bytes": 64,
+      "object_type": "list",
+      "ref_count": 5,
+      "callstack": [
+        "<module>",
+        "preprocess",
+        "numpy.array"
+      ],
+      "gc_generation": 1,
+      "is_dealloc": false
+    },
+    {
+      "base": {
+        "event_id": 161,
+        "timestamp_ns": 1779074165500869061,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "DEALLOC"
+      },
+      "alloc_address": 419673795,
+      "alloc_size_bytes": 64,
+      "object_type": "list",
+      "ref_count": 0,
+      "callstack": [
+        "<module>",
+        "load_data",
+        "pandas.read_csv"
+      ],
+      "gc_generation": 0,
+      "is_dealloc": true
+    },
+    {
+      "base": {
+        "event_id": 162,
+        "timestamp_ns": 1779074165500884402,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "ALLOC"
+      },
+      "alloc_address": 1048098208,
+      "alloc_size_bytes": 256,
+      "object_type": "list",
+      "ref_count": 1,
+      "callstack": [
+        "<module>",
+        "preprocess",
+        "numpy.array"
+      ],
+      "gc_generation": 2,
+      "is_dealloc": false
+    },
+    {
+      "base": {
+        "event_id": 164,
+        "timestamp_ns": 1779074165504751532,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "DEALLOC"
+      },
+      "alloc_address": 1048098208,
+      "alloc_size_bytes": 256,
+      "object_type": "list",
+      "ref_count": 0,
+      "callstack": [
+        "<module>",
+        "preprocess",
+        "numpy.array"
+      ],
+      "gc_generation": 0,
+      "is_dealloc": true
+    },
+    {
+      "base": {
+        "event_id": 165,
+        "timestamp_ns": 1779074165504815302,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "ALLOC"
+      },
+      "alloc_address": 2227041140,
+      "alloc_size_bytes": 4096,
+      "object_type": "list",
+      "ref_count": 1,
+      "callstack": [
+        "<module>",
+        "preprocess",
+        "numpy.array"
+      ],
+      "gc_generation": 2,
+      "is_dealloc": false
+    },
+    {
+      "base": {
+        "event_id": 166,
+        "timestamp_ns": 1779074165506360104,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "DEALLOC"
+      },
+      "alloc_address": 2227041140,
+      "alloc_size_bytes": 4096,
+      "object_type": "list",
+      "ref_count": 0,
+      "callstack": [
+        "<module>",
+        "preprocess",
+        "numpy.array"
+      ],
+      "gc_generation": 1,
+      "is_dealloc": true
+    },
+    {
+      "base": {
+        "event_id": 167,
+        "timestamp_ns": 1779074165506452866,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "ALLOC"
+      },
+      "alloc_address": 1226869552,
+      "alloc_size_bytes": 4096,
+      "object_type": "numpy.ndarray",
+      "ref_count": 3,
+      "callstack": [
+        "<module>",
+        "train",
+        "forward",
+        "numpy.dot"
+      ],
+      "gc_generation": 0,
+      "is_dealloc": false
+    },
+    {
+      "base": {
+        "event_id": 170,
+        "timestamp_ns": 1779074165513793786,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "DEALLOC"
+      },
+      "alloc_address": 1226869552,
+      "alloc_size_bytes": 4096,
+      "object_type": "numpy.ndarray",
+      "ref_count": 0,
+      "callstack": [
+        "<module>",
+        "train",
+        "backward",
+        "torch.autograd"
+      ],
+      "gc_generation": 2,
+      "is_dealloc": true
+    },
+    {
+      "base": {
+        "event_id": 171,
+        "timestamp_ns": 1779074165513806736,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "ALLOC"
+      },
+      "alloc_address": 1030650587,
+      "alloc_size_bytes": 65536,
+      "object_type": "bytes",
+      "ref_count": 5,
+      "callstack": [
+        "<module>",
+        "preprocess",
+        "numpy.array"
+      ],
+      "gc_generation": 2,
+      "is_dealloc": false
+    },
+    {
+      "base": {
+        "event_id": 172,
+        "timestamp_ns": 1779074165518992165,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "DEALLOC"
+      },
+      "alloc_address": 1030650587,
+      "alloc_size_bytes": 65536,
+      "object_type": "bytes",
+      "ref_count": 0,
+      "callstack": [
+        "<module>",
+        "train",
+        "forward",
+        "numpy.dot"
+      ],
+      "gc_generation": 0,
+      "is_dealloc": true
+    },
+    {
+      "base": {
+        "event_id": 173,
+        "timestamp_ns": 1779074165519021142,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "ALLOC"
+      },
+      "alloc_address": 553793797,
+      "alloc_size_bytes": 1024,
+      "object_type": "dict",
+      "ref_count": 1,
+      "callstack": [
+        "<module>",
+        "train",
+        "forward",
+        "numpy.dot"
+      ],
+      "gc_generation": 0,
+      "is_dealloc": false
+    },
+    {
+      "base": {
+        "event_id": 175,
+        "timestamp_ns": 1779074165527369411,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "DEALLOC"
+      },
+      "alloc_address": 553793797,
+      "alloc_size_bytes": 1024,
+      "object_type": "dict",
+      "ref_count": 0,
+      "callstack": [
+        "<module>",
+        "train",
+        "backward",
+        "torch.autograd"
+      ],
+      "gc_generation": 0,
+      "is_dealloc": true
+    },
+    {
+      "base": {
+        "event_id": 176,
+        "timestamp_ns": 1779074165527405670,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "ALLOC"
+      },
+      "alloc_address": 59562307,
+      "alloc_size_bytes": 65536,
+      "object_type": "bytes",
+      "ref_count": 4,
+      "callstack": [
+        "<module>",
+        "train",
+        "forward",
+        "numpy.dot"
+      ],
+      "gc_generation": 0,
+      "is_dealloc": false
+    },
+    {
+      "base": {
+        "event_id": 179,
+        "timestamp_ns": 1779074165532313592,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "DEALLOC"
+      },
+      "alloc_address": 59562307,
+      "alloc_size_bytes": 65536,
+      "object_type": "bytes",
+      "ref_count": 0,
+      "callstack": [
+        "<module>",
+        "train",
+        "backward",
+        "torch.autograd"
+      ],
+      "gc_generation": 1,
+      "is_dealloc": true
+    },
+    {
+      "base": {
+        "event_id": 180,
+        "timestamp_ns": 1779074165532345165,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "ALLOC"
+      },
+      "alloc_address": 899508516,
+      "alloc_size_bytes": 64,
+      "object_type": "list",
+      "ref_count": 4,
+      "callstack": [
+        "<module>",
+        "train",
+        "forward",
+        "numpy.dot"
+      ],
+      "gc_generation": 0,
+      "is_dealloc": false
+    },
+    {
+      "base": {
+        "event_id": 181,
+        "timestamp_ns": 1779074165538395412,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "DEALLOC"
+      },
+      "alloc_address": 899508516,
+      "alloc_size_bytes": 64,
+      "object_type": "list",
+      "ref_count": 0,
+      "callstack": [
+        "<module>",
+        "preprocess",
+        "numpy.array"
+      ],
+      "gc_generation": 0,
+      "is_dealloc": true
+    },
+    {
+      "base": {
+        "event_id": 182,
+        "timestamp_ns": 1779074165538442993,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "ALLOC"
+      },
+      "alloc_address": 440791375,
+      "alloc_size_bytes": 65536,
+      "object_type": "dict",
+      "ref_count": 3,
+      "callstack": [
+        "<module>",
+        "train",
+        "backward",
+        "torch.autograd"
+      ],
+      "gc_generation": 1,
+      "is_dealloc": false
+    },
+    {
+      "base": {
+        "event_id": 185,
+        "timestamp_ns": 1779074165543797551,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "DEALLOC"
+      },
+      "alloc_address": 440791375,
+      "alloc_size_bytes": 65536,
+      "object_type": "dict",
+      "ref_count": 0,
+      "callstack": [
+        "<module>",
+        "load_data",
+        "pandas.read_csv"
+      ],
+      "gc_generation": 2,
+      "is_dealloc": true
+    },
+    {
+      "base": {
+        "event_id": 186,
+        "timestamp_ns": 1779074165543812703,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "ALLOC"
+      },
+      "alloc_address": 1123317016,
+      "alloc_size_bytes": 1048576,
+      "object_type": "bytearray",
+      "ref_count": 1,
+      "callstack": [
+        "<module>",
+        "preprocess",
+        "numpy.array"
+      ],
+      "gc_generation": 1,
+      "is_dealloc": false
+    },
+    {
+      "base": {
+        "event_id": 187,
+        "timestamp_ns": 1779074165545866324,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "DEALLOC"
+      },
+      "alloc_address": 1123317016,
+      "alloc_size_bytes": 1048576,
+      "object_type": "bytearray",
+      "ref_count": 0,
+      "callstack": [
+        "<module>",
+        "train",
+        "forward",
+        "numpy.dot"
+      ],
+      "gc_generation": 1,
+      "is_dealloc": true
+    },
+    {
+      "base": {
+        "event_id": 188,
+        "timestamp_ns": 1779074165545885000,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "ALLOC"
+      },
+      "alloc_address": 2094687761,
+      "alloc_size_bytes": 4096,
+      "object_type": "list",
+      "ref_count": 2,
+      "callstack": [
+        "<module>",
+        "train",
+        "forward",
+        "numpy.dot"
+      ],
+      "gc_generation": 1,
+      "is_dealloc": false
+    },
+    {
+      "base": {
+        "event_id": 189,
+        "timestamp_ns": 1779074165546139301,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "DEALLOC"
+      },
+      "alloc_address": 2094687761,
+      "alloc_size_bytes": 4096,
+      "object_type": "list",
+      "ref_count": 0,
+      "callstack": [
+        "<module>",
+        "train",
+        "forward",
+        "numpy.dot"
+      ],
+      "gc_generation": 1,
+      "is_dealloc": true
+    },
+    {
+      "base": {
+        "event_id": 190,
+        "timestamp_ns": 1779074165546184493,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "ALLOC"
+      },
+      "alloc_address": 1412555561,
+      "alloc_size_bytes": 1024,
+      "object_type": "numpy.ndarray",
+      "ref_count": 4,
+      "callstack": [
+        "<module>",
+        "load_data",
+        "pandas.read_csv"
+      ],
+      "gc_generation": 0,
+      "is_dealloc": false
+    },
+    {
+      "base": {
+        "event_id": 191,
+        "timestamp_ns": 1779074165555371136,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "DEALLOC"
+      },
+      "alloc_address": 1412555561,
+      "alloc_size_bytes": 1024,
+      "object_type": "numpy.ndarray",
+      "ref_count": 0,
+      "callstack": [
+        "<module>",
+        "train",
+        "backward",
+        "torch.autograd"
+      ],
+      "gc_generation": 0,
+      "is_dealloc": true
+    },
+    {
+      "base": {
+        "event_id": 192,
+        "timestamp_ns": 1779074165555403430,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "ALLOC"
+      },
+      "alloc_address": 2220855880,
+      "alloc_size_bytes": 1024,
+      "object_type": "numpy.ndarray",
+      "ref_count": 3,
+      "callstack": [
+        "<module>",
+        "load_data",
+        "pandas.read_csv"
+      ],
+      "gc_generation": 0,
+      "is_dealloc": false
+    },
+    {
+      "base": {
+        "event_id": 194,
+        "timestamp_ns": 1779074165563195597,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "DEALLOC"
+      },
+      "alloc_address": 2220855880,
+      "alloc_size_bytes": 1024,
+      "object_type": "numpy.ndarray",
+      "ref_count": 0,
+      "callstack": [
+        "<module>",
+        "load_data",
+        "pandas.read_csv"
+      ],
+      "gc_generation": 1,
+      "is_dealloc": true
+    },
+    {
+      "base": {
+        "event_id": 195,
+        "timestamp_ns": 1779074165563197743,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "ALLOC"
+      },
+      "alloc_address": 173814513,
+      "alloc_size_bytes": 256,
+      "object_type": "bytes",
+      "ref_count": 2,
+      "callstack": [
+        "<module>",
+        "load_data",
+        "pandas.read_csv"
+      ],
+      "gc_generation": 2,
+      "is_dealloc": false
+    },
+    {
+      "base": {
+        "event_id": 196,
+        "timestamp_ns": 1779074165564420840,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "DEALLOC"
+      },
+      "alloc_address": 173814513,
+      "alloc_size_bytes": 256,
+      "object_type": "bytes",
+      "ref_count": 0,
+      "callstack": [
+        "<module>",
+        "train",
+        "backward",
+        "torch.autograd"
+      ],
+      "gc_generation": 1,
+      "is_dealloc": true
+    },
+    {
+      "base": {
+        "event_id": 197,
+        "timestamp_ns": 1779074165564427131,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "ALLOC"
+      },
+      "alloc_address": 2418667006,
+      "alloc_size_bytes": 1048576,
+      "object_type": "torch.Tensor",
+      "ref_count": 3,
+      "callstack": [
+        "<module>",
+        "preprocess",
+        "numpy.array"
+      ],
+      "gc_generation": 2,
+      "is_dealloc": false
+    },
+    {
+      "base": {
+        "event_id": 199,
+        "timestamp_ns": 1779074165573837700,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "DEALLOC"
+      },
+      "alloc_address": 2418667006,
+      "alloc_size_bytes": 1048576,
+      "object_type": "torch.Tensor",
+      "ref_count": 0,
+      "callstack": [
+        "<module>",
+        "train",
+        "forward",
+        "numpy.dot"
+      ],
+      "gc_generation": 0,
+      "is_dealloc": true
+    },
+    {
+      "base": {
+        "event_id": 200,
+        "timestamp_ns": 1779074165573895217,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "ALLOC"
+      },
+      "alloc_address": 828717869,
+      "alloc_size_bytes": 64,
+      "object_type": "numpy.ndarray",
+      "ref_count": 2,
+      "callstack": [
+        "<module>",
+        "train",
+        "forward",
+        "numpy.dot"
+      ],
+      "gc_generation": 1,
+      "is_dealloc": false
+    },
+    {
+      "base": {
+        "event_id": 203,
+        "timestamp_ns": 1779074165583383771,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "DEALLOC"
+      },
+      "alloc_address": 828717869,
+      "alloc_size_bytes": 64,
+      "object_type": "numpy.ndarray",
+      "ref_count": 0,
+      "callstack": [
+        "<module>",
+        "train",
+        "forward",
+        "numpy.dot"
+      ],
+      "gc_generation": 0,
+      "is_dealloc": true
+    },
+    {
+      "base": {
+        "event_id": 204,
+        "timestamp_ns": 1779074165583419982,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "ALLOC"
+      },
+      "alloc_address": 1439168814,
+      "alloc_size_bytes": 1024,
+      "object_type": "torch.Tensor",
+      "ref_count": 1,
+      "callstack": [
+        "<module>",
+        "load_data",
+        "pandas.read_csv"
+      ],
+      "gc_generation": 0,
+      "is_dealloc": false
+    },
+    {
+      "base": {
+        "event_id": 207,
+        "timestamp_ns": 1779074165590277563,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "DEALLOC"
+      },
+      "alloc_address": 1439168814,
+      "alloc_size_bytes": 1024,
+      "object_type": "torch.Tensor",
+      "ref_count": 0,
+      "callstack": [
+        "<module>",
+        "preprocess",
+        "numpy.array"
+      ],
+      "gc_generation": 0,
+      "is_dealloc": true
+    },
+    {
+      "base": {
+        "event_id": 208,
+        "timestamp_ns": 1779074165590351704,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "ALLOC"
+      },
+      "alloc_address": 1940186889,
+      "alloc_size_bytes": 65536,
+      "object_type": "dict",
+      "ref_count": 1,
+      "callstack": [
+        "<module>",
+        "train",
+        "forward",
+        "numpy.dot"
+      ],
+      "gc_generation": 1,
+      "is_dealloc": false
+    },
+    {
+      "base": {
+        "event_id": 210,
+        "timestamp_ns": 1779074165597237453,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "DEALLOC"
+      },
+      "alloc_address": 1940186889,
+      "alloc_size_bytes": 65536,
+      "object_type": "dict",
+      "ref_count": 0,
+      "callstack": [
+        "<module>",
+        "load_data",
+        "pandas.read_csv"
+      ],
+      "gc_generation": 1,
+      "is_dealloc": true
+    },
+    {
+      "base": {
+        "event_id": 211,
+        "timestamp_ns": 1779074165597306297,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "ALLOC"
+      },
+      "alloc_address": 2512761795,
+      "alloc_size_bytes": 16384,
+      "object_type": "bytes",
+      "ref_count": 5,
+      "callstack": [
+        "<module>",
+        "train",
+        "forward",
+        "numpy.dot"
+      ],
+      "gc_generation": 0,
+      "is_dealloc": false
+    },
+    {
+      "base": {
+        "event_id": 214,
+        "timestamp_ns": 1779074165601018784,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "DEALLOC"
+      },
+      "alloc_address": 2512761795,
+      "alloc_size_bytes": 16384,
+      "object_type": "bytes",
+      "ref_count": 0,
+      "callstack": [
+        "<module>",
+        "train",
+        "backward",
+        "torch.autograd"
+      ],
+      "gc_generation": 1,
+      "is_dealloc": true
+    },
+    {
+      "base": {
+        "event_id": 215,
+        "timestamp_ns": 1779074165601064697,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "ALLOC"
+      },
+      "alloc_address": 2421163399,
+      "alloc_size_bytes": 65536,
+      "object_type": "bytes",
+      "ref_count": 2,
+      "callstack": [
+        "<module>",
+        "train",
+        "forward",
+        "numpy.dot"
+      ],
+      "gc_generation": 0,
+      "is_dealloc": false
+    },
+    {
+      "base": {
+        "event_id": 216,
+        "timestamp_ns": 1779074165603004314,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "DEALLOC"
+      },
+      "alloc_address": 2421163399,
+      "alloc_size_bytes": 65536,
+      "object_type": "bytes",
+      "ref_count": 0,
+      "callstack": [
+        "<module>",
+        "preprocess",
+        "numpy.array"
+      ],
+      "gc_generation": 1,
+      "is_dealloc": true
+    },
+    {
+      "base": {
+        "event_id": 217,
+        "timestamp_ns": 1779074165603085726,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "ALLOC"
+      },
+      "alloc_address": 1229047467,
+      "alloc_size_bytes": 4096,
+      "object_type": "dict",
+      "ref_count": 1,
+      "callstack": [
+        "<module>",
+        "train",
+        "forward",
+        "numpy.dot"
+      ],
+      "gc_generation": 2,
+      "is_dealloc": false
+    },
+    {
+      "base": {
+        "event_id": 219,
+        "timestamp_ns": 1779074165606300952,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "DEALLOC"
+      },
+      "alloc_address": 1229047467,
+      "alloc_size_bytes": 4096,
+      "object_type": "dict",
+      "ref_count": 0,
+      "callstack": [
+        "<module>",
+        "load_data",
+        "pandas.read_csv"
+      ],
+      "gc_generation": 1,
+      "is_dealloc": true
+    },
+    {
+      "base": {
+        "event_id": 220,
+        "timestamp_ns": 1779074165606340401,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "ALLOC"
+      },
+      "alloc_address": 1507517226,
+      "alloc_size_bytes": 4096,
+      "object_type": "dict",
+      "ref_count": 3,
+      "callstack": [
+        "<module>",
+        "train",
+        "backward",
+        "torch.autograd"
+      ],
+      "gc_generation": 1,
+      "is_dealloc": false
+    },
+    {
+      "base": {
+        "event_id": 223,
+        "timestamp_ns": 1779074165615920100,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "DEALLOC"
+      },
+      "alloc_address": 1507517226,
+      "alloc_size_bytes": 4096,
+      "object_type": "dict",
+      "ref_count": 0,
+      "callstack": [
+        "<module>",
+        "preprocess",
+        "numpy.array"
+      ],
+      "gc_generation": 2,
+      "is_dealloc": true
+    },
+    {
+      "base": {
+        "event_id": 224,
+        "timestamp_ns": 1779074165615995228,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "ALLOC"
+      },
+      "alloc_address": 322527656,
+      "alloc_size_bytes": 1048576,
+      "object_type": "bytes",
+      "ref_count": 4,
+      "callstack": [
+        "<module>",
+        "preprocess",
+        "numpy.array"
+      ],
+      "gc_generation": 0,
+      "is_dealloc": false
+    },
+    {
+      "base": {
+        "event_id": 226,
+        "timestamp_ns": 1779074165619744308,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "DEALLOC"
+      },
+      "alloc_address": 322527656,
+      "alloc_size_bytes": 1048576,
+      "object_type": "bytes",
+      "ref_count": 0,
+      "callstack": [
+        "<module>",
+        "train",
+        "backward",
+        "torch.autograd"
+      ],
+      "gc_generation": 0,
+      "is_dealloc": true
+    },
+    {
+      "base": {
+        "event_id": 227,
+        "timestamp_ns": 1779074165619843785,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "ALLOC"
+      },
+      "alloc_address": 1212839687,
+      "alloc_size_bytes": 256,
+      "object_type": "bytearray",
+      "ref_count": 4,
+      "callstack": [
+        "<module>",
+        "train",
+        "backward",
+        "torch.autograd"
+      ],
+      "gc_generation": 0,
+      "is_dealloc": false
+    },
+    {
+      "base": {
+        "event_id": 229,
+        "timestamp_ns": 1779074165622994788,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "DEALLOC"
+      },
+      "alloc_address": 1212839687,
+      "alloc_size_bytes": 256,
+      "object_type": "bytearray",
+      "ref_count": 0,
+      "callstack": [
+        "<module>",
+        "preprocess",
+        "numpy.array"
+      ],
+      "gc_generation": 1,
+      "is_dealloc": true
+    },
+    {
+      "base": {
+        "event_id": 230,
+        "timestamp_ns": 1779074165623044209,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "ALLOC"
+      },
+      "alloc_address": 748939589,
+      "alloc_size_bytes": 4096,
+      "object_type": "dict",
+      "ref_count": 2,
+      "callstack": [
+        "<module>",
+        "load_data",
+        "pandas.read_csv"
+      ],
+      "gc_generation": 2,
+      "is_dealloc": false
+    },
+    {
+      "base": {
+        "event_id": 232,
+        "timestamp_ns": 1779074165629865135,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "DEALLOC"
+      },
+      "alloc_address": 748939589,
+      "alloc_size_bytes": 4096,
+      "object_type": "dict",
+      "ref_count": 0,
+      "callstack": [
+        "<module>",
+        "train",
+        "forward",
+        "numpy.dot"
+      ],
+      "gc_generation": 2,
+      "is_dealloc": true
+    },
+    {
+      "base": {
+        "event_id": 233,
+        "timestamp_ns": 1779074165629931230,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "ALLOC"
+      },
+      "alloc_address": 2468537254,
+      "alloc_size_bytes": 16384,
+      "object_type": "numpy.ndarray",
+      "ref_count": 4,
+      "callstack": [
+        "<module>",
+        "train",
+        "backward",
+        "torch.autograd"
+      ],
+      "gc_generation": 1,
+      "is_dealloc": false
+    },
+    {
+      "base": {
+        "event_id": 234,
+        "timestamp_ns": 1779074165638887035,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "DEALLOC"
+      },
+      "alloc_address": 2468537254,
+      "alloc_size_bytes": 16384,
+      "object_type": "numpy.ndarray",
+      "ref_count": 0,
+      "callstack": [
+        "<module>",
+        "train",
+        "backward",
+        "torch.autograd"
+      ],
+      "gc_generation": 2,
+      "is_dealloc": true
+    },
+    {
+      "base": {
+        "event_id": 235,
+        "timestamp_ns": 1779074165638903508,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "ALLOC"
+      },
+      "alloc_address": 2660148179,
+      "alloc_size_bytes": 64,
+      "object_type": "numpy.ndarray",
+      "ref_count": 3,
+      "callstack": [
+        "<module>",
+        "train",
+        "forward",
+        "numpy.dot"
+      ],
+      "gc_generation": 2,
+      "is_dealloc": false
+    },
+    {
+      "base": {
+        "event_id": 238,
+        "timestamp_ns": 1779074165643335245,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "DEALLOC"
+      },
+      "alloc_address": 2660148179,
+      "alloc_size_bytes": 64,
+      "object_type": "numpy.ndarray",
+      "ref_count": 0,
+      "callstack": [
+        "<module>",
+        "preprocess",
+        "numpy.array"
+      ],
+      "gc_generation": 1,
+      "is_dealloc": true
+    },
+    {
+      "base": {
+        "event_id": 239,
+        "timestamp_ns": 1779074165643382915,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "ALLOC"
+      },
+      "alloc_address": 1548145087,
+      "alloc_size_bytes": 16384,
+      "object_type": "bytes",
+      "ref_count": 3,
+      "callstack": [
+        "<module>",
+        "load_data",
+        "pandas.read_csv"
+      ],
+      "gc_generation": 1,
+      "is_dealloc": false
+    },
+    {
+      "base": {
+        "event_id": 240,
+        "timestamp_ns": 1779074165646264639,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "DEALLOC"
+      },
+      "alloc_address": 1548145087,
+      "alloc_size_bytes": 16384,
+      "object_type": "bytes",
+      "ref_count": 0,
+      "callstack": [
+        "<module>",
+        "train",
+        "backward",
+        "torch.autograd"
+      ],
+      "gc_generation": 2,
+      "is_dealloc": true
+    },
+    {
+      "base": {
+        "event_id": 241,
+        "timestamp_ns": 1779074165646328943,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "ALLOC"
+      },
+      "alloc_address": 923350944,
+      "alloc_size_bytes": 1024,
+      "object_type": "dict",
+      "ref_count": 4,
+      "callstack": [
+        "<module>",
+        "load_data",
+        "pandas.read_csv"
+      ],
+      "gc_generation": 2,
+      "is_dealloc": false
+    },
+    {
+      "base": {
+        "event_id": 242,
+        "timestamp_ns": 1779074165652764019,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "DEALLOC"
+      },
+      "alloc_address": 923350944,
+      "alloc_size_bytes": 1024,
+      "object_type": "dict",
+      "ref_count": 0,
+      "callstack": [
+        "<module>",
+        "preprocess",
+        "numpy.array"
+      ],
+      "gc_generation": 0,
+      "is_dealloc": true
+    },
+    {
+      "base": {
+        "event_id": 243,
+        "timestamp_ns": 1779074165652793497,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "ALLOC"
+      },
+      "alloc_address": 438089686,
+      "alloc_size_bytes": 1048576,
+      "object_type": "bytearray",
+      "ref_count": 1,
+      "callstack": [
+        "<module>",
+        "load_data",
+        "pandas.read_csv"
+      ],
+      "gc_generation": 0,
+      "is_dealloc": false
+    },
+    {
+      "base": {
+        "event_id": 244,
+        "timestamp_ns": 1779074165659825168,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "DEALLOC"
+      },
+      "alloc_address": 438089686,
+      "alloc_size_bytes": 1048576,
+      "object_type": "bytearray",
+      "ref_count": 0,
+      "callstack": [
+        "<module>",
+        "train",
+        "backward",
+        "torch.autograd"
+      ],
+      "gc_generation": 1,
+      "is_dealloc": true
+    },
+    {
+      "base": {
+        "event_id": 245,
+        "timestamp_ns": 1779074165659922939,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "ALLOC"
+      },
+      "alloc_address": 44614307,
+      "alloc_size_bytes": 65536,
+      "object_type": "dict",
+      "ref_count": 1,
+      "callstack": [
+        "<module>",
+        "preprocess",
+        "numpy.array"
+      ],
+      "gc_generation": 2,
+      "is_dealloc": false
+    },
+    {
+      "base": {
+        "event_id": 246,
+        "timestamp_ns": 1779074165667882674,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "DEALLOC"
+      },
+      "alloc_address": 44614307,
+      "alloc_size_bytes": 65536,
+      "object_type": "dict",
+      "ref_count": 0,
+      "callstack": [
+        "<module>",
+        "train",
+        "forward",
+        "numpy.dot"
+      ],
+      "gc_generation": 2,
+      "is_dealloc": true
+    },
+    {
+      "base": {
+        "event_id": 247,
+        "timestamp_ns": 1779074165667966929,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "ALLOC"
+      },
+      "alloc_address": 1685315806,
+      "alloc_size_bytes": 1024,
+      "object_type": "numpy.ndarray",
+      "ref_count": 1,
+      "callstack": [
+        "<module>",
+        "train",
+        "forward",
+        "numpy.dot"
+      ],
+      "gc_generation": 0,
+      "is_dealloc": false
+    },
+    {
+      "base": {
+        "event_id": 249,
+        "timestamp_ns": 1779074165677433233,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "DEALLOC"
+      },
+      "alloc_address": 1685315806,
+      "alloc_size_bytes": 1024,
+      "object_type": "numpy.ndarray",
+      "ref_count": 0,
+      "callstack": [
+        "<module>",
+        "train",
+        "forward",
+        "numpy.dot"
+      ],
+      "gc_generation": 1,
+      "is_dealloc": true
+    },
+    {
+      "base": {
+        "event_id": 250,
+        "timestamp_ns": 1779074165677529832,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "ALLOC"
+      },
+      "alloc_address": 299599626,
+      "alloc_size_bytes": 65536,
+      "object_type": "numpy.ndarray",
+      "ref_count": 2,
+      "callstack": [
+        "<module>",
+        "train",
+        "forward",
+        "numpy.dot"
+      ],
+      "gc_generation": 2,
+      "is_dealloc": false
+    },
+    {
+      "base": {
+        "event_id": 251,
+        "timestamp_ns": 1779074165680722609,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "DEALLOC"
+      },
+      "alloc_address": 299599626,
+      "alloc_size_bytes": 65536,
+      "object_type": "numpy.ndarray",
+      "ref_count": 0,
+      "callstack": [
+        "<module>",
+        "train",
+        "backward",
+        "torch.autograd"
+      ],
+      "gc_generation": 0,
+      "is_dealloc": true
+    },
+    {
+      "base": {
+        "event_id": 252,
+        "timestamp_ns": 1779074165680793004,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "ALLOC"
+      },
+      "alloc_address": 2125882761,
+      "alloc_size_bytes": 16384,
+      "object_type": "dict",
+      "ref_count": 3,
+      "callstack": [
+        "<module>",
+        "load_data",
+        "pandas.read_csv"
+      ],
+      "gc_generation": 2,
+      "is_dealloc": false
+    },
+    {
+      "base": {
+        "event_id": 253,
+        "timestamp_ns": 1779074165688955963,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "DEALLOC"
+      },
+      "alloc_address": 2125882761,
+      "alloc_size_bytes": 16384,
+      "object_type": "dict",
+      "ref_count": 0,
+      "callstack": [
+        "<module>",
+        "train",
+        "forward",
+        "numpy.dot"
+      ],
+      "gc_generation": 2,
+      "is_dealloc": true
+    },
+    {
+      "base": {
+        "event_id": 254,
+        "timestamp_ns": 1779074165688978632,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "ALLOC"
+      },
+      "alloc_address": 2022225622,
+      "alloc_size_bytes": 4096,
+      "object_type": "list",
+      "ref_count": 1,
+      "callstack": [
+        "<module>",
+        "train",
+        "forward",
+        "numpy.dot"
+      ],
+      "gc_generation": 1,
+      "is_dealloc": false
+    },
+    {
+      "base": {
+        "event_id": 255,
+        "timestamp_ns": 1779074165695757402,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "DEALLOC"
+      },
+      "alloc_address": 2022225622,
+      "alloc_size_bytes": 4096,
+      "object_type": "list",
+      "ref_count": 0,
+      "callstack": [
+        "<module>",
+        "preprocess",
+        "numpy.array"
+      ],
+      "gc_generation": 1,
+      "is_dealloc": true
+    },
+    {
+      "base": {
+        "event_id": 256,
+        "timestamp_ns": 1779074165695834834,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "ALLOC"
+      },
+      "alloc_address": 1377587970,
+      "alloc_size_bytes": 1024,
+      "object_type": "torch.Tensor",
+      "ref_count": 5,
+      "callstack": [
+        "<module>",
+        "preprocess",
+        "numpy.array"
+      ],
+      "gc_generation": 1,
+      "is_dealloc": false
+    },
+    {
+      "base": {
+        "event_id": 258,
+        "timestamp_ns": 1779074165702602077,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "DEALLOC"
+      },
+      "alloc_address": 1377587970,
+      "alloc_size_bytes": 1024,
+      "object_type": "torch.Tensor",
+      "ref_count": 0,
+      "callstack": [
+        "<module>",
+        "train",
+        "forward",
+        "numpy.dot"
+      ],
+      "gc_generation": 1,
+      "is_dealloc": true
+    },
+    {
+      "base": {
+        "event_id": 259,
+        "timestamp_ns": 1779074165702664125,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "ALLOC"
+      },
+      "alloc_address": 586264131,
+      "alloc_size_bytes": 1048576,
+      "object_type": "bytearray",
+      "ref_count": 2,
+      "callstack": [
+        "<module>",
+        "train",
+        "backward",
+        "torch.autograd"
+      ],
+      "gc_generation": 2,
+      "is_dealloc": false
+    },
+    {
+      "base": {
+        "event_id": 260,
+        "timestamp_ns": 1779074165703587748,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "DEALLOC"
+      },
+      "alloc_address": 586264131,
+      "alloc_size_bytes": 1048576,
+      "object_type": "bytearray",
+      "ref_count": 0,
+      "callstack": [
+        "<module>",
+        "load_data",
+        "pandas.read_csv"
+      ],
+      "gc_generation": 1,
+      "is_dealloc": true
+    },
+    {
+      "base": {
+        "event_id": 261,
+        "timestamp_ns": 1779074165703676475,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "ALLOC"
+      },
+      "alloc_address": 2675622085,
+      "alloc_size_bytes": 65536,
+      "object_type": "list",
+      "ref_count": 5,
+      "callstack": [
+        "<module>",
+        "preprocess",
+        "numpy.array"
+      ],
+      "gc_generation": 1,
+      "is_dealloc": false
+    },
+    {
+      "base": {
+        "event_id": 263,
+        "timestamp_ns": 1779074165705415174,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "DEALLOC"
+      },
+      "alloc_address": 2675622085,
+      "alloc_size_bytes": 65536,
+      "object_type": "list",
+      "ref_count": 0,
+      "callstack": [
+        "<module>",
+        "load_data",
+        "pandas.read_csv"
+      ],
+      "gc_generation": 1,
+      "is_dealloc": true
+    },
+    {
+      "base": {
+        "event_id": 264,
+        "timestamp_ns": 1779074165705450727,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "ALLOC"
+      },
+      "alloc_address": 2557150587,
+      "alloc_size_bytes": 65536,
+      "object_type": "bytes",
+      "ref_count": 2,
+      "callstack": [
+        "<module>",
+        "preprocess",
+        "numpy.array"
+      ],
+      "gc_generation": 1,
+      "is_dealloc": false
+    },
+    {
+      "base": {
+        "event_id": 265,
+        "timestamp_ns": 1779074165707399323,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "DEALLOC"
+      },
+      "alloc_address": 2557150587,
+      "alloc_size_bytes": 65536,
+      "object_type": "bytes",
+      "ref_count": 0,
+      "callstack": [
+        "<module>",
+        "train",
+        "backward",
+        "torch.autograd"
+      ],
+      "gc_generation": 2,
+      "is_dealloc": true
+    },
+    {
+      "base": {
+        "event_id": 266,
+        "timestamp_ns": 1779074165707483483,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "ALLOC"
+      },
+      "alloc_address": 546705615,
+      "alloc_size_bytes": 256,
+      "object_type": "torch.Tensor",
+      "ref_count": 2,
+      "callstack": [
+        "<module>",
+        "preprocess",
+        "numpy.array"
+      ],
+      "gc_generation": 2,
+      "is_dealloc": false
+    },
+    {
+      "base": {
+        "event_id": 268,
+        "timestamp_ns": 1779074165710553897,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "DEALLOC"
+      },
+      "alloc_address": 546705615,
+      "alloc_size_bytes": 256,
+      "object_type": "torch.Tensor",
+      "ref_count": 0,
+      "callstack": [
+        "<module>",
+        "preprocess",
+        "numpy.array"
+      ],
+      "gc_generation": 2,
+      "is_dealloc": true
+    },
+    {
+      "base": {
+        "event_id": 269,
+        "timestamp_ns": 1779074165710601730,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "ALLOC"
+      },
+      "alloc_address": 637026786,
+      "alloc_size_bytes": 64,
+      "object_type": "bytes",
+      "ref_count": 4,
+      "callstack": [
+        "<module>",
+        "preprocess",
+        "numpy.array"
+      ],
+      "gc_generation": 2,
+      "is_dealloc": false
+    },
+    {
+      "base": {
+        "event_id": 271,
+        "timestamp_ns": 1779074165715623137,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "DEALLOC"
+      },
+      "alloc_address": 637026786,
+      "alloc_size_bytes": 64,
+      "object_type": "bytes",
+      "ref_count": 0,
+      "callstack": [
+        "<module>",
+        "preprocess",
+        "numpy.array"
+      ],
+      "gc_generation": 0,
+      "is_dealloc": true
+    }
+  ],
+  "gpu_events": [
+    {
+      "base": {
+        "event_id": 4,
+        "timestamp_ns": 1779074165158202846,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "TRANSFER"
+      },
+      "device_id": 0,
+      "src_address": 2025491297,
+      "dst_address": 30316468513,
+      "transfer_size_bytes": 16384,
+      "transfer_kind": "HOST_TO_DEVICE",
+      "um_page_faults": 0,
+      "kernel_name": ""
+    },
+    {
+      "base": {
+        "event_id": 7,
+        "timestamp_ns": 1779074165160991050,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "TRANSFER"
+      },
+      "device_id": 0,
+      "src_address": 420733449,
+      "dst_address": 30295044230,
+      "transfer_size_bytes": 16384,
+      "transfer_kind": "HOST_TO_DEVICE",
+      "um_page_faults": 0,
+      "kernel_name": ""
+    },
+    {
+      "base": {
+        "event_id": 12,
+        "timestamp_ns": 1779074165172491246,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "TRANSFER"
+      },
+      "device_id": 0,
+      "src_address": 1428552047,
+      "dst_address": 30257506991,
+      "transfer_size_bytes": 4096,
+      "transfer_kind": "HOST_TO_DEVICE",
+      "um_page_faults": 0,
+      "kernel_name": ""
+    },
+    {
+      "base": {
+        "event_id": 13,
+        "timestamp_ns": 1779074165172662647,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "KERNEL"
+      },
+      "device_id": 0,
+      "src_address": 0,
+      "dst_address": 0,
+      "transfer_size_bytes": 0,
+      "transfer_kind": "HOST_TO_DEVICE",
+      "um_page_faults": 25,
+      "kernel_name": "elementwise_kernel"
+    },
+    {
+      "base": {
+        "event_id": 16,
+        "timestamp_ns": 1779074165177225156,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "TRANSFER"
+      },
+      "device_id": 0,
+      "src_address": 895114747,
+      "dst_address": 30110721731,
+      "transfer_size_bytes": 256,
+      "transfer_kind": "HOST_TO_DEVICE",
+      "um_page_faults": 0,
+      "kernel_name": ""
+    },
+    {
+      "base": {
+        "event_id": 19,
+        "timestamp_ns": 1779074165187342236,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "TRANSFER"
+      },
+      "device_id": 0,
+      "src_address": 2337041520,
+      "dst_address": 30148177441,
+      "transfer_size_bytes": 1048576,
+      "transfer_kind": "HOST_TO_DEVICE",
+      "um_page_faults": 0,
+      "kernel_name": ""
+    },
+    {
+      "base": {
+        "event_id": 20,
+        "timestamp_ns": 1779074165187410952,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "KERNEL"
+      },
+      "device_id": 0,
+      "src_address": 0,
+      "dst_address": 0,
+      "transfer_size_bytes": 0,
+      "transfer_kind": "HOST_TO_DEVICE",
+      "um_page_faults": 11,
+      "kernel_name": "volta_sgemm_128x64_nt"
+    },
+    {
+      "base": {
+        "event_id": 27,
+        "timestamp_ns": 1779074165207298579,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "TRANSFER"
+      },
+      "device_id": 0,
+      "src_address": 1728044326,
+      "dst_address": 30165889628,
+      "transfer_size_bytes": 1024,
+      "transfer_kind": "HOST_TO_DEVICE",
+      "um_page_faults": 0,
+      "kernel_name": ""
+    },
+    {
+      "base": {
+        "event_id": 32,
+        "timestamp_ns": 1779074165218229988,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "TRANSFER"
+      },
+      "device_id": 0,
+      "src_address": 1939677581,
+      "dst_address": 30262491283,
+      "transfer_size_bytes": 64,
+      "transfer_kind": "HOST_TO_DEVICE",
+      "um_page_faults": 0,
+      "kernel_name": ""
+    },
+    {
+      "base": {
+        "event_id": 37,
+        "timestamp_ns": 1779074165232889363,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "TRANSFER"
+      },
+      "device_id": 0,
+      "src_address": 1410127117,
+      "dst_address": 30306047900,
+      "transfer_size_bytes": 1024,
+      "transfer_kind": "HOST_TO_DEVICE",
+      "um_page_faults": 0,
+      "kernel_name": ""
+    },
+    {
+      "base": {
+        "event_id": 40,
+        "timestamp_ns": 1779074165241366037,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "TRANSFER"
+      },
+      "device_id": 0,
+      "src_address": 155389829,
+      "dst_address": 30300802599,
+      "transfer_size_bytes": 65536,
+      "transfer_kind": "HOST_TO_DEVICE",
+      "um_page_faults": 0,
+      "kernel_name": ""
+    },
+    {
+      "base": {
+        "event_id": 41,
+        "timestamp_ns": 1779074165241434980,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "KERNEL"
+      },
+      "device_id": 0,
+      "src_address": 0,
+      "dst_address": 0,
+      "transfer_size_bytes": 0,
+      "transfer_kind": "HOST_TO_DEVICE",
+      "um_page_faults": 42,
+      "kernel_name": "volta_sgemm_128x64_nt"
+    },
+    {
+      "base": {
+        "event_id": 58,
+        "timestamp_ns": 1779074165290643826,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "TRANSFER"
+      },
+      "device_id": 0,
+      "src_address": 1153641993,
+      "dst_address": 30219061908,
+      "transfer_size_bytes": 64,
+      "transfer_kind": "HOST_TO_DEVICE",
+      "um_page_faults": 0,
+      "kernel_name": ""
+    },
+    {
+      "base": {
+        "event_id": 59,
+        "timestamp_ns": 1779074165290713331,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "KERNEL"
+      },
+      "device_id": 0,
+      "src_address": 0,
+      "dst_address": 0,
+      "transfer_size_bytes": 0,
+      "transfer_kind": "HOST_TO_DEVICE",
+      "um_page_faults": 14,
+      "kernel_name": "elementwise_kernel"
+    },
+    {
+      "base": {
+        "event_id": 68,
+        "timestamp_ns": 1779074165319599331,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "TRANSFER"
+      },
+      "device_id": 0,
+      "src_address": 1371626764,
+      "dst_address": 30071910682,
+      "transfer_size_bytes": 64,
+      "transfer_kind": "HOST_TO_DEVICE",
+      "um_page_faults": 0,
+      "kernel_name": ""
+    },
+    {
+      "base": {
+        "event_id": 71,
+        "timestamp_ns": 1779074165326813796,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "TRANSFER"
+      },
+      "device_id": 0,
+      "src_address": 2034361499,
+      "dst_address": 30178885700,
+      "transfer_size_bytes": 256,
+      "transfer_kind": "HOST_TO_DEVICE",
+      "um_page_faults": 0,
+      "kernel_name": ""
+    },
+    {
+      "base": {
+        "event_id": 72,
+        "timestamp_ns": 1779074165326995250,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "KERNEL"
+      },
+      "device_id": 0,
+      "src_address": 0,
+      "dst_address": 0,
+      "transfer_size_bytes": 0,
+      "transfer_kind": "HOST_TO_DEVICE",
+      "um_page_faults": 33,
+      "kernel_name": "cudnn_infer_engine"
+    },
+    {
+      "base": {
+        "event_id": 75,
+        "timestamp_ns": 1779074165330279591,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "TRANSFER"
+      },
+      "device_id": 0,
+      "src_address": 2472514929,
+      "dst_address": 30078646494,
+      "transfer_size_bytes": 4096,
+      "transfer_kind": "HOST_TO_DEVICE",
+      "um_page_faults": 0,
+      "kernel_name": ""
+    },
+    {
+      "base": {
+        "event_id": 82,
+        "timestamp_ns": 1779074165344760908,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "TRANSFER"
+      },
+      "device_id": 0,
+      "src_address": 2546836433,
+      "dst_address": 30227111861,
+      "transfer_size_bytes": 256,
+      "transfer_kind": "HOST_TO_DEVICE",
+      "um_page_faults": 0,
+      "kernel_name": ""
+    },
+    {
+      "base": {
+        "event_id": 83,
+        "timestamp_ns": 1779074165344826080,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "KERNEL"
+      },
+      "device_id": 0,
+      "src_address": 0,
+      "dst_address": 0,
+      "transfer_size_bytes": 0,
+      "transfer_kind": "HOST_TO_DEVICE",
+      "um_page_faults": 14,
+      "kernel_name": "reduce_sum_kernel"
+    },
+    {
+      "base": {
+        "event_id": 86,
+        "timestamp_ns": 1779074165348013355,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "TRANSFER"
+      },
+      "device_id": 0,
+      "src_address": 1831322900,
+      "dst_address": 30092810902,
+      "transfer_size_bytes": 16384,
+      "transfer_kind": "HOST_TO_DEVICE",
+      "um_page_faults": 0,
+      "kernel_name": ""
+    },
+    {
+      "base": {
+        "event_id": 89,
+        "timestamp_ns": 1779074165354112798,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "TRANSFER"
+      },
+      "device_id": 0,
+      "src_address": 1891498672,
+      "dst_address": 30162129112,
+      "transfer_size_bytes": 65536,
+      "transfer_kind": "HOST_TO_DEVICE",
+      "um_page_faults": 0,
+      "kernel_name": ""
+    },
+    {
+      "base": {
+        "event_id": 90,
+        "timestamp_ns": 1779074165354133999,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "KERNEL"
+      },
+      "device_id": 0,
+      "src_address": 0,
+      "dst_address": 0,
+      "transfer_size_bytes": 0,
+      "transfer_kind": "HOST_TO_DEVICE",
+      "um_page_faults": 21,
+      "kernel_name": "elementwise_kernel"
+    },
+    {
+      "base": {
+        "event_id": 95,
+        "timestamp_ns": 1779074165365387366,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "TRANSFER"
+      },
+      "device_id": 0,
+      "src_address": 1189669049,
+      "dst_address": 30174867391,
+      "transfer_size_bytes": 4096,
+      "transfer_kind": "HOST_TO_DEVICE",
+      "um_page_faults": 0,
+      "kernel_name": ""
+    },
+    {
+      "base": {
+        "event_id": 98,
+        "timestamp_ns": 1779074165375790199,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "TRANSFER"
+      },
+      "device_id": 0,
+      "src_address": 1505797791,
+      "dst_address": 30191839098,
+      "transfer_size_bytes": 65536,
+      "transfer_kind": "HOST_TO_DEVICE",
+      "um_page_faults": 0,
+      "kernel_name": ""
+    },
+    {
+      "base": {
+        "event_id": 101,
+        "timestamp_ns": 1779074165379282497,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "TRANSFER"
+      },
+      "device_id": 0,
+      "src_address": 873728436,
+      "dst_address": 30295619544,
+      "transfer_size_bytes": 256,
+      "transfer_kind": "HOST_TO_DEVICE",
+      "um_page_faults": 0,
+      "kernel_name": ""
+    },
+    {
+      "base": {
+        "event_id": 110,
+        "timestamp_ns": 1779074165405849204,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "TRANSFER"
+      },
+      "device_id": 0,
+      "src_address": 2048491306,
+      "dst_address": 30296120137,
+      "transfer_size_bytes": 64,
+      "transfer_kind": "HOST_TO_DEVICE",
+      "um_page_faults": 0,
+      "kernel_name": ""
+    },
+    {
+      "base": {
+        "event_id": 111,
+        "timestamp_ns": 1779074165405953009,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "KERNEL"
+      },
+      "device_id": 0,
+      "src_address": 0,
+      "dst_address": 0,
+      "transfer_size_bytes": 0,
+      "transfer_kind": "HOST_TO_DEVICE",
+      "um_page_faults": 7,
+      "kernel_name": "cudnn_infer_engine"
+    },
+    {
+      "base": {
+        "event_id": 116,
+        "timestamp_ns": 1779074165421217802,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "TRANSFER"
+      },
+      "device_id": 0,
+      "src_address": 1431075708,
+      "dst_address": 30311711362,
+      "transfer_size_bytes": 4096,
+      "transfer_kind": "HOST_TO_DEVICE",
+      "um_page_faults": 0,
+      "kernel_name": ""
+    },
+    {
+      "base": {
+        "event_id": 125,
+        "timestamp_ns": 1779074165430031057,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "TRANSFER"
+      },
+      "device_id": 0,
+      "src_address": 635575331,
+      "dst_address": 30301564780,
+      "transfer_size_bytes": 64,
+      "transfer_kind": "HOST_TO_DEVICE",
+      "um_page_faults": 0,
+      "kernel_name": ""
+    },
+    {
+      "base": {
+        "event_id": 130,
+        "timestamp_ns": 1779074165439969934,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "TRANSFER"
+      },
+      "device_id": 0,
+      "src_address": 2415956837,
+      "dst_address": 30242297534,
+      "transfer_size_bytes": 1024,
+      "transfer_kind": "HOST_TO_DEVICE",
+      "um_page_faults": 0,
+      "kernel_name": ""
+    },
+    {
+      "base": {
+        "event_id": 131,
+        "timestamp_ns": 1779074165440015839,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "KERNEL"
+      },
+      "device_id": 0,
+      "src_address": 0,
+      "dst_address": 0,
+      "transfer_size_bytes": 0,
+      "transfer_kind": "HOST_TO_DEVICE",
+      "um_page_faults": 37,
+      "kernel_name": "volta_sgemm_128x64_nt"
+    },
+    {
+      "base": {
+        "event_id": 136,
+        "timestamp_ns": 1779074165453163443,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "TRANSFER"
+      },
+      "device_id": 0,
+      "src_address": 2549981175,
+      "dst_address": 30102716260,
+      "transfer_size_bytes": 1024,
+      "transfer_kind": "HOST_TO_DEVICE",
+      "um_page_faults": 0,
+      "kernel_name": ""
+    },
+    {
+      "base": {
+        "event_id": 137,
+        "timestamp_ns": 1779074165453306047,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "KERNEL"
+      },
+      "device_id": 0,
+      "src_address": 0,
+      "dst_address": 0,
+      "transfer_size_bytes": 0,
+      "transfer_kind": "HOST_TO_DEVICE",
+      "um_page_faults": 3,
+      "kernel_name": "reduce_sum_kernel"
+    },
+    {
+      "base": {
+        "event_id": 140,
+        "timestamp_ns": 1779074165458864566,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "TRANSFER"
+      },
+      "device_id": 0,
+      "src_address": 2143284505,
+      "dst_address": 30141095470,
+      "transfer_size_bytes": 16384,
+      "transfer_kind": "HOST_TO_DEVICE",
+      "um_page_faults": 0,
+      "kernel_name": ""
+    },
+    {
+      "base": {
+        "event_id": 147,
+        "timestamp_ns": 1779074165483611760,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "TRANSFER"
+      },
+      "device_id": 0,
+      "src_address": 1846931250,
+      "dst_address": 30174609391,
+      "transfer_size_bytes": 256,
+      "transfer_kind": "HOST_TO_DEVICE",
+      "um_page_faults": 0,
+      "kernel_name": ""
+    },
+    {
+      "base": {
+        "event_id": 148,
+        "timestamp_ns": 1779074165483639958,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "KERNEL"
+      },
+      "device_id": 0,
+      "src_address": 0,
+      "dst_address": 0,
+      "transfer_size_bytes": 0,
+      "transfer_kind": "HOST_TO_DEVICE",
+      "um_page_faults": 4,
+      "kernel_name": "elementwise_kernel"
+    },
+    {
+      "base": {
+        "event_id": 151,
+        "timestamp_ns": 1779074165487848179,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "TRANSFER"
+      },
+      "device_id": 0,
+      "src_address": 480429459,
+      "dst_address": 30102834626,
+      "transfer_size_bytes": 1048576,
+      "transfer_kind": "HOST_TO_DEVICE",
+      "um_page_faults": 0,
+      "kernel_name": ""
+    },
+    {
+      "base": {
+        "event_id": 152,
+        "timestamp_ns": 1779074165487895696,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "KERNEL"
+      },
+      "device_id": 0,
+      "src_address": 0,
+      "dst_address": 0,
+      "transfer_size_bytes": 0,
+      "transfer_kind": "HOST_TO_DEVICE",
+      "um_page_faults": 44,
+      "kernel_name": "cudnn_infer_engine"
+    },
+    {
+      "base": {
+        "event_id": 155,
+        "timestamp_ns": 1779074165488984674,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "TRANSFER"
+      },
+      "device_id": 0,
+      "src_address": 639511567,
+      "dst_address": 30289734275,
+      "transfer_size_bytes": 65536,
+      "transfer_kind": "HOST_TO_DEVICE",
+      "um_page_faults": 0,
+      "kernel_name": ""
+    },
+    {
+      "base": {
+        "event_id": 158,
+        "timestamp_ns": 1779074165498192134,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "TRANSFER"
+      },
+      "device_id": 0,
+      "src_address": 907698724,
+      "dst_address": 30294891789,
+      "transfer_size_bytes": 64,
+      "transfer_kind": "HOST_TO_DEVICE",
+      "um_page_faults": 0,
+      "kernel_name": ""
+    },
+    {
+      "base": {
+        "event_id": 163,
+        "timestamp_ns": 1779074165501090285,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "TRANSFER"
+      },
+      "device_id": 0,
+      "src_address": 1048098208,
+      "dst_address": 30310989337,
+      "transfer_size_bytes": 256,
+      "transfer_kind": "HOST_TO_DEVICE",
+      "um_page_faults": 0,
+      "kernel_name": ""
+    },
+    {
+      "base": {
+        "event_id": 168,
+        "timestamp_ns": 1779074165506814077,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "TRANSFER"
+      },
+      "device_id": 0,
+      "src_address": 1226869552,
+      "dst_address": 30214701111,
+      "transfer_size_bytes": 4096,
+      "transfer_kind": "HOST_TO_DEVICE",
+      "um_page_faults": 0,
+      "kernel_name": ""
+    },
+    {
+      "base": {
+        "event_id": 169,
+        "timestamp_ns": 1779074165506870047,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "KERNEL"
+      },
+      "device_id": 0,
+      "src_address": 0,
+      "dst_address": 0,
+      "transfer_size_bytes": 0,
+      "transfer_kind": "HOST_TO_DEVICE",
+      "um_page_faults": 21,
+      "kernel_name": "reduce_sum_kernel"
+    },
+    {
+      "base": {
+        "event_id": 174,
+        "timestamp_ns": 1779074165519383532,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "TRANSFER"
+      },
+      "device_id": 0,
+      "src_address": 553793797,
+      "dst_address": 30065739340,
+      "transfer_size_bytes": 1024,
+      "transfer_kind": "HOST_TO_DEVICE",
+      "um_page_faults": 0,
+      "kernel_name": ""
+    },
+    {
+      "base": {
+        "event_id": 177,
+        "timestamp_ns": 1779074165527508772,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "TRANSFER"
+      },
+      "device_id": 0,
+      "src_address": 59562307,
+      "dst_address": 30273898978,
+      "transfer_size_bytes": 65536,
+      "transfer_kind": "HOST_TO_DEVICE",
+      "um_page_faults": 0,
+      "kernel_name": ""
+    },
+    {
+      "base": {
+        "event_id": 178,
+        "timestamp_ns": 1779074165527660534,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "KERNEL"
+      },
+      "device_id": 0,
+      "src_address": 0,
+      "dst_address": 0,
+      "transfer_size_bytes": 0,
+      "transfer_kind": "HOST_TO_DEVICE",
+      "um_page_faults": 8,
+      "kernel_name": "volta_sgemm_128x64_nt"
+    },
+    {
+      "base": {
+        "event_id": 183,
+        "timestamp_ns": 1779074165538582599,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "TRANSFER"
+      },
+      "device_id": 0,
+      "src_address": 440791375,
+      "dst_address": 30151973520,
+      "transfer_size_bytes": 65536,
+      "transfer_kind": "HOST_TO_DEVICE",
+      "um_page_faults": 0,
+      "kernel_name": ""
+    },
+    {
+      "base": {
+        "event_id": 184,
+        "timestamp_ns": 1779074165538770529,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "KERNEL"
+      },
+      "device_id": 0,
+      "src_address": 0,
+      "dst_address": 0,
+      "transfer_size_bytes": 0,
+      "transfer_kind": "HOST_TO_DEVICE",
+      "um_page_faults": 38,
+      "kernel_name": "volta_sgemm_128x64_nt"
+    },
+    {
+      "base": {
+        "event_id": 193,
+        "timestamp_ns": 1779074165555541484,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "TRANSFER"
+      },
+      "device_id": 0,
+      "src_address": 2220855880,
+      "dst_address": 30189251300,
+      "transfer_size_bytes": 1024,
+      "transfer_kind": "HOST_TO_DEVICE",
+      "um_page_faults": 0,
+      "kernel_name": ""
+    },
+    {
+      "base": {
+        "event_id": 198,
+        "timestamp_ns": 1779074165564792627,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "TRANSFER"
+      },
+      "device_id": 0,
+      "src_address": 2418667006,
+      "dst_address": 30117656610,
+      "transfer_size_bytes": 1048576,
+      "transfer_kind": "HOST_TO_DEVICE",
+      "um_page_faults": 0,
+      "kernel_name": ""
+    },
+    {
+      "base": {
+        "event_id": 201,
+        "timestamp_ns": 1779074165574023043,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "TRANSFER"
+      },
+      "device_id": 0,
+      "src_address": 828717869,
+      "dst_address": 30212613162,
+      "transfer_size_bytes": 64,
+      "transfer_kind": "HOST_TO_DEVICE",
+      "um_page_faults": 0,
+      "kernel_name": ""
+    },
+    {
+      "base": {
+        "event_id": 202,
+        "timestamp_ns": 1779074165574057350,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "KERNEL"
+      },
+      "device_id": 0,
+      "src_address": 0,
+      "dst_address": 0,
+      "transfer_size_bytes": 0,
+      "transfer_kind": "HOST_TO_DEVICE",
+      "um_page_faults": 41,
+      "kernel_name": "volta_sgemm_128x64_nt"
+    },
+    {
+      "base": {
+        "event_id": 205,
+        "timestamp_ns": 1779074165583867063,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "TRANSFER"
+      },
+      "device_id": 0,
+      "src_address": 1439168814,
+      "dst_address": 30310335970,
+      "transfer_size_bytes": 1024,
+      "transfer_kind": "HOST_TO_DEVICE",
+      "um_page_faults": 0,
+      "kernel_name": ""
+    },
+    {
+      "base": {
+        "event_id": 206,
+        "timestamp_ns": 1779074165583957063,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "KERNEL"
+      },
+      "device_id": 0,
+      "src_address": 0,
+      "dst_address": 0,
+      "transfer_size_bytes": 0,
+      "transfer_kind": "HOST_TO_DEVICE",
+      "um_page_faults": 18,
+      "kernel_name": "reduce_sum_kernel"
+    },
+    {
+      "base": {
+        "event_id": 209,
+        "timestamp_ns": 1779074165590488337,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "TRANSFER"
+      },
+      "device_id": 0,
+      "src_address": 1940186889,
+      "dst_address": 30094870120,
+      "transfer_size_bytes": 65536,
+      "transfer_kind": "HOST_TO_DEVICE",
+      "um_page_faults": 0,
+      "kernel_name": ""
+    },
+    {
+      "base": {
+        "event_id": 212,
+        "timestamp_ns": 1779074165597366614,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "TRANSFER"
+      },
+      "device_id": 0,
+      "src_address": 2512761795,
+      "dst_address": 30199594595,
+      "transfer_size_bytes": 16384,
+      "transfer_kind": "HOST_TO_DEVICE",
+      "um_page_faults": 0,
+      "kernel_name": ""
+    },
+    {
+      "base": {
+        "event_id": 213,
+        "timestamp_ns": 1779074165597463545,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "KERNEL"
+      },
+      "device_id": 0,
+      "src_address": 0,
+      "dst_address": 0,
+      "transfer_size_bytes": 0,
+      "transfer_kind": "HOST_TO_DEVICE",
+      "um_page_faults": 20,
+      "kernel_name": "reduce_sum_kernel"
+    },
+    {
+      "base": {
+        "event_id": 218,
+        "timestamp_ns": 1779074165603130927,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "TRANSFER"
+      },
+      "device_id": 0,
+      "src_address": 1229047467,
+      "dst_address": 30090924230,
+      "transfer_size_bytes": 4096,
+      "transfer_kind": "HOST_TO_DEVICE",
+      "um_page_faults": 0,
+      "kernel_name": ""
+    },
+    {
+      "base": {
+        "event_id": 221,
+        "timestamp_ns": 1779074165606425649,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "TRANSFER"
+      },
+      "device_id": 0,
+      "src_address": 1507517226,
+      "dst_address": 30258877227,
+      "transfer_size_bytes": 4096,
+      "transfer_kind": "HOST_TO_DEVICE",
+      "um_page_faults": 0,
+      "kernel_name": ""
+    },
+    {
+      "base": {
+        "event_id": 222,
+        "timestamp_ns": 1779074165606466275,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "KERNEL"
+      },
+      "device_id": 0,
+      "src_address": 0,
+      "dst_address": 0,
+      "transfer_size_bytes": 0,
+      "transfer_kind": "HOST_TO_DEVICE",
+      "um_page_faults": 23,
+      "kernel_name": "elementwise_kernel"
+    },
+    {
+      "base": {
+        "event_id": 225,
+        "timestamp_ns": 1779074165616442259,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "TRANSFER"
+      },
+      "device_id": 0,
+      "src_address": 322527656,
+      "dst_address": 30090756341,
+      "transfer_size_bytes": 1048576,
+      "transfer_kind": "HOST_TO_DEVICE",
+      "um_page_faults": 0,
+      "kernel_name": ""
+    },
+    {
+      "base": {
+        "event_id": 228,
+        "timestamp_ns": 1779074165619919356,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "TRANSFER"
+      },
+      "device_id": 0,
+      "src_address": 1212839687,
+      "dst_address": 30229145055,
+      "transfer_size_bytes": 256,
+      "transfer_kind": "HOST_TO_DEVICE",
+      "um_page_faults": 0,
+      "kernel_name": ""
+    },
+    {
+      "base": {
+        "event_id": 231,
+        "timestamp_ns": 1779074165623088066,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "TRANSFER"
+      },
+      "device_id": 0,
+      "src_address": 748939589,
+      "dst_address": 30074951333,
+      "transfer_size_bytes": 4096,
+      "transfer_kind": "HOST_TO_DEVICE",
+      "um_page_faults": 0,
+      "kernel_name": ""
+    },
+    {
+      "base": {
+        "event_id": 236,
+        "timestamp_ns": 1779074165638962952,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "TRANSFER"
+      },
+      "device_id": 0,
+      "src_address": 2660148179,
+      "dst_address": 30171797283,
+      "transfer_size_bytes": 64,
+      "transfer_kind": "HOST_TO_DEVICE",
+      "um_page_faults": 0,
+      "kernel_name": ""
+    },
+    {
+      "base": {
+        "event_id": 237,
+        "timestamp_ns": 1779074165639056242,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "KERNEL"
+      },
+      "device_id": 0,
+      "src_address": 0,
+      "dst_address": 0,
+      "transfer_size_bytes": 0,
+      "transfer_kind": "HOST_TO_DEVICE",
+      "um_page_faults": 49,
+      "kernel_name": "elementwise_kernel"
+    },
+    {
+      "base": {
+        "event_id": 248,
+        "timestamp_ns": 1779074165668095872,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "TRANSFER"
+      },
+      "device_id": 0,
+      "src_address": 1685315806,
+      "dst_address": 30265909662,
+      "transfer_size_bytes": 1024,
+      "transfer_kind": "HOST_TO_DEVICE",
+      "um_page_faults": 0,
+      "kernel_name": ""
+    },
+    {
+      "base": {
+        "event_id": 257,
+        "timestamp_ns": 1779074165696146014,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "TRANSFER"
+      },
+      "device_id": 0,
+      "src_address": 1377587970,
+      "dst_address": 30185467809,
+      "transfer_size_bytes": 1024,
+      "transfer_kind": "HOST_TO_DEVICE",
+      "um_page_faults": 0,
+      "kernel_name": ""
+    },
+    {
+      "base": {
+        "event_id": 262,
+        "timestamp_ns": 1779074165703805949,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "TRANSFER"
+      },
+      "device_id": 0,
+      "src_address": 2675622085,
+      "dst_address": 30315390775,
+      "transfer_size_bytes": 65536,
+      "transfer_kind": "HOST_TO_DEVICE",
+      "um_page_faults": 0,
+      "kernel_name": ""
+    },
+    {
+      "base": {
+        "event_id": 267,
+        "timestamp_ns": 1779074165707709140,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "TRANSFER"
+      },
+      "device_id": 0,
+      "src_address": 546705615,
+      "dst_address": 30188694889,
+      "transfer_size_bytes": 256,
+      "transfer_kind": "HOST_TO_DEVICE",
+      "um_page_faults": 0,
+      "kernel_name": ""
+    },
+    {
+      "base": {
+        "event_id": 270,
+        "timestamp_ns": 1779074165710861599,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "TRANSFER"
+      },
+      "device_id": 0,
+      "src_address": 637026786,
+      "dst_address": 30311695934,
+      "transfer_size_bytes": 64,
+      "transfer_kind": "HOST_TO_DEVICE",
+      "um_page_faults": 0,
+      "kernel_name": ""
+    },
+    {
+      "base": {
+        "event_id": 272,
+        "timestamp_ns": 1779074165715716643,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "KERNEL"
+      },
+      "device_id": 0,
+      "src_address": 0,
+      "dst_address": 0,
+      "transfer_size_bytes": 0,
+      "transfer_kind": "HOST_TO_DEVICE",
+      "um_page_faults": 30,
+      "kernel_name": "cudnn_infer_engine"
+    },
+    {
+      "base": {
+        "event_id": 273,
+        "timestamp_ns": 1779074165715869328,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "KERNEL"
+      },
+      "device_id": 0,
+      "src_address": 0,
+      "dst_address": 0,
+      "transfer_size_bytes": 0,
+      "transfer_kind": "HOST_TO_DEVICE",
+      "um_page_faults": 35,
+      "kernel_name": "reduce_sum_kernel"
+    },
+    {
+      "base": {
+        "event_id": 274,
+        "timestamp_ns": 1779074165716329924,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "KERNEL"
+      },
+      "device_id": 0,
+      "src_address": 0,
+      "dst_address": 0,
+      "transfer_size_bytes": 0,
+      "transfer_kind": "HOST_TO_DEVICE",
+      "um_page_faults": 27,
+      "kernel_name": "volta_sgemm_128x64_nt"
+    },
+    {
+      "base": {
+        "event_id": 275,
+        "timestamp_ns": 1779074165716603056,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "KERNEL"
+      },
+      "device_id": 0,
+      "src_address": 0,
+      "dst_address": 0,
+      "transfer_size_bytes": 0,
+      "transfer_kind": "HOST_TO_DEVICE",
+      "um_page_faults": 2,
+      "kernel_name": "volta_sgemm_128x64_nt"
+    },
+    {
+      "base": {
+        "event_id": 276,
+        "timestamp_ns": 1779074165716990833,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "KERNEL"
+      },
+      "device_id": 0,
+      "src_address": 0,
+      "dst_address": 0,
+      "transfer_size_bytes": 0,
+      "transfer_kind": "HOST_TO_DEVICE",
+      "um_page_faults": 16,
+      "kernel_name": "volta_sgemm_128x64_nt"
+    },
+    {
+      "base": {
+        "event_id": 277,
+        "timestamp_ns": 1779074165717086468,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "KERNEL"
+      },
+      "device_id": 0,
+      "src_address": 0,
+      "dst_address": 0,
+      "transfer_size_bytes": 0,
+      "transfer_kind": "HOST_TO_DEVICE",
+      "um_page_faults": 22,
+      "kernel_name": "volta_sgemm_128x64_nt"
+    },
+    {
+      "base": {
+        "event_id": 278,
+        "timestamp_ns": 1779074165717550671,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "KERNEL"
+      },
+      "device_id": 0,
+      "src_address": 0,
+      "dst_address": 0,
+      "transfer_size_bytes": 0,
+      "transfer_kind": "HOST_TO_DEVICE",
+      "um_page_faults": 38,
+      "kernel_name": "elementwise_kernel"
+    },
+    {
+      "base": {
+        "event_id": 279,
+        "timestamp_ns": 1779074165717991565,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "KERNEL"
+      },
+      "device_id": 0,
+      "src_address": 0,
+      "dst_address": 0,
+      "transfer_size_bytes": 0,
+      "transfer_kind": "HOST_TO_DEVICE",
+      "um_page_faults": 0,
+      "kernel_name": "cudnn_infer_engine"
+    },
+    {
+      "base": {
+        "event_id": 280,
+        "timestamp_ns": 1779074165718286830,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "KERNEL"
+      },
+      "device_id": 0,
+      "src_address": 0,
+      "dst_address": 0,
+      "transfer_size_bytes": 0,
+      "transfer_kind": "HOST_TO_DEVICE",
+      "um_page_faults": 12,
+      "kernel_name": "elementwise_kernel"
+    },
+    {
+      "base": {
+        "event_id": 281,
+        "timestamp_ns": 1779074165718633106,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "KERNEL"
+      },
+      "device_id": 0,
+      "src_address": 0,
+      "dst_address": 0,
+      "transfer_size_bytes": 0,
+      "transfer_kind": "HOST_TO_DEVICE",
+      "um_page_faults": 6,
+      "kernel_name": "cudnn_infer_engine"
+    },
+    {
+      "base": {
+        "event_id": 282,
+        "timestamp_ns": 1779074165718909656,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "KERNEL"
+      },
+      "device_id": 0,
+      "src_address": 0,
+      "dst_address": 0,
+      "transfer_size_bytes": 0,
+      "transfer_kind": "HOST_TO_DEVICE",
+      "um_page_faults": 11,
+      "kernel_name": "volta_sgemm_128x64_nt"
+    },
+    {
+      "base": {
+        "event_id": 283,
+        "timestamp_ns": 1779074165719148611,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "KERNEL"
+      },
+      "device_id": 0,
+      "src_address": 0,
+      "dst_address": 0,
+      "transfer_size_bytes": 0,
+      "transfer_kind": "HOST_TO_DEVICE",
+      "um_page_faults": 5,
+      "kernel_name": "reduce_sum_kernel"
+    },
+    {
+      "base": {
+        "event_id": 284,
+        "timestamp_ns": 1779074165719316509,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "KERNEL"
+      },
+      "device_id": 0,
+      "src_address": 0,
+      "dst_address": 0,
+      "transfer_size_bytes": 0,
+      "transfer_kind": "HOST_TO_DEVICE",
+      "um_page_faults": 6,
+      "kernel_name": "elementwise_kernel"
+    },
+    {
+      "base": {
+        "event_id": 285,
+        "timestamp_ns": 1779074165719431101,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "KERNEL"
+      },
+      "device_id": 0,
+      "src_address": 0,
+      "dst_address": 0,
+      "transfer_size_bytes": 0,
+      "transfer_kind": "HOST_TO_DEVICE",
+      "um_page_faults": 10,
+      "kernel_name": "reduce_sum_kernel"
+    },
+    {
+      "base": {
+        "event_id": 286,
+        "timestamp_ns": 1779074165719849083,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "KERNEL"
+      },
+      "device_id": 0,
+      "src_address": 0,
+      "dst_address": 0,
+      "transfer_size_bytes": 0,
+      "transfer_kind": "HOST_TO_DEVICE",
+      "um_page_faults": 25,
+      "kernel_name": "reduce_sum_kernel"
+    },
+    {
+      "base": {
+        "event_id": 287,
+        "timestamp_ns": 1779074165720036831,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "KERNEL"
+      },
+      "device_id": 0,
+      "src_address": 0,
+      "dst_address": 0,
+      "transfer_size_bytes": 0,
+      "transfer_kind": "HOST_TO_DEVICE",
+      "um_page_faults": 43,
+      "kernel_name": "reduce_sum_kernel"
+    },
+    {
+      "base": {
+        "event_id": 288,
+        "timestamp_ns": 1779074165720167657,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "KERNEL"
+      },
+      "device_id": 0,
+      "src_address": 0,
+      "dst_address": 0,
+      "transfer_size_bytes": 0,
+      "transfer_kind": "HOST_TO_DEVICE",
+      "um_page_faults": 23,
+      "kernel_name": "cudnn_infer_engine"
+    },
+    {
+      "base": {
+        "event_id": 289,
+        "timestamp_ns": 1779074165720608291,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "KERNEL"
+      },
+      "device_id": 0,
+      "src_address": 0,
+      "dst_address": 0,
+      "transfer_size_bytes": 0,
+      "transfer_kind": "HOST_TO_DEVICE",
+      "um_page_faults": 25,
+      "kernel_name": "reduce_sum_kernel"
+    },
+    {
+      "base": {
+        "event_id": 290,
+        "timestamp_ns": 1779074165720990596,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "KERNEL"
+      },
+      "device_id": 0,
+      "src_address": 0,
+      "dst_address": 0,
+      "transfer_size_bytes": 0,
+      "transfer_kind": "HOST_TO_DEVICE",
+      "um_page_faults": 3,
+      "kernel_name": "cudnn_infer_engine"
+    },
+    {
+      "base": {
+        "event_id": 291,
+        "timestamp_ns": 1779074165721371854,
+        "process_id": 12345,
+        "thread_id": 1,
+        "event_type": "KERNEL"
+      },
+      "device_id": 0,
+      "src_address": 0,
+      "dst_address": 0,
+      "transfer_size_bytes": 0,
+      "transfer_kind": "HOST_TO_DEVICE",
+      "um_page_faults": 32,
+      "kernel_name": "cudnn_infer_engine"
+    }
+  ],
+  "correlated_events": [
+    {
+      "cpu_event_id": 3,
+      "gpu_event_id": 4,
+      "confidence": "HARD",
+      "match_reason": "ADDRESS_MATCH",
+      "latency_ns": 343358
+    },
+    {
+      "cpu_event_id": 6,
+      "gpu_event_id": 7,
+      "confidence": "HARD",
+      "match_reason": "ADDRESS_MATCH",
+      "latency_ns": 120316
+    },
+    {
+      "cpu_event_id": 11,
+      "gpu_event_id": 12,
+      "confidence": "HARD",
+      "match_reason": "ADDRESS_MATCH",
+      "latency_ns": 213966
+    },
+    {
+      "cpu_event_id": 15,
+      "gpu_event_id": 16,
+      "confidence": "HARD",
+      "match_reason": "ADDRESS_MATCH",
+      "latency_ns": 155971
+    },
+    {
+      "cpu_event_id": 18,
+      "gpu_event_id": 19,
+      "confidence": "HARD",
+      "match_reason": "ADDRESS_MATCH",
+      "latency_ns": 262428
+    },
+    {
+      "cpu_event_id": 26,
+      "gpu_event_id": 27,
+      "confidence": "HARD",
+      "match_reason": "ADDRESS_MATCH",
+      "latency_ns": 212378
+    },
+    {
+      "cpu_event_id": 31,
+      "gpu_event_id": 32,
+      "confidence": "HARD",
+      "match_reason": "ADDRESS_MATCH",
+      "latency_ns": 492249
+    },
+    {
+      "cpu_event_id": 36,
+      "gpu_event_id": 37,
+      "confidence": "HARD",
+      "match_reason": "ADDRESS_MATCH",
+      "latency_ns": 63349
+    },
+    {
+      "cpu_event_id": 39,
+      "gpu_event_id": 40,
+      "confidence": "HARD",
+      "match_reason": "ADDRESS_MATCH",
+      "latency_ns": 453879
+    },
+    {
+      "cpu_event_id": 57,
+      "gpu_event_id": 58,
+      "confidence": "HARD",
+      "match_reason": "ADDRESS_MATCH",
+      "latency_ns": 411106
+    },
+    {
+      "cpu_event_id": 67,
+      "gpu_event_id": 68,
+      "confidence": "HARD",
+      "match_reason": "ADDRESS_MATCH",
+      "latency_ns": 193411
+    },
+    {
+      "cpu_event_id": 70,
+      "gpu_event_id": 71,
+      "confidence": "HARD",
+      "match_reason": "ADDRESS_MATCH",
+      "latency_ns": 354405
+    },
+    {
+      "cpu_event_id": 74,
+      "gpu_event_id": 75,
+      "confidence": "HARD",
+      "match_reason": "ADDRESS_MATCH",
+      "latency_ns": 376029
+    },
+    {
+      "cpu_event_id": 81,
+      "gpu_event_id": 82,
+      "confidence": "HARD",
+      "match_reason": "ADDRESS_MATCH",
+      "latency_ns": 448191
+    },
+    {
+      "cpu_event_id": 85,
+      "gpu_event_id": 86,
+      "confidence": "HARD",
+      "match_reason": "ADDRESS_MATCH",
+      "latency_ns": 196872
+    },
+    {
+      "cpu_event_id": 88,
+      "gpu_event_id": 89,
+      "confidence": "HARD",
+      "match_reason": "ADDRESS_MATCH",
+      "latency_ns": 287068
+    },
+    {
+      "cpu_event_id": 94,
+      "gpu_event_id": 95,
+      "confidence": "HARD",
+      "match_reason": "ADDRESS_MATCH",
+      "latency_ns": 321344
+    },
+    {
+      "cpu_event_id": 97,
+      "gpu_event_id": 98,
+      "confidence": "HARD",
+      "match_reason": "ADDRESS_MATCH",
+      "latency_ns": 439495
+    },
+    {
+      "cpu_event_id": 100,
+      "gpu_event_id": 101,
+      "confidence": "HARD",
+      "match_reason": "ADDRESS_MATCH",
+      "latency_ns": 186326
+    },
+    {
+      "cpu_event_id": 109,
+      "gpu_event_id": 110,
+      "confidence": "HARD",
+      "match_reason": "ADDRESS_MATCH",
+      "latency_ns": 80321
+    },
+    {
+      "cpu_event_id": 115,
+      "gpu_event_id": 116,
+      "confidence": "HARD",
+      "match_reason": "ADDRESS_MATCH",
+      "latency_ns": 62871
+    },
+    {
+      "cpu_event_id": 124,
+      "gpu_event_id": 125,
+      "confidence": "HARD",
+      "match_reason": "ADDRESS_MATCH",
+      "latency_ns": 385737
+    },
+    {
+      "cpu_event_id": 129,
+      "gpu_event_id": 130,
+      "confidence": "HARD",
+      "match_reason": "ADDRESS_MATCH",
+      "latency_ns": 111894
+    },
+    {
+      "cpu_event_id": 135,
+      "gpu_event_id": 136,
+      "confidence": "HARD",
+      "match_reason": "ADDRESS_MATCH",
+      "latency_ns": 463607
+    },
+    {
+      "cpu_event_id": 139,
+      "gpu_event_id": 140,
+      "confidence": "HARD",
+      "match_reason": "ADDRESS_MATCH",
+      "latency_ns": 265655
+    },
+    {
+      "cpu_event_id": 146,
+      "gpu_event_id": 147,
+      "confidence": "HARD",
+      "match_reason": "ADDRESS_MATCH",
+      "latency_ns": 27686
+    },
+    {
+      "cpu_event_id": 150,
+      "gpu_event_id": 151,
+      "confidence": "HARD",
+      "match_reason": "ADDRESS_MATCH",
+      "latency_ns": 469699
+    },
+    {
+      "cpu_event_id": 154,
+      "gpu_event_id": 155,
+      "confidence": "HARD",
+      "match_reason": "ADDRESS_MATCH",
+      "latency_ns": 63635
+    },
+    {
+      "cpu_event_id": 157,
+      "gpu_event_id": 158,
+      "confidence": "HARD",
+      "match_reason": "ADDRESS_MATCH",
+      "latency_ns": 315823
+    },
+    {
+      "cpu_event_id": 162,
+      "gpu_event_id": 163,
+      "confidence": "HARD",
+      "match_reason": "ADDRESS_MATCH",
+      "latency_ns": 205883
+    },
+    {
+      "cpu_event_id": 167,
+      "gpu_event_id": 168,
+      "confidence": "HARD",
+      "match_reason": "ADDRESS_MATCH",
+      "latency_ns": 361211
+    },
+    {
+      "cpu_event_id": 173,
+      "gpu_event_id": 174,
+      "confidence": "HARD",
+      "match_reason": "ADDRESS_MATCH",
+      "latency_ns": 362390
+    },
+    {
+      "cpu_event_id": 176,
+      "gpu_event_id": 177,
+      "confidence": "HARD",
+      "match_reason": "ADDRESS_MATCH",
+      "latency_ns": 103102
+    },
+    {
+      "cpu_event_id": 182,
+      "gpu_event_id": 183,
+      "confidence": "HARD",
+      "match_reason": "ADDRESS_MATCH",
+      "latency_ns": 139606
+    },
+    {
+      "cpu_event_id": 192,
+      "gpu_event_id": 193,
+      "confidence": "HARD",
+      "match_reason": "ADDRESS_MATCH",
+      "latency_ns": 138054
+    },
+    {
+      "cpu_event_id": 197,
+      "gpu_event_id": 198,
+      "confidence": "HARD",
+      "match_reason": "ADDRESS_MATCH",
+      "latency_ns": 365496
+    },
+    {
+      "cpu_event_id": 200,
+      "gpu_event_id": 201,
+      "confidence": "HARD",
+      "match_reason": "ADDRESS_MATCH",
+      "latency_ns": 127826
+    },
+    {
+      "cpu_event_id": 204,
+      "gpu_event_id": 205,
+      "confidence": "HARD",
+      "match_reason": "ADDRESS_MATCH",
+      "latency_ns": 447081
+    },
+    {
+      "cpu_event_id": 208,
+      "gpu_event_id": 209,
+      "confidence": "HARD",
+      "match_reason": "ADDRESS_MATCH",
+      "latency_ns": 136633
+    },
+    {
+      "cpu_event_id": 211,
+      "gpu_event_id": 212,
+      "confidence": "HARD",
+      "match_reason": "ADDRESS_MATCH",
+      "latency_ns": 60317
+    },
+    {
+      "cpu_event_id": 217,
+      "gpu_event_id": 218,
+      "confidence": "HARD",
+      "match_reason": "ADDRESS_MATCH",
+      "latency_ns": 45201
+    },
+    {
+      "cpu_event_id": 220,
+      "gpu_event_id": 221,
+      "confidence": "HARD",
+      "match_reason": "ADDRESS_MATCH",
+      "latency_ns": 85248
+    },
+    {
+      "cpu_event_id": 224,
+      "gpu_event_id": 225,
+      "confidence": "HARD",
+      "match_reason": "ADDRESS_MATCH",
+      "latency_ns": 447031
+    },
+    {
+      "cpu_event_id": 227,
+      "gpu_event_id": 228,
+      "confidence": "HARD",
+      "match_reason": "ADDRESS_MATCH",
+      "latency_ns": 75571
+    },
+    {
+      "cpu_event_id": 230,
+      "gpu_event_id": 231,
+      "confidence": "HARD",
+      "match_reason": "ADDRESS_MATCH",
+      "latency_ns": 43857
+    },
+    {
+      "cpu_event_id": 235,
+      "gpu_event_id": 236,
+      "confidence": "HARD",
+      "match_reason": "ADDRESS_MATCH",
+      "latency_ns": 59444
+    },
+    {
+      "cpu_event_id": 247,
+      "gpu_event_id": 248,
+      "confidence": "HARD",
+      "match_reason": "ADDRESS_MATCH",
+      "latency_ns": 128943
+    },
+    {
+      "cpu_event_id": 256,
+      "gpu_event_id": 257,
+      "confidence": "HARD",
+      "match_reason": "ADDRESS_MATCH",
+      "latency_ns": 311180
+    },
+    {
+      "cpu_event_id": 261,
+      "gpu_event_id": 262,
+      "confidence": "HARD",
+      "match_reason": "ADDRESS_MATCH",
+      "latency_ns": 129474
+    },
+    {
+      "cpu_event_id": 266,
+      "gpu_event_id": 267,
+      "confidence": "HARD",
+      "match_reason": "ADDRESS_MATCH",
+      "latency_ns": 225657
+    },
+    {
+      "cpu_event_id": 269,
+      "gpu_event_id": 270,
+      "confidence": "HARD",
+      "match_reason": "ADDRESS_MATCH",
+      "latency_ns": 259869
+    }
+  ]
+}

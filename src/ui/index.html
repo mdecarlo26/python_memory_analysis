@@ -1,0 +1,1104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>HPC Memory Profiler</title>
+
+<!-- CDN dependencies: React, Babel, Cytoscape, D3 -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.development.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.development.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.28.1/cytoscape.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+
+<style>
+  :root {
+    --bg:        #0a0c10;
+    --surface:   #111318;
+    --surface2:  #181c24;
+    --border:    #252a35;
+    --border2:   #2e3545;
+    --text:      #c9d1e0;
+    --text-dim:  #5a6478;
+    --text-mid:  #8892a4;
+    --accent:    #00d4ff;
+    --accent2:   #0088bb;
+    --green:     #00e676;
+    --green-dim: #004d26;
+    --yellow:    #ffd740;
+    --red:       #ff5252;
+    --purple:    #b388ff;
+    --cpu-col:   #00d4ff;
+    --gpu-col:   #00e676;
+    --corr-hard: #00e676;
+    --corr-weak: #5a6478;
+    --font-mono: 'IBM Plex Mono', monospace;
+    --font-sans: 'IBM Plex Sans', sans-serif;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-sans);
+    font-size: 13px;
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── Top bar ── */
+  #topbar {
+    height: 48px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    gap: 16px;
+    flex-shrink: 0;
+    z-index: 10;
+  }
+  #topbar .logo {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--accent);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+  #topbar .logo span { color: var(--text-dim); }
+  #topbar .sep { width: 1px; height: 20px; background: var(--border); }
+  #topbar .stat {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-dim);
+    white-space: nowrap;
+  }
+  #topbar .stat b { color: var(--text-mid); font-weight: 500; }
+  #topbar .spacer { flex: 1; }
+
+  /* ── Drop zone / load button ── */
+  #load-btn {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--accent);
+    background: transparent;
+    border: 1px solid var(--accent2);
+    border-radius: 3px;
+    padding: 5px 12px;
+    cursor: pointer;
+    letter-spacing: 0.05em;
+    transition: background 0.15s, color 0.15s;
+    white-space: nowrap;
+  }
+  #load-btn:hover { background: var(--accent2); color: #fff; }
+  #file-input { display: none; }
+
+  /* ── Main layout ── */
+  #main {
+    flex: 1;
+    display: flex;
+    overflow: hidden;
+  }
+
+  /* ── Timeline strip ── */
+  #timeline-wrap {
+    flex-shrink: 0;
+    height: 130px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    overflow: hidden;
+    position: relative;
+  }
+  #timeline-wrap svg { width: 100%; height: 100%; }
+
+  /* ── Left panel: graph ── */
+  #graph-panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border-right: 1px solid var(--border);
+  }
+  #graph-toolbar {
+    height: 36px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+  .tb-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-right: 4px;
+  }
+  .tb-btn {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-mid);
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    padding: 3px 8px;
+    cursor: pointer;
+    letter-spacing: 0.04em;
+    transition: border-color 0.1s, color 0.1s;
+  }
+  .tb-btn:hover { border-color: var(--accent2); color: var(--accent); }
+  .tb-spacer { flex: 1; }
+
+  /* legend */
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-dim);
+  }
+  .legend-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+  }
+  .legend-line {
+    width: 16px; height: 2px; border-radius: 1px;
+  }
+
+  #cy {
+    flex: 1;
+    background: var(--bg);
+  }
+
+  /* ── Right panel: detail ── */
+  #detail-panel {
+    width: 260px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    background: var(--surface);
+    overflow: hidden;
+  }
+  #detail-header {
+    height: 36px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    padding: 0 14px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    flex-shrink: 0;
+  }
+  #detail-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px 14px;
+  }
+  #detail-body::-webkit-scrollbar { width: 4px; }
+  #detail-body::-webkit-scrollbar-track { background: transparent; }
+  #detail-body::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+  .detail-empty {
+    color: var(--text-dim);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    line-height: 1.6;
+    padding-top: 8px;
+  }
+  .detail-section {
+    margin-bottom: 16px;
+  }
+  .detail-section-title {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: var(--text-dim);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    padding-bottom: 4px;
+    border-bottom: 1px solid var(--border);
+  }
+  .detail-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 5px;
+    gap: 8px;
+  }
+  .detail-key {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-dim);
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .detail-val {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text);
+    text-align: right;
+    word-break: break-all;
+  }
+  .detail-val.accent  { color: var(--accent); }
+  .detail-val.green   { color: var(--green); }
+  .detail-val.yellow  { color: var(--yellow); }
+  .detail-val.purple  { color: var(--purple); }
+  .detail-val.red     { color: var(--red); }
+  .detail-val.dimmed  { color: var(--text-mid); }
+
+  .badge {
+    display: inline-block;
+    font-family: var(--font-mono);
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    padding: 2px 6px;
+    border-radius: 2px;
+    text-transform: uppercase;
+  }
+  .badge-hard   { background: var(--green-dim); color: var(--green); }
+  .badge-weak   { background: #1e2230; color: var(--text-mid); }
+  .badge-cpu    { background: #002535; color: var(--cpu-col); }
+  .badge-gpu    { background: #003320; color: var(--gpu-col); }
+  .badge-corr   { background: #1a1030; color: var(--purple); }
+
+  .callstack-item {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: var(--text-mid);
+    padding: 2px 0;
+    border-left: 2px solid var(--border2);
+    padding-left: 6px;
+    margin-bottom: 2px;
+    word-break: break-all;
+  }
+
+  /* ── Drop overlay ── */
+  #drop-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(10,12,16,0.92);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.15s;
+  }
+  #drop-overlay.visible { opacity: 1; pointer-events: all; }
+  #drop-overlay .drop-icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+    opacity: 0.6;
+  }
+  #drop-overlay .drop-text {
+    font-family: var(--font-mono);
+    font-size: 14px;
+    color: var(--accent);
+    letter-spacing: 0.08em;
+  }
+
+  /* ── Empty state ── */
+  #empty-state {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+  }
+  .empty-title {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-dim);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .empty-sub {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: #2e3545;
+  }
+
+  /* ── Vertical layout wrapper ── */
+  #content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  #panels {
+    flex: 1;
+    display: flex;
+    overflow: hidden;
+  }
+</style>
+</head>
+<body>
+
+<!-- Top bar (rendered by React) -->
+<div id="root"></div>
+
+<!-- Hidden file input -->
+<input type="file" id="file-input" accept=".json" />
+
+<!-- Drop overlay -->
+<div id="drop-overlay">
+  <div class="drop-icon">⬇</div>
+  <div class="drop-text">DROP SESSION JSON</div>
+</div>
+
+<script type="text/babel">
+const { useState, useEffect, useRef, useCallback } = React;
+
+// ─────────────────────────────────────────────
+// Utilities
+// ─────────────────────────────────────────────
+
+function fmtBytes(n) {
+  if (n == null) return '—';
+  if (n < 1024) return `${n} B`;
+  if (n < 1048576) return `${(n/1024).toFixed(1)} KB`;
+  return `${(n/1048576).toFixed(2)} MB`;
+}
+
+function fmtNs(ns) {
+  if (ns == null) return '—';
+  if (ns < 1000) return `${ns} ns`;
+  if (ns < 1000000) return `${(ns/1000).toFixed(1)} µs`;
+  if (ns < 1000000000) return `${(ns/1000000).toFixed(2)} ms`;
+  return `${(ns/1000000000).toFixed(3)} s`;
+}
+
+function fmtAddr(n) {
+  if (!n) return '—';
+  return '0x' + n.toString(16).toUpperCase().padStart(12, '0');
+}
+
+function fmtTs(ns, baseNs) {
+  if (ns == null) return '—';
+  return '+' + fmtNs(ns - baseNs);
+}
+
+// ─────────────────────────────────────────────
+// Build Cytoscape elements from session
+// ─────────────────────────────────────────────
+
+function buildElements(session) {
+  const elements = [];
+  const cpuById  = {};
+  const gpuById  = {};
+
+  // CPU alloc nodes (not deallocs)
+  for (const ev of session.cpu_events) {
+    if (ev.is_dealloc) continue;
+    const id = `cpu_${ev.base.event_id}`;
+    cpuById[ev.base.event_id] = id;
+    elements.push({ data: {
+      id, kind: 'cpu',
+      label: ev.object_type || 'object',
+      event_id:   ev.base.event_id,
+      timestamp:  ev.base.timestamp_ns,
+      address:    ev.alloc_address,
+      size:       ev.alloc_size_bytes,
+      obj_type:   ev.object_type,
+      ref_count:  ev.ref_count,
+      gc_gen:     ev.gc_generation,
+      callstack:  ev.callstack || [],
+      raw: ev,
+    }});
+  }
+
+  // GPU event nodes
+  for (const ev of session.gpu_events) {
+    const id = `gpu_${ev.base.event_id}`;
+    gpuById[ev.base.event_id] = id;
+    const isTransfer = ev.base.event_type === 'TRANSFER';
+    elements.push({ data: {
+      id, kind: 'gpu',
+      label: isTransfer
+        ? `xfer ${fmtBytes(ev.transfer_size_bytes)}`
+        : (ev.kernel_name || 'kernel'),
+      event_id:      ev.base.event_id,
+      timestamp:     ev.base.timestamp_ns,
+      event_type:    ev.base.event_type,
+      device_id:     ev.device_id,
+      src_address:   ev.src_address,
+      dst_address:   ev.dst_address,
+      transfer_size: ev.transfer_size_bytes,
+      transfer_kind: ev.transfer_kind,
+      page_faults:   ev.um_page_faults,
+      kernel_name:   ev.kernel_name,
+      raw: ev,
+    }});
+  }
+
+  // Correlation edges
+  for (const corr of session.correlated_events) {
+    const src = cpuById[corr.cpu_event_id];
+    const tgt = gpuById[corr.gpu_event_id];
+    if (!src || !tgt) continue;
+    elements.push({ data: {
+      id:          `corr_${corr.cpu_event_id}_${corr.gpu_event_id}`,
+      source:      src,
+      target:      tgt,
+      kind:        'corr',
+      confidence:  corr.confidence,
+      match_reason: corr.match_reason,
+      latency_ns:  corr.latency_ns,
+      raw: corr,
+    }});
+  }
+
+  return elements;
+}
+
+// ─────────────────────────────────────────────
+// Cytoscape style sheet
+// ─────────────────────────────────────────────
+
+const CY_STYLE = [
+  {
+    selector: 'node[kind="cpu"]',
+    style: {
+      'background-color':   '#002535',
+      'border-color':       '#00d4ff',
+      'border-width':       1.5,
+      'label':              'data(label)',
+      'color':              '#00d4ff',
+      'font-size':          9,
+      'font-family':        'IBM Plex Mono, monospace',
+      'text-valign':        'bottom',
+      'text-margin-y':      4,
+      'width':              28,
+      'height':             28,
+      'shape':              'rectangle',
+      'text-wrap':          'truncate',
+      'text-max-width':     80,
+    }
+  },
+  {
+    selector: 'node[kind="gpu"]',
+    style: {
+      'background-color':   '#003320',
+      'border-color':       '#00e676',
+      'border-width':       1.5,
+      'label':              'data(label)',
+      'color':              '#00e676',
+      'font-size':          9,
+      'font-family':        'IBM Plex Mono, monospace',
+      'text-valign':        'bottom',
+      'text-margin-y':      4,
+      'width':              28,
+      'height':             28,
+      'shape':              'ellipse',
+      'text-wrap':          'truncate',
+      'text-max-width':     80,
+    }
+  },
+  {
+    selector: 'edge[kind="corr"][confidence="HARD"]',
+    style: {
+      'line-color':         '#00e676',
+      'target-arrow-color': '#00e676',
+      'target-arrow-shape': 'triangle',
+      'arrow-scale':        0.8,
+      'width':              1.5,
+      'curve-style':        'bezier',
+      'opacity':            0.7,
+    }
+  },
+  {
+    selector: 'edge[kind="corr"][confidence="WEAK"]',
+    style: {
+      'line-color':         '#2e3545',
+      'target-arrow-color': '#2e3545',
+      'target-arrow-shape': 'triangle',
+      'arrow-scale':        0.8,
+      'width':              1,
+      'curve-style':        'bezier',
+      'line-style':         'dashed',
+      'opacity':            0.5,
+    }
+  },
+  {
+    selector: ':selected',
+    style: {
+      'border-color':       '#ffd740',
+      'border-width':       2.5,
+      'line-color':         '#ffd740',
+      'target-arrow-color': '#ffd740',
+      'opacity':            1,
+    }
+  },
+  {
+    selector: '.faded',
+    style: { 'opacity': 0.12 }
+  },
+  {
+    selector: '.highlighted',
+    style: { 'opacity': 1 }
+  },
+];
+
+// ─────────────────────────────────────────────
+// Graph panel
+// ─────────────────────────────────────────────
+
+function GraphPanel({ session, selected, onSelect }) {
+  const cyRef    = useRef(null);
+  const cyInst   = useRef(null);
+
+  useEffect(() => {
+    if (!session || !cyRef.current) return;
+
+    const elements = buildElements(session);
+
+    if (cyInst.current) cyInst.current.destroy();
+
+    cyInst.current = cytoscape({
+      container: cyRef.current,
+      elements,
+      style: CY_STYLE,
+      layout: {
+        name:        'cose',
+        animate:     false,
+        nodeRepulsion: 8000,
+        idealEdgeLength: 120,
+        gravity:     0.25,
+        numIter:     1000,
+        fit:         true,
+        padding:     40,
+      },
+      minZoom: 0.05,
+      maxZoom: 4,
+    });
+
+    cyInst.current.on('tap', 'node', (evt) => {
+      const d = evt.target.data();
+      onSelect({ type: d.kind, data: d });
+
+      // Highlight neighbourhood
+      const cy = cyInst.current;
+      cy.elements().addClass('faded');
+      const neighbourhood = evt.target.closedNeighborhood();
+      neighbourhood.removeClass('faded').addClass('highlighted');
+    });
+
+    cyInst.current.on('tap', 'edge', (evt) => {
+      const d = evt.target.data();
+      onSelect({ type: 'corr', data: d });
+      const cy = cyInst.current;
+      cy.elements().addClass('faded');
+      evt.target.closedNeighborhood().removeClass('faded').addClass('highlighted');
+    });
+
+    cyInst.current.on('tap', (evt) => {
+      if (evt.target === cyInst.current) {
+        onSelect(null);
+        cyInst.current.elements().removeClass('faded highlighted');
+      }
+    });
+
+    return () => { if (cyInst.current) cyInst.current.destroy(); };
+  }, [session]);
+
+  // Sync external selection (from timeline click) into cytoscape
+  useEffect(() => {
+    if (!cyInst.current || !selected) return;
+    const cy = cyInst.current;
+    cy.elements().unselect();
+    const id = selected.data?.id;
+    if (id) {
+      const el = cy.getElementById(id);
+      if (el.length) {
+        el.select();
+        cy.animate({ fit: { eles: el.closedNeighborhood(), padding: 60 }, duration: 300 });
+      }
+    }
+  }, [selected]);
+
+  const fitAll    = () => cyInst.current?.fit(undefined, 40);
+  const resetFade = () => { cyInst.current?.elements().removeClass('faded highlighted'); onSelect(null); };
+
+  return (
+    <div id="graph-panel">
+      <div id="graph-toolbar">
+        <span className="tb-label">Graph</span>
+        <button className="tb-btn" onClick={fitAll}>Fit</button>
+        <button className="tb-btn" onClick={resetFade}>Clear</button>
+        <div className="tb-spacer" />
+        <div className="legend-item">
+          <div className="legend-dot" style={{background:'#00d4ff'}} />
+          CPU
+        </div>
+        <div style={{width:8}} />
+        <div className="legend-item">
+          <div className="legend-dot" style={{background:'#00e676'}} />
+          GPU
+        </div>
+        <div style={{width:8}} />
+        <div className="legend-item">
+          <div className="legend-line" style={{background:'#00e676'}} />
+          HARD
+        </div>
+        <div style={{width:8}} />
+        <div className="legend-item">
+          <div className="legend-line" style={{background:'#2e3545', borderTop:'1px dashed #2e3545', height:0}} />
+          WEAK
+        </div>
+      </div>
+      <div id="cy" ref={cyRef}>
+        {!session && (
+          <div id="empty-state">
+            <div className="empty-title">No session loaded</div>
+            <div className="empty-sub">Load a ProfilingSession JSON to begin</div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────
+// Detail panel
+// ─────────────────────────────────────────────
+
+function DetailPanel({ selected, baseNs }) {
+  if (!selected) {
+    return (
+      <div id="detail-panel">
+        <div id="detail-header">Inspector</div>
+        <div id="detail-body">
+          <div className="detail-empty">
+            Click a node or edge<br/>to inspect its data.
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const { type, data } = selected;
+
+  const Row = ({ k, v, cls }) => (
+    <div className="detail-row">
+      <span className="detail-key">{k}</span>
+      <span className={`detail-val ${cls||''}`}>{v}</span>
+    </div>
+  );
+
+  let content;
+
+  if (type === 'cpu') {
+    content = (
+      <>
+        <div className="detail-section">
+          <div className="detail-section-title">Identity</div>
+          <Row k="type" v={<span className="badge badge-cpu">CPU</span>} />
+          <Row k="event_id"  v={data.event_id}  cls="accent" />
+          <Row k="obj_type"  v={data.obj_type || '—'} cls="yellow" />
+        </div>
+        <div className="detail-section">
+          <div className="detail-section-title">Memory</div>
+          <Row k="address"  v={fmtAddr(data.address)}  cls="dimmed" />
+          <Row k="size"     v={fmtBytes(data.size)}    cls="green" />
+          <Row k="ref_count" v={data.ref_count ?? '—'} />
+          <Row k="gc_gen"   v={data.gc_gen ?? '—'} />
+        </div>
+        <div className="detail-section">
+          <div className="detail-section-title">Timing</div>
+          <Row k="timestamp" v={fmtTs(data.timestamp, baseNs)} cls="dimmed" />
+        </div>
+        {data.callstack?.length > 0 && (
+          <div className="detail-section">
+            <div className="detail-section-title">Callstack</div>
+            {data.callstack.map((f, i) => (
+              <div key={i} className="callstack-item">{f}</div>
+            ))}
+          </div>
+        )}
+      </>
+    );
+  } else if (type === 'gpu') {
+    const isTransfer = data.event_type === 'TRANSFER';
+    content = (
+      <>
+        <div className="detail-section">
+          <div className="detail-section-title">Identity</div>
+          <Row k="type"       v={<span className="badge badge-gpu">GPU</span>} />
+          <Row k="event_id"   v={data.event_id}    cls="accent" />
+          <Row k="event_type" v={data.event_type}  cls="green" />
+          <Row k="device"     v={`GPU:${data.device_id ?? 0}`} />
+        </div>
+        {isTransfer ? (
+          <div className="detail-section">
+            <div className="detail-section-title">Transfer</div>
+            <Row k="size"   v={fmtBytes(data.transfer_size)} cls="green" />
+            <Row k="kind"   v={data.transfer_kind || '—'} cls="yellow" />
+            <Row k="src"    v={fmtAddr(data.src_address)}  cls="dimmed" />
+            <Row k="dst"    v={fmtAddr(data.dst_address)}  cls="dimmed" />
+          </div>
+        ) : (
+          <div className="detail-section">
+            <div className="detail-section-title">Kernel</div>
+            <Row k="name"       v={data.kernel_name || '—'} cls="yellow" />
+            <Row k="page_faults" v={data.page_faults ?? 0} />
+          </div>
+        )}
+        <div className="detail-section">
+          <div className="detail-section-title">Timing</div>
+          <Row k="timestamp" v={fmtTs(data.timestamp, baseNs)} cls="dimmed" />
+        </div>
+      </>
+    );
+  } else if (type === 'corr') {
+    const isHard = data.confidence === 'HARD';
+    content = (
+      <>
+        <div className="detail-section">
+          <div className="detail-section-title">Correlation</div>
+          <Row k="type"       v={<span className="badge badge-corr">CORR</span>} />
+          <Row k="confidence" v={
+            <span className={`badge ${isHard ? 'badge-hard' : 'badge-weak'}`}>
+              {data.confidence}
+            </span>
+          } />
+          <Row k="reason"     v={data.match_reason} cls={isHard ? 'green' : 'dimmed'} />
+        </div>
+        <div className="detail-section">
+          <div className="detail-section-title">Link</div>
+          <Row k="cpu_id"  v={data.source?.replace('cpu_','')} cls="accent" />
+          <Row k="gpu_id"  v={data.target?.replace('gpu_','')} cls="green" />
+          <Row k="latency" v={fmtNs(data.latency_ns)} cls={isHard ? 'yellow' : 'dimmed'} />
+        </div>
+      </>
+    );
+  }
+
+  return (
+    <div id="detail-panel">
+      <div id="detail-header">Inspector</div>
+      <div id="detail-body">{content}</div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────
+// Timeline panel (D3)
+// ─────────────────────────────────────────────
+
+function TimelinePanel({ session, selected, onSelect }) {
+  const svgRef = useRef(null);
+
+  useEffect(() => {
+    if (!session || !svgRef.current) return;
+
+    const svg    = d3.select(svgRef.current);
+    svg.selectAll('*').remove();
+
+    const W      = svgRef.current.clientWidth  || 800;
+    const H      = svgRef.current.clientHeight || 130;
+    const marginL = 80;
+    const marginR = 16;
+    const marginT = 12;
+    const rowH    = 22;
+    const barH    = 14;
+
+    const startNs = session.start_time_ns;
+    const endNs   = session.end_time_ns;
+    const durNs   = endNs - startNs || 1;
+
+    const xScale = d3.scaleLinear()
+      .domain([startNs, endNs])
+      .range([marginL, W - marginR]);
+
+    // Build rows: one CPU row, one per GPU device
+    const gpuDevices = [...new Set(session.gpu_events.map(e => e.device_id ?? 0))].sort();
+    const rows = [
+      { label: 'CPU', kind: 'cpu', y: marginT },
+      ...gpuDevices.map((d, i) => ({
+        label: `GPU:${d}`, kind: 'gpu', device: d,
+        y: marginT + rowH * (i + 1)
+      }))
+    ];
+
+    // Row labels
+    svg.selectAll('.row-label')
+      .data(rows)
+      .join('text')
+        .attr('class', 'row-label')
+        .attr('x', marginL - 8)
+        .attr('y', d => d.y + barH / 2 + 1)
+        .attr('text-anchor', 'end')
+        .attr('dominant-baseline', 'middle')
+        .attr('fill', d => d.kind === 'cpu' ? '#00d4ff' : '#00e676')
+        .attr('font-family', 'IBM Plex Mono, monospace')
+        .attr('font-size', 9)
+        .text(d => d.label);
+
+    // Grid lines at row tops
+    svg.selectAll('.row-line')
+      .data(rows)
+      .join('line')
+        .attr('x1', marginL).attr('x2', W - marginR)
+        .attr('y1', d => d.y).attr('y2', d => d.y)
+        .attr('stroke', '#1a1e28').attr('stroke-width', 1);
+
+    // CPU alloc bars
+    const cpuAllocs = session.cpu_events.filter(e => !e.is_dealloc);
+    // Match deallocs to allocs for lifetime
+    const deallocMap = {};
+    for (const e of session.cpu_events) {
+      if (e.is_dealloc) deallocMap[e.alloc_address] = e.base.timestamp_ns;
+    }
+
+    const cpuRow = rows.find(r => r.kind === 'cpu');
+    svg.selectAll('.cpu-bar')
+      .data(cpuAllocs)
+      .join('rect')
+        .attr('class', 'cpu-bar')
+        .attr('x', d => xScale(d.base.timestamp_ns))
+        .attr('y', cpuRow.y + (rowH - barH) / 2)
+        .attr('height', barH)
+        .attr('width', d => {
+          const end = deallocMap[d.alloc_address] || endNs;
+          return Math.max(2, xScale(end) - xScale(d.base.timestamp_ns));
+        })
+        .attr('fill', '#002535')
+        .attr('stroke', '#00d4ff')
+        .attr('stroke-width', 0.8)
+        .attr('rx', 1)
+        .attr('cursor', 'pointer')
+        .on('click', (evt, d) => {
+          onSelect({ type: 'cpu', data: {
+            id: `cpu_${d.base.event_id}`,
+            kind: 'cpu',
+            event_id: d.base.event_id,
+            timestamp: d.base.timestamp_ns,
+            address: d.alloc_address,
+            size: d.alloc_size_bytes,
+            obj_type: d.object_type,
+            ref_count: d.ref_count,
+            gc_gen: d.gc_generation,
+            callstack: d.callstack || [],
+          }});
+        });
+
+    // GPU event bars
+    for (const row of rows.filter(r => r.kind === 'gpu')) {
+      const evs = session.gpu_events.filter(e => (e.device_id ?? 0) === row.device);
+      svg.selectAll(`.gpu-bar-${row.device}`)
+        .data(evs)
+        .join('rect')
+          .attr('class', `gpu-bar-${row.device}`)
+          .attr('x', d => xScale(d.base.timestamp_ns))
+          .attr('y', row.y + (rowH - barH) / 2)
+          .attr('height', barH)
+          .attr('width', d => {
+            // transfers have a size we can use to estimate duration; kernels get 4px min
+            const minW = d.base.event_type === 'TRANSFER' ? 4 : 6;
+            return Math.max(minW, Math.min(40, xScale(d.base.timestamp_ns + 500000) - xScale(d.base.timestamp_ns)));
+          })
+          .attr('fill', d => d.base.event_type === 'TRANSFER' ? '#003320' : '#1a2e1a')
+          .attr('stroke', '#00e676')
+          .attr('stroke-width', 0.8)
+          .attr('rx', 1)
+          .attr('cursor', 'pointer')
+          .on('click', (evt, d) => {
+            onSelect({ type: 'gpu', data: {
+              id: `gpu_${d.base.event_id}`,
+              kind: 'gpu',
+              event_id: d.base.event_id,
+              timestamp: d.base.timestamp_ns,
+              event_type: d.base.event_type,
+              device_id: d.device_id,
+              src_address: d.src_address,
+              dst_address: d.dst_address,
+              transfer_size: d.transfer_size_bytes,
+              transfer_kind: d.transfer_kind,
+              page_faults: d.um_page_faults,
+              kernel_name: d.kernel_name,
+            }});
+          });
+    }
+
+    // Highlight selected bar
+    if (selected) {
+      const ts = selected.data?.timestamp;
+      if (ts) {
+        svg.append('line')
+          .attr('x1', xScale(ts)).attr('x2', xScale(ts))
+          .attr('y1', marginT).attr('y2', H - 4)
+          .attr('stroke', '#ffd740')
+          .attr('stroke-width', 1)
+          .attr('stroke-dasharray', '3,2')
+          .attr('opacity', 0.8);
+      }
+    }
+
+    // Time axis
+    const axisG = svg.append('g')
+      .attr('transform', `translate(0, ${H - 14})`);
+
+    const ticks = xScale.ticks(6);
+    axisG.selectAll('.tick')
+      .data(ticks)
+      .join('text')
+        .attr('x', d => xScale(d))
+        .attr('y', 0)
+        .attr('text-anchor', 'middle')
+        .attr('fill', '#3a4255')
+        .attr('font-family', 'IBM Plex Mono, monospace')
+        .attr('font-size', 8)
+        .text(d => fmtNs(d - startNs));
+
+  }, [session, selected]);
+
+  return (
+    <div id="timeline-wrap">
+      {!session
+        ? <div style={{display:'flex',alignItems:'center',justifyContent:'center',height:'100%'}}>
+            <span style={{fontFamily:'var(--font-mono)',fontSize:10,color:'var(--text-dim)'}}>
+              TIMELINE — load a session to render
+            </span>
+          </div>
+        : <svg ref={svgRef} />
+      }
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────
+// Top bar stats
+// ─────────────────────────────────────────────
+
+function TopBar({ session, onLoad }) {
+  const stats = session ? [
+    { label: 'CPU events',  val: session.cpu_events.length },
+    { label: 'GPU events',  val: session.gpu_events.length },
+    { label: 'Correlated',  val: session.correlated_events.length },
+    {
+      label: 'HARD',
+      val: session.correlated_events.filter(c => c.confidence === 'HARD').length,
+    },
+    {
+      label: 'Duration',
+      val: fmtNs(session.end_time_ns - session.start_time_ns),
+    },
+  ] : [];
+
+  return (
+    <div id="topbar">
+      <span className="logo">HPC<span>/</span>PROFILER</span>
+      {session && <div className="sep" />}
+      {stats.map((s, i) => (
+        <span key={i} className="stat"><b>{s.val}</b> {s.label}</span>
+      ))}
+      <div className="spacer" />
+      <button id="load-btn" onClick={onLoad}>Load Session JSON</button>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────
+// Root app
+// ─────────────────────────────────────────────
+
+function App() {
+  const [session,  setSession]  = useState(null);
+  const [selected, setSelected] = useState(null);
+  const fileRef = useRef(null);
+
+  // File loading
+  const loadFile = useCallback((file) => {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const data = JSON.parse(e.target.result);
+        setSession(data);
+        setSelected(null);
+      } catch (err) {
+        alert('Invalid JSON: ' + err.message);
+      }
+    };
+    reader.readAsText(file);
+  }, []);
+
+  // Drag and drop
+  useEffect(() => {
+    const overlay = document.getElementById('drop-overlay');
+
+    const onDragOver = (e) => {
+      e.preventDefault();
+      overlay.classList.add('visible');
+    };
+    const onDragLeave = (e) => {
+      if (!e.relatedTarget) overlay.classList.remove('visible');
+    };
+    const onDrop = (e) => {
+      e.preventDefault();
+      overlay.classList.remove('visible');
+      const file = e.dataTransfer?.files?.[0];
+      if (file) loadFile(file);
+    };
+
+    document.addEventListener('dragover',  onDragOver);
+    document.addEventListener('dragleave', onDragLeave);
+    document.addEventListener('drop',      onDrop);
+    return () => {
+      document.removeEventListener('dragover',  onDragOver);
+      document.removeEventListener('dragleave', onDragLeave);
+      document.removeEventListener('drop',      onDrop);
+    };
+  }, [loadFile]);
+
+  // File input
+  useEffect(() => {
+    const input = document.getElementById('file-input');
+    const handler = (e) => loadFile(e.target.files[0]);
+    input.addEventListener('change', handler);
+    return () => input.removeEventListener('change', handler);
+  }, [loadFile]);
+
+  const openPicker = () => document.getElementById('file-input').click();
+
+  const baseNs = session?.start_time_ns ?? 0;
+
+  return (
+    <>
+      <TopBar session={session} onLoad={openPicker} />
+      <div id="content">
+        <TimelinePanel session={session} selected={selected} onSelect={setSelected} />
+        <div id="panels">
+          <GraphPanel  session={session} selected={selected} onSelect={setSelected} />
+          <DetailPanel selected={selected} baseNs={baseNs} />
+        </div>
+      </div>
+    </>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
