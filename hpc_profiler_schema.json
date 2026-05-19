@@ -58,10 +58,16 @@
         "alloc_address",
         "alloc_size_bytes",
         "object_type",
+        "module_name",
         "ref_count",
         "callstack",
         "gc_generation",
-        "is_dealloc"
+        "is_dealloc",
+        "peak_rss_kb",
+        "lifetime_ns",
+        "is_numpy_buffer",
+        "buffer_nbytes",
+        "parent_address"
       ],
       "properties": {
         "base": {
@@ -79,7 +85,11 @@
         },
         "object_type": {
           "type": "string",
-          "description": "Python type name of the allocated object, e.g. 'numpy.ndarray', 'torch.Tensor', 'list'."
+          "description": "Python type qualname of the allocated object, e.g. 'numpy.ndarray', 'Tensor', 'list'."
+        },
+        "module_name": {
+          "type": "string",
+          "description": "Python module where the type is defined, e.g. 'numpy', 'torch', 'builtins'."
         },
         "ref_count": {
           "type": "integer",
@@ -100,6 +110,30 @@
         "is_dealloc": {
           "type": "boolean",
           "description": "True if this event represents a deallocation. Pairs with an earlier ALLOC event at the same alloc_address."
+        },
+        "peak_rss_kb": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Process RSS in kilobytes at the time of this collect() tick. 0 on DEALLOC events."
+        },
+        "lifetime_ns": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Nanoseconds between ALLOC and DEALLOC for this address. Populated on DEALLOC events only; 0 on ALLOC."
+        },
+        "is_numpy_buffer": {
+          "type": "boolean",
+          "description": "True if the object exposes __array_interface__ or __cuda_array_interface__ (numpy, cupy, torch). The real allocation size is buffer_nbytes, not alloc_size_bytes."
+        },
+        "buffer_nbytes": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "obj.nbytes when is_numpy_buffer is True; the C-level buffer size tracemalloc cannot see. 0 otherwise."
+        },
+        "parent_address": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "id() of the first tracked GC referrer of this object, or 0 if none found or track_refs=False."
         }
       },
       "additionalProperties": false
@@ -116,7 +150,10 @@
         "transfer_size_bytes",
         "transfer_kind",
         "um_page_faults",
-        "kernel_name"
+        "kernel_name",
+        "kernel_duration_ns",
+        "stream_id",
+        "device_mem_used_mb"
       ],
       "properties": {
         "base": {
@@ -153,6 +190,21 @@
         "kernel_name": {
           "type": "string",
           "description": "CUDA kernel name if this event is a KERNEL type. Empty string for transfer and page fault events."
+        },
+        "kernel_duration_ns": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Kernel or transfer execution duration in nanoseconds (CUPTI end - start). 0 for page fault events."
+        },
+        "stream_id": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "CUDA stream ID. Distinguishes concurrent kernels and transfers across streams."
+        },
+        "device_mem_used_mb": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "GPU device memory in use (MB) at the time this event was flushed, from cuMemGetInfo. 0 if unavailable."
         }
       },
       "additionalProperties": false

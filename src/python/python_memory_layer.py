@@ -5,37 +5,27 @@ Combined Python memory profiler. Merges tracemalloc (size, callstack)
 with gc introspection (address, type, ref_count, generation) into a
 single fully-populated CpuEvent per allocation.
 
-New fields vs original:
+Clock domain:
+  All timestamps use CLOCK_MONOTONIC (nanoseconds since boot), NOT
+  time.time_ns() (epoch-based). This is critical: the GPU profiler
+  (cupti_layer.cpp TimestampSync) calibrates CUPTI hardware timestamps
+  against CLOCK_MONOTONIC. Using CLOCK_REALTIME here would place CPU
+  timestamps ~56 years ahead of GPU timestamps, making every correlator
+  time-window comparison fail. We read CLOCK_MONOTONIC via ctypes directly
+  so no C extension is required; time.monotonic_ns() is the fallback.
+
+New fields vs schema v0.1 original:
   peak_rss_kb      — process RSS at collect() time (resource.getrusage)
   lifetime_ns      — ns between alloc and dealloc (set on DEALLOC events)
   module_name      — type(obj).__module__ (free at alloc time)
   is_numpy_buffer  — True when obj has __array_interface__ (numpy/cupy/torch)
   buffer_nbytes    — obj.nbytes when is_numpy_buffer is True, else 0
-                     (the real allocation size tracemalloc cannot see)
-  parent_address   — id() of the first GC referrer that is itself tracked,
-                     or 0. Opt-in via track_refs=True constructor flag.
+  parent_address   — id() of first tracked GC referrer (track_refs=True only)
 
 Dealloc fix:
-  _dealloc_queue is a *separate* list from _events.  _on_dealloc() always
-  appends to _dealloc_queue under _dealloc_lock.  collect() drains the queue
-  UNCONDITIONALLY — even when there are zero new allocs in the snapshot diff
-  — so deallocs are never stranded by the early-return path.
-
-Design:
-  - tracemalloc provides size and callstack via snapshot diffs
-  - gc.get_objects() + get_object_traceback() links live objects to
-    their tracemalloc entries, giving us address, type, ref_count,
-    and gc_generation in the same pass
-  - weakref finalizers capture the exact address and timestamp of
-    deallocation without needing a second snapshot diff
-
-Usage:
-    layer = PythonMemoryLayer(track_refs=False)
-    layer.start()
-    ... code to profile ...
-    events = layer.collect()
-    layer.stop()
-    all_events = layer.flush()
+  _dealloc_queue is a separate list from _events. _on_dealloc() always
+  appends to _dealloc_queue. Both collect() and flush() drain it so
+  deallocs are never stranded regardless of which method the caller uses.
 """
 
 import gc
@@ -51,6 +41,28 @@ from typing import Optional
 
 
 # ---------------------------------------------------------------------------
+# CLOCK_MONOTONIC timestamp — must match the GPU profiler's clock domain.
+#
+# The GPU profiler (cupti_layer.cpp TimestampSync) calibrates CUPTI hardware
+# timestamps against CLOCK_MONOTONIC via clock_gettime(CLOCK_MONOTONIC).
+# Python's time.time_ns() uses CLOCK_REALTIME (epoch-based), which is ~56
+# years ahead of CLOCK_MONOTONIC on a typical system. Using the wrong clock
+# here makes every timestamp comparison in the correlator off by ~1.78×10¹⁸ns,
+# which is larger than any time window — nothing would ever correlate.
+#
+# time.monotonic_ns() (Python 3.7+) reads CLOCK_MONOTONIC directly with no
+# subprocess forks. Do NOT use ctypes.util.find_library() here — it calls
+# subprocess.Popen(['/sbin/ldconfig']) which forks a child process. When that
+# child exits it delivers SIGCHLD to the target process during ptrace attach,
+# causing inject() to receive SIGCHLD instead of SIGTRAP and crash.
+# ---------------------------------------------------------------------------
+
+def _now_ns() -> int:
+    """Nanoseconds since system boot (CLOCK_MONOTONIC). Matches GPU clock domain."""
+    return time.monotonic_ns()
+
+
+# ---------------------------------------------------------------------------
 # Module-level event ID counter — thread-safe, never resets
 # ---------------------------------------------------------------------------
 
@@ -60,9 +72,6 @@ _id_lock = threading.Lock()
 def _next_id() -> int:
     with _id_lock:
         return next(_id_counter)
-
-def _now_ns() -> int:
-    return time.time_ns()
 
 
 # ---------------------------------------------------------------------------
@@ -260,7 +269,7 @@ class PythonMemoryLayer:
                         except Exception:
                             pass
 
-                    alloc_ts = time.time_ns()
+                    alloc_ts = _now_ns()
                     event = {
                         "base": {
                             "event_id":     _next_id(),
@@ -304,11 +313,23 @@ class PythonMemoryLayer:
         return all_new
 
     def flush(self) -> list:
-        """Return all accumulated events (alloc + dealloc) and clear the buffer."""
+        """
+        Return all accumulated events (alloc + dealloc) and clear the buffer.
+
+        Also drains _dealloc_queue so that callers who call flush() directly
+        (without going through collect() first) still receive dealloc events
+        that arrived via weakref finalizers since the last collect().
+        """
+        # Drain async dealloc queue first, under its own lock
+        with self._dealloc_lock:
+            pending = self._dealloc_queue
+            self._dealloc_queue = []
+
         with self._events_lock:
-            events = list(self._events)
+            all_events = list(self._events) + pending
             self._events.clear()
-        return events
+
+        return all_events
 
     def stop(self) -> list:
         """Stop profiling. Returns any remaining events from a final collect()."""
@@ -343,7 +364,7 @@ class PythonMemoryLayer:
             return
 
         size, obj_type, alloc_ts = info
-        dealloc_ts = time.time_ns()
+        dealloc_ts = _now_ns()
 
         event = {
             "base": {
