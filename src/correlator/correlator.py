@@ -62,7 +62,7 @@ sys.path.insert(0, str(ROOT / "src" / "python"))
 # Constants
 # ---------------------------------------------------------------------------
 
-DEFAULT_TIME_WINDOW_NS = 5_000_000   # 5 ms — GPU ops are usually within this of the CPU alloc
+DEFAULT_TIME_WINDOW_NS = 50_000_000  # 50 ms — CUPTI activity flush is async; give it room
 DEFAULT_CPU_SHM        = "/hpc_profiler_cpu"
 DEFAULT_GPU_SHM        = "/hpc_profiler_gpu"
 DEFAULT_CAPACITY       = 8 * 1024 * 1024   # 8 MiB per ring buffer
@@ -193,14 +193,22 @@ class Correlator:
     # ------------------------------------------------------------------
 
     def _drain_loop(self, bridge: "object", sink: list, label: str) -> None:
-        from bridge import Bridge  # lazy import
+        from bridge import Bridge
+        from gpu_bridge import GpuBridge
+        is_gpu = (label == "GPU")
+
+        def _parse(payload: bytes) -> dict:
+            if is_gpu:
+                return GpuBridge.deserialize(payload)
+            return Bridge.deserialize(payload)
+
         while not self._stop_event.is_set():
             payload = bridge.read()
             if payload is None:
                 time.sleep(DRAIN_POLL_INTERVAL)
                 continue
             try:
-                event = Bridge.deserialize(payload)
+                event = _parse(payload)
                 with self._lock:
                     sink.append(event)
             except Exception:
@@ -212,7 +220,7 @@ class Correlator:
             if payload is None:
                 break
             try:
-                event = Bridge.deserialize(payload)
+                event = _parse(payload)
                 with self._lock:
                     sink.append(event)
             except Exception:
@@ -372,7 +380,11 @@ def _run_correlation(
     # ------------------------------------------------------------------
     # Pass 3 — TIMESTAMP_ONLY (WEAK)
     # ------------------------------------------------------------------
-    # All remaining GPU events (transfers without a HARD match + kernels)
+    # All remaining GPU events (transfers without a HARD match + kernels).
+    # For WEAK matches we do NOT exclude already-HARD-matched CPU allocs —
+    # a CPU alloc can have both a HARD correlation (to one GPU event) and
+    # multiple WEAK correlations (to nearby kernels). Only GPU events that
+    # already have a match of any kind are skipped.
     unmatched_gpu = [
         e for e in gpu_events
         if e["base"]["event_id"] not in matched_gpu
@@ -382,7 +394,7 @@ def _run_correlation(
         gpu_id = gpu_ev["base"]["event_id"]
         gpu_ts = gpu_ev["base"]["timestamp_ns"]
 
-        best = _find_closest_in_window(live_allocs, gpu_ts, time_window_ns, matched_cpu)
+        best = _find_closest_in_window(live_allocs, gpu_ts, time_window_ns, set())
         if best is None:
             continue
 
@@ -393,8 +405,7 @@ def _run_correlation(
             match_reason="TIMESTAMP_ONLY",
             latency_ns=gpu_ts - best.timestamp_ns,
         ))
-        # WEAK matches do NOT consume the cpu_event_id — multiple GPU events
-        # can weakly associate with the same CPU alloc
+        # WEAK matches do NOT consume the cpu_event_id
         matched_gpu.add(gpu_id)
 
     return correlated

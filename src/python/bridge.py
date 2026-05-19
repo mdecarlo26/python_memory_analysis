@@ -7,19 +7,33 @@ Loads ring_buffer.so via cffi, opens (or creates) a named shared memory
 segment, and exposes a simple write() API that serializes CpuEvent dicts
 and writes them into the ring buffer for the C++ correlator to read.
 
-Serialization format (little-endian struct):
-  event_id        uint64
-  timestamp_ns    uint64
-  process_id      uint32
-  thread_id       uint32
-  event_type      uint8   (0=ALLOC, 1=DEALLOC)
-  is_dealloc      uint8
-  alloc_address   uint64
+Base serialization format (little-endian struct):
+  event_id         uint64
+  timestamp_ns     uint64
+  process_id       uint32
+  thread_id        uint64
+  event_type       uint8   (0=ALLOC, 1=DEALLOC)
+  is_dealloc       uint8
+  alloc_address    uint64
   alloc_size_bytes uint64
-  ref_count       uint32
-  gc_generation   uint8
-  object_type_len uint16  (length of following string)
-  object_type     bytes   (variable, object_type_len bytes, no null terminator)
+  ref_count        uint32
+  gc_generation    int8
+  object_type_len  uint16  (length of following string)
+  object_type      bytes   (variable, no null terminator)
+
+CPU extension block (appended immediately after object_type for CPU events):
+  module_name_len  uint16
+  module_name      bytes
+  peak_rss_kb      uint64
+  lifetime_ns      uint64
+  is_numpy_buffer  uint8
+  buffer_nbytes    uint64
+  parent_address   uint64
+
+The extension block is present for all CPU events (ALLOC and DEALLOC).
+GPU events written by cupti_layer.cpp use the same base header but append
+their own GPU extension block — the correlator uses GpuBridge.deserialize()
+for those, not Bridge.deserialize().
 
 Callstack is intentionally omitted from the binary format — it is large
 and not needed by the correlator. It remains available in the JSON export.
@@ -61,7 +75,19 @@ _EVENT_TYPE_MAP = {
 # ---------------------------------------------------------------------------
 
 _FIXED_FMT = struct.Struct("<QQIQBBQQIbH")  # event_id,ts,pid,tid(uint64),etype,is_dealloc,addr,size,ref,gen,typelen
-_FIXED_SIZE = _FIXED_FMT.size  # 40 bytes
+_FIXED_SIZE = _FIXED_FMT.size  # 53 bytes
+
+# CPU extension block appended after object_type string:
+#   module_name_len  uint16
+#   module_name      bytes   (variable)
+#   peak_rss_kb      uint64
+#   lifetime_ns      uint64
+#   is_numpy_buffer  uint8
+#   buffer_nbytes    uint64
+#   parent_address   uint64
+# Fixed part of CPU extension (everything except the variable module_name string):
+_CPU_EXT_FMT  = struct.Struct("<QQBQQ")   # peak_rss_kb, lifetime_ns, is_numpy, buffer_nbytes, parent_address
+_CPU_EXT_SIZE = _CPU_EXT_FMT.size         # 8+8+1+8+8 = 33 bytes
 
 # ---------------------------------------------------------------------------
 # cffi declarations for ring_buffer.so
@@ -256,13 +282,28 @@ class Bridge:
             object_type_len,
         )
 
-        return fixed + object_type_enc
+        # CPU extension block
+        module_name_enc = event.get("module_name", "").encode("utf-8")[:65535]
+        module_name_len = len(module_name_enc)
+        peak_rss_kb     = event.get("peak_rss_kb", 0)
+        lifetime_ns     = event.get("lifetime_ns", 0)
+        is_numpy        = 1 if event.get("is_numpy_buffer", False) else 0
+        buffer_nbytes   = event.get("buffer_nbytes", 0)
+        parent_address  = event.get("parent_address", 0)
+
+        cpu_ext = (
+            struct.pack("<H", module_name_len)
+            + module_name_enc
+            + _CPU_EXT_FMT.pack(peak_rss_kb, lifetime_ns, is_numpy, buffer_nbytes, parent_address)
+        )
+
+        return fixed + object_type_enc + cpu_ext
 
     @staticmethod
     def deserialize(payload: bytes) -> dict:
         """
         Unpack a binary payload back into a CpuEvent-like dict.
-        Used by tests and by the Python-side reader in integration tests.
+        Used by tests, the correlator drain loop, and offline analysis.
         """
         if len(payload) < _FIXED_SIZE:
             raise ValueError(f"Payload too short: {len(payload)} < {_FIXED_SIZE}")
@@ -273,9 +314,30 @@ class Bridge:
             payload[:_FIXED_SIZE]
         )
 
-        object_type = payload[_FIXED_SIZE:_FIXED_SIZE + object_type_len].decode("utf-8")
+        off = _FIXED_SIZE
+        object_type = payload[off:off + object_type_len].decode("utf-8", errors="replace")
+        off += object_type_len
 
-        type_map_rev = {v: k for k, v in _EVENT_TYPE_MAP.items()}
+        # CPU extension block
+        module_name    = ""
+        peak_rss_kb    = 0
+        lifetime_ns    = 0
+        is_numpy       = False
+        buffer_nbytes  = 0
+        parent_address = 0
+
+        if off + 2 <= len(payload):
+            module_name_len = struct.unpack_from("<H", payload, off)[0]
+            off += 2
+            if off + module_name_len <= len(payload):
+                module_name = payload[off:off + module_name_len].decode("utf-8", errors="replace")
+                off += module_name_len
+            if off + _CPU_EXT_SIZE <= len(payload):
+                (peak_rss_kb, lifetime_ns,
+                 is_numpy_byte, buffer_nbytes, parent_address) = _CPU_EXT_FMT.unpack_from(payload, off)
+                is_numpy = bool(is_numpy_byte)
+
+        type_map_rev   = {v: k for k, v in _EVENT_TYPE_MAP.items()}
         event_type_str = type_map_rev.get(event_type_int, "ALLOC")
 
         return {
@@ -289,8 +351,14 @@ class Bridge:
             "alloc_address":    alloc_address,
             "alloc_size_bytes": alloc_size,
             "object_type":      object_type,
+            "module_name":      module_name,
             "ref_count":        ref_count,
             "gc_generation":    gc_generation,
             "is_dealloc":       bool(is_dealloc),
             "callstack":        [],  # not transmitted over the bridge
+            "peak_rss_kb":      peak_rss_kb,
+            "lifetime_ns":      lifetime_ns,
+            "is_numpy_buffer":  is_numpy,
+            "buffer_nbytes":    buffer_nbytes,
+            "parent_address":   parent_address,
         }

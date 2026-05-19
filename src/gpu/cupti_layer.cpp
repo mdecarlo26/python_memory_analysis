@@ -97,12 +97,15 @@ extern "C" {
 //   object_type      bytes    kernel name or transfer kind string
 //
 // GPU extension (appended immediately after object_type):
-//   device_id        uint32
-//   src_address      uint64
-//   dst_address      uint64
-//   transfer_size    uint64
-//   transfer_kind    uint8    0=H2D 1=D2H 2=D2D
-//   um_page_faults   uint32
+//   device_id           uint32
+//   src_address         uint64
+//   dst_address         uint64
+//   transfer_size       uint64
+//   transfer_kind       uint8    0=H2D 1=D2H 2=D2D
+//   um_page_faults      uint32
+//   kernel_duration_ns  uint64   end-start from CUPTI (0 for non-kernel events)
+//   stream_id           uint32   CUPTI stream ID
+//   device_mem_used_mb  uint32   cuMemGetInfo snapshot at flush time (0 if unavailable)
 // ---------------------------------------------------------------------------
 
 static constexpr uint8_t EVENT_TRANSFER   = 2;
@@ -176,10 +179,13 @@ static std::vector<uint8_t> make_event(
     uint64_t    dst_addr,
     uint64_t    xfer_size,
     uint8_t     xfer_kind,
-    uint32_t    page_faults)
+    uint32_t    page_faults,
+    uint64_t    kernel_duration_ns = 0,
+    uint32_t    stream_id          = 0,
+    uint32_t    device_mem_used_mb = 0)
 {
     std::vector<uint8_t> b;
-    b.reserve(96);
+    b.reserve(128);
 
     // Base fields (bridge.py _FIXED_FMT order)
     push_u64(b, g_event_id.fetch_add(1, std::memory_order_relaxed));
@@ -201,6 +207,9 @@ static std::vector<uint8_t> make_event(
     push_u64(b, xfer_size);
     push_u8 (b, xfer_kind);
     push_u32(b, page_faults);
+    push_u64(b, kernel_duration_ns);
+    push_u32(b, stream_id);
+    push_u32(b, device_mem_used_mb);
 
     return b;
 }
@@ -359,7 +368,10 @@ private:
                 0,           // dst host address not exposed by CUPTI
                 r->bytes,
                 memcpy_kind(r->copyKind),
-                0            // no page faults for explicit memcpy
+                0,           // no page faults for explicit memcpy
+                r->end - r->start,    // kernel_duration_ns = transfer duration
+                r->streamId,          // stream_id
+                _device_mem_used_mb() // device_mem_used_mb snapshot
             );
             _write(buf);
             break;
@@ -369,7 +381,6 @@ private:
         case CUPTI_ACTIVITY_KIND_UNIFIED_MEMORY_COUNTER: {
             auto* r = reinterpret_cast<CUpti_ActivityUnifiedMemoryCounter2*>(rec);
 
-            // Only capture GPU and CPU page fault records
             if (r->counterKind !=
                     CUPTI_ACTIVITY_UNIFIED_MEMORY_COUNTER_KIND_GPU_PAGE_FAULT &&
                 r->counterKind !=
@@ -382,11 +393,14 @@ private:
                 EVENT_PAGE_FAULT,
                 "page_fault",
                 r->dstId,
-                (uint64_t)r->address,   // faulting virtual address
+                (uint64_t)r->address,
                 0,
                 0,
                 XFER_D2D,
-                (uint32_t)r->value      // fault count
+                (uint32_t)r->value,
+                0,    // no duration for page fault records
+                0,    // no stream_id
+                _device_mem_used_mb()
             );
             _write(buf);
             break;
@@ -402,9 +416,12 @@ private:
                 EVENT_KERNEL,
                 name,
                 r->deviceId,
-                0, 0, 0,    // no addresses for kernel records
+                0, 0, 0,
                 XFER_D2D,
-                0
+                0,
+                r->end - r->start,    // kernel_duration_ns
+                r->streamId,          // stream_id
+                _device_mem_used_mb() // device_mem_used_mb snapshot
             );
             _write(buf);
             break;
@@ -412,6 +429,17 @@ private:
 
         default: break;
         }
+    }
+
+    // Helper: snapshot free/total device memory, return used MB (0 on failure)
+    static uint32_t _device_mem_used_mb() {
+        size_t free_bytes  = 0;
+        size_t total_bytes = 0;
+        if (cuMemGetInfo(&free_bytes, &total_bytes) == CUDA_SUCCESS && total_bytes > 0) {
+            size_t used = total_bytes - free_bytes;
+            return (uint32_t)(used / (1024 * 1024));
+        }
+        return 0;
     }
 
     // G4: write one event to the ring buffer

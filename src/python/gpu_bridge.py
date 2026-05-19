@@ -12,33 +12,35 @@ opens a *consumer* handle (create=0) to the same segment and provides:
   GpuBridge.close()        — detach (never unlinks — cupti_layer owns it)
   GpuBridge.deserialize()  — static: bytes → GpuEvent dict
 
-Binary wire format (little-endian, mirrors cupti_layer.cpp write order
-and test_gpu.cu deserializer):
+Binary wire format (little-endian, mirrors cupti_layer.cpp write order):
 
   Offset  Size  Field
   ------  ----  -----
-  0        8    event_id       (uint64)
-  8        8    timestamp_ns   (uint64)
-  16       4    process_id     (uint32)
-  20       8    thread_id      (uint64)  — always 0 for GPU events
-  28       1    event_type     (uint8)   2=TRANSFER 3=PAGE_FAULT 4=KERNEL
-  29       1    is_dealloc     (uint8)   — always 0
-  30       8    alloc_address  (uint64)  — unused; 0
-  38       8    alloc_size     (uint64)  — unused; 0
-  46       4    ref_count      (uint32)  — unused; 0
-  50       1    gc_gen         (uint8)   — unused; 0
-  51       2    label_len      (uint16)  — kernel name byte length
-  53       N    label          (utf-8)   — kernel name or ""
-  53+N     4    device_id      (uint32)
-  57+N     8    src_address    (uint64)
-  65+N     8    dst_address    (uint64)
-  73+N     8    transfer_size  (uint64)
-  81+N     1    transfer_kind  (uint8)
-  82+N     4    page_faults    (uint32)
+  0        8    event_id              (uint64)
+  8        8    timestamp_ns          (uint64)
+  16       4    process_id            (uint32)
+  20       8    thread_id             (uint64)  — always 0 for GPU events
+  28       1    event_type            (uint8)   2=TRANSFER 3=PAGE_FAULT 4=KERNEL
+  29       1    is_dealloc            (uint8)   — always 0
+  30       8    alloc_address         (uint64)  — unused; 0
+  38       8    alloc_size            (uint64)  — unused; 0
+  46       4    ref_count             (uint32)  — unused; 0
+  50       1    gc_gen                (int8)    — unused; 0
+  51       2    label_len             (uint16)
+  53       N    label                 (utf-8)   — kernel name or transfer kind
+  53+N     4    device_id             (uint32)
+  57+N     8    src_address           (uint64)
+  65+N     8    dst_address           (uint64)
+  73+N     8    transfer_size         (uint64)
+  81+N     1    transfer_kind         (uint8)
+  82+N     4    page_faults           (uint32)
+  86+N     8    kernel_duration_ns    (uint64)
+  94+N     4    stream_id             (uint32)
+  98+N     4    device_mem_used_mb    (uint32)
 
-Header struct "<QQIQBBQQIBH" = 8+8+4+8+1+1+8+8+4+1+2 = 53 bytes
-Extension struct "<IQQQBI"    = 4+8+8+8+1+4           = 33 bytes
-Minimum total (label_len=0)  = 53 + 33                = 86 bytes
+Header struct "<QQIQBBQQIBH"  = 8+8+4+8+1+1+8+8+4+1+2 = 53 bytes
+Extension struct "<IQQQBIQii" = 4+8+8+8+1+4+8+4+4     = 49 bytes
+Minimum total (label_len=0)  = 53 + 49                 = 102 bytes
 """
 
 import struct
@@ -64,9 +66,12 @@ _EVENT_TYPE = {
     4: "KERNEL",
 }
 
-_HDR_FMT  = "<QQIQBBQQIBH"   # 53 bytes
-_EXT_FMT  = "<IQQQBI"        # 33 bytes
-_MIN_LEN  = 86               # 53 + 33
+_HDR_FMT = struct.Struct("<QQIQBBQQIBH")   # 53 bytes
+_EXT_FMT = struct.Struct("<IQQQBIQII")    # 4+8+8+8+1+4+8+4+4 = 45 bytes
+#  device_id uint32, src uint64, dst uint64, xfer_size uint64,
+#  transfer_kind uint8, page_faults uint32,
+#  kernel_duration_ns uint64, stream_id uint32, device_mem_used_mb uint32
+_MIN_LEN  = _HDR_FMT.size + _EXT_FMT.size   # 53 + 45 = 98 (label_len=0)
 
 
 class GpuBridge:
@@ -168,7 +173,7 @@ class GpuBridge:
             _ref_count,      # I uint32 offset 46
             _gc_gen,         # B uint8  offset 50
             label_len,       # H uint16 offset 51
-        ) = struct.unpack_from(_HDR_FMT, payload, 0)
+        ) = _HDR_FMT.unpack_from(payload, 0)
 
         # ── Variable-length label ──────────────────────────────────────
         off = 53
@@ -179,19 +184,22 @@ class GpuBridge:
         label = payload[off: off + label_len].decode("utf-8", errors="replace")
         off  += label_len
 
-        # ── Extension fields (33 bytes) ────────────────────────────────
-        if n < off + 33:
+        # ── Extension fields ───────────────────────────────────────────
+        if n < off + _EXT_FMT.size:
             raise ValueError(
                 f"GPU payload truncated in extension fields at offset {off}, have {n}"
             )
         (
-            device_id,          # I uint32
-            src_address,        # Q uint64
-            dst_address,        # Q uint64
-            transfer_size,      # Q uint64
-            transfer_kind_byte, # B uint8
-            page_faults,        # I uint32
-        ) = struct.unpack_from(_EXT_FMT, payload, off)
+            device_id,            # I uint32
+            src_address,          # Q uint64
+            dst_address,          # Q uint64
+            transfer_size,        # Q uint64
+            transfer_kind_byte,   # B uint8
+            page_faults,          # I uint32
+            kernel_duration_ns,   # Q uint64
+            stream_id,            # I uint32
+            device_mem_used_mb,   # I uint32
+        ) = _EXT_FMT.unpack_from(payload, off)
 
         return {
             "base": {
@@ -201,11 +209,14 @@ class GpuBridge:
                 "thread_id":   0,
                 "event_type":  _EVENT_TYPE.get(event_type_byte, f"UNKNOWN_{event_type_byte}"),
             },
-            "device_id":           device_id,
-            "src_address":         src_address,
-            "dst_address":         dst_address,
-            "transfer_size_bytes": transfer_size,
-            "transfer_kind":       _TRANSFER_KIND.get(transfer_kind_byte, "UNKNOWN"),
-            "um_page_faults":      page_faults,
-            "kernel_name":         label,
+            "device_id":              device_id,
+            "src_address":            src_address,
+            "dst_address":            dst_address,
+            "transfer_size_bytes":    transfer_size,
+            "transfer_kind":          _TRANSFER_KIND.get(transfer_kind_byte, "UNKNOWN"),
+            "um_page_faults":         page_faults,
+            "kernel_name":            label,
+            "kernel_duration_ns":     kernel_duration_ns,
+            "stream_id":              stream_id,
+            "device_mem_used_mb":     device_mem_used_mb,
         }
