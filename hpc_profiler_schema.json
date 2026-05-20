@@ -68,7 +68,10 @@
         "is_numpy_buffer",
         "buffer_nbytes",
         "parent_address",
-        "pinned_address"
+        "pinned_address",
+        "tracemalloc_size",
+        "array_shape",
+        "array_dtype"
       ],
       "properties": {
         "base": {
@@ -140,6 +143,20 @@
           "type": "integer",
           "minimum": 0,
           "description": "Actual C-level data pointer for buffer objects (numpy/cupy/torch). For a numpy array this is __array_interface__['data'][0]; for torch it is tensor.data_ptr(). CUPTI reports this address as src_address on HOST_TO_DEVICE transfers, enabling HARD correlation via Pass 1b. 0 for non-buffer objects."
+        },
+        "tracemalloc_size": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Size in bytes as directly reported by tracemalloc for this traceback (cumulative, not just the diff). Useful when alloc_size_bytes from the snapshot diff under-reports due to traceback aggregation. 0 on DEALLOC events."
+        },
+        "array_shape": {
+          "type": "array",
+          "items": { "type": "integer", "minimum": 0 },
+          "description": "Dimensions of the array for numpy/cupy/torch objects, e.g. [512, 64]. Empty list for non-array objects."
+        },
+        "array_dtype": {
+          "type": "string",
+          "description": "Data type string for array objects, e.g. 'float32', 'int64'. Empty string for non-array objects."
         }
       },
       "additionalProperties": false
@@ -159,7 +176,14 @@
         "kernel_name",
         "kernel_duration_ns",
         "stream_id",
-        "device_mem_used_mb"
+        "device_mem_used_mb",
+        "um_bytes_htod",
+        "um_bytes_dtoh",
+        "grid",
+        "block",
+        "registers_per_thread",
+        "shared_mem_bytes",
+        "correlation_id"
       ],
       "properties": {
         "base": {
@@ -173,12 +197,12 @@
         "src_address": {
           "type": "integer",
           "minimum": 0,
-          "description": "Source memory address of the transfer. Matched against CpuEvent.alloc_address for HOST_TO_DEVICE transfers."
+          "description": "Source memory address of the transfer. For Unified Memory events this is the UM page address. Matched against CpuEvent.pinned_address for HARD correlation."
         },
         "dst_address": {
           "type": "integer",
           "minimum": 0,
-          "description": "Destination memory address of the transfer. Matched against CpuEvent.alloc_address for DEVICE_TO_HOST transfers."
+          "description": "Destination memory address of the transfer. 0 for kernel and page fault events."
         },
         "transfer_size_bytes": {
           "type": "integer",
@@ -191,11 +215,11 @@
         "um_page_faults": {
           "type": "integer",
           "minimum": 0,
-          "description": "Number of Unified Memory page faults associated with this event. 0 for explicit cudaMemcpy transfers."
+          "description": "Number of Unified Memory page fault groups for PAGE_FAULT events. 0 for TRANSFER and KERNEL events."
         },
         "kernel_name": {
           "type": "string",
-          "description": "CUDA kernel name if this event is a KERNEL type. Empty string for transfer and page fault events."
+          "description": "CUDA kernel name for KERNEL events; transfer direction label for TRANSFER events. Empty for PAGE_FAULT."
         },
         "kernel_duration_ns": {
           "type": "integer",
@@ -210,7 +234,54 @@
         "device_mem_used_mb": {
           "type": "integer",
           "minimum": 0,
-          "description": "GPU device memory in use (MB) at the time this event was flushed, from cuMemGetInfo. 0 if unavailable."
+          "description": "GPU device memory in use (MB) at flush time, from cuMemGetInfo. 0 if unavailable."
+        },
+        "um_bytes_htod": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Unified Memory bytes migrated host-to-device for this event. Non-zero only for UM TRANSFER events with HOST_TO_DEVICE kind."
+        },
+        "um_bytes_dtoh": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Unified Memory bytes migrated device-to-host for this event. Non-zero only for UM TRANSFER events with DEVICE_TO_HOST kind."
+        },
+        "grid": {
+          "type": "object",
+          "description": "CUDA kernel grid dimensions. {x:0, y:0, z:0} for non-kernel events.",
+          "required": ["x", "y", "z"],
+          "properties": {
+            "x": { "type": "integer", "minimum": 0 },
+            "y": { "type": "integer", "minimum": 0 },
+            "z": { "type": "integer", "minimum": 0 }
+          },
+          "additionalProperties": false
+        },
+        "block": {
+          "type": "object",
+          "description": "CUDA kernel block (thread block) dimensions. {x:0, y:0, z:0} for non-kernel events.",
+          "required": ["x", "y", "z"],
+          "properties": {
+            "x": { "type": "integer", "minimum": 0 },
+            "y": { "type": "integer", "minimum": 0 },
+            "z": { "type": "integer", "minimum": 0 }
+          },
+          "additionalProperties": false
+        },
+        "registers_per_thread": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Number of registers used per thread by this kernel. 0 for non-kernel events."
+        },
+        "shared_mem_bytes": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Total shared memory per block (static + dynamic) in bytes. 0 for non-kernel events."
+        },
+        "correlation_id": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "CUPTI correlation ID linking this activity record to its originating CUDA API call. 0 if unavailable."
         }
       },
       "additionalProperties": false

@@ -78,17 +78,24 @@ _FIXED_FMT = struct.Struct("<QQIQBBQQIbH")  # event_id,ts,pid,tid(uint64),etype,
 _FIXED_SIZE = _FIXED_FMT.size  # 53 bytes
 
 # CPU extension block appended after object_type string:
-#   module_name_len  uint16
-#   module_name      bytes   (variable)
-#   peak_rss_kb      uint64
-#   lifetime_ns      uint64
-#   is_numpy_buffer  uint8
-#   buffer_nbytes    uint64
-#   parent_address   uint64
-#   pinned_address   uint64   ← actual C data pointer (0 for non-buffer objects)
-# Fixed part of CPU extension (everything except the variable module_name string):
-_CPU_EXT_FMT  = struct.Struct("<QQBQQQ")   # peak_rss_kb, lifetime_ns, is_numpy, buffer_nbytes, parent_address, pinned_address
-_CPU_EXT_SIZE = _CPU_EXT_FMT.size         # 8+8+1+8+8+8 = 41 bytes
+#   module_name_len    uint16
+#   module_name        bytes    (variable)
+#   peak_rss_kb        uint64
+#   lifetime_ns        uint64
+#   is_numpy_buffer    uint8
+#   buffer_nbytes      uint64
+#   parent_address     uint64
+#   pinned_address     uint64
+#   tracemalloc_size   uint64   [NEW]
+#   array_ndim         uint8    [NEW]
+#   array_shape        uint64 * array_ndim  [NEW, variable length]
+#   array_dtype_len    uint16   [NEW]
+#   array_dtype        bytes    [NEW]
+# Fixed-length core of the extension (before variable shape/dtype):
+_CPU_EXT_FMT  = struct.Struct("<QQBQQQQB")
+# peak_rss_kb(Q) lifetime_ns(Q) is_numpy(B) buffer_nbytes(Q)
+# parent_address(Q) pinned_address(Q) tracemalloc_size(Q) array_ndim(B)
+_CPU_EXT_SIZE = _CPU_EXT_FMT.size   # 8+8+1+8+8+8+8+1 = 50 bytes
 
 # ---------------------------------------------------------------------------
 # cffi declarations for ring_buffer.so
@@ -292,11 +299,29 @@ class Bridge:
         buffer_nbytes   = event.get("buffer_nbytes", 0)
         parent_address  = event.get("parent_address", 0)
         pinned_address  = event.get("pinned_address", 0)
+        tm_size         = event.get("tracemalloc_size", 0)
+
+        # Array shape: serialize as ndim uint8 + ndim × uint64
+        raw_shape   = event.get("array_shape", []) or []
+        shape_dims  = [int(d) for d in raw_shape[:255]]  # cap at 255 dims
+        array_ndim  = len(shape_dims)
+        shape_bytes = struct.pack(f"<{array_ndim}Q", *shape_dims) if array_ndim else b""
+
+        # Array dtype string
+        dtype_enc = event.get("array_dtype", "").encode("utf-8")[:65535]
+        dtype_len = len(dtype_enc)
 
         cpu_ext = (
             struct.pack("<H", module_name_len)
             + module_name_enc
-            + _CPU_EXT_FMT.pack(peak_rss_kb, lifetime_ns, is_numpy, buffer_nbytes, parent_address, pinned_address)
+            + _CPU_EXT_FMT.pack(
+                peak_rss_kb, lifetime_ns, is_numpy,
+                buffer_nbytes, parent_address, pinned_address,
+                tm_size, array_ndim,
+            )
+            + shape_bytes
+            + struct.pack("<H", dtype_len)
+            + dtype_enc
         )
 
         return fixed + object_type_enc + cpu_ext
@@ -321,13 +346,16 @@ class Bridge:
         off += object_type_len
 
         # CPU extension block
-        module_name    = ""
-        peak_rss_kb    = 0
-        lifetime_ns    = 0
-        is_numpy       = False
-        buffer_nbytes  = 0
-        parent_address = 0
-        pinned_address = 0
+        module_name      = ""
+        peak_rss_kb      = 0
+        lifetime_ns      = 0
+        is_numpy         = False
+        buffer_nbytes    = 0
+        parent_address   = 0
+        pinned_address   = 0
+        tracemalloc_size = 0
+        array_shape      = []
+        array_dtype      = ""
 
         if off + 2 <= len(payload):
             module_name_len = struct.unpack_from("<H", payload, off)[0]
@@ -338,8 +366,21 @@ class Bridge:
             if off + _CPU_EXT_SIZE <= len(payload):
                 (peak_rss_kb, lifetime_ns,
                  is_numpy_byte, buffer_nbytes,
-                 parent_address, pinned_address) = _CPU_EXT_FMT.unpack_from(payload, off)
+                 parent_address, pinned_address,
+                 tracemalloc_size, array_ndim) = _CPU_EXT_FMT.unpack_from(payload, off)
                 is_numpy = bool(is_numpy_byte)
+                off += _CPU_EXT_SIZE
+                # Variable-length shape: array_ndim × uint64
+                if array_ndim > 0 and off + array_ndim * 8 <= len(payload):
+                    shape_vals = struct.unpack_from(f"<{array_ndim}Q", payload, off)
+                    array_shape = list(shape_vals)
+                    off += array_ndim * 8
+                # dtype string
+                if off + 2 <= len(payload):
+                    dtype_len = struct.unpack_from("<H", payload, off)[0]
+                    off += 2
+                    if off + dtype_len <= len(payload):
+                        array_dtype = payload[off:off + dtype_len].decode("utf-8", errors="replace")
 
         type_map_rev   = {v: k for k, v in _EVENT_TYPE_MAP.items()}
         event_type_str = type_map_rev.get(event_type_int, "ALLOC")
@@ -366,4 +407,7 @@ class Bridge:
             "buffer_nbytes":    buffer_nbytes,
             "parent_address":   parent_address,
             "pinned_address":   pinned_address,
+            "tracemalloc_size": tracemalloc_size,
+            "array_shape":      array_shape,
+            "array_dtype":      array_dtype,
         }

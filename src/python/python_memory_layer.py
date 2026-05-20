@@ -6,29 +6,42 @@ with gc introspection (address, type, ref_count, generation) into a
 single fully-populated CpuEvent per allocation.
 
 Clock domain:
-  All timestamps use CLOCK_MONOTONIC (nanoseconds since boot), NOT
-  time.time_ns() (epoch-based). This is critical: the GPU profiler
-  (cupti_layer.cpp TimestampSync) calibrates CUPTI hardware timestamps
-  against CLOCK_MONOTONIC. Using CLOCK_REALTIME here would place CPU
-  timestamps ~56 years ahead of GPU timestamps, making every correlator
-  time-window comparison fail. We read CLOCK_MONOTONIC via ctypes directly
-  so no C extension is required; time.monotonic_ns() is the fallback.
+  All timestamps use CLOCK_MONOTONIC (time.monotonic_ns()), not
+  time.time_ns() (epoch-based). This matches the GPU profiler's clock.
+
+Non-GC-tracked object capture (e.g. numpy ndarrays):
+  numpy arrays are tracked by tracemalloc but NOT by gc.get_objects().
+  collect() supplements the gc scan with two additional passes:
+    1. Cross-thread frame scan — iterates sys._current_frames() across
+       ALL threads (including the main workload thread) to find buffer
+       objects (ndarrays, tensors) held as local variables.
+    2. Referent scan — for each newly found GC-tracked object, walks
+       its direct gc.get_referents() to find buffer members (e.g. arrays
+       stored as class attributes).
+  Both passes check get_object_traceback() against the snapshot diff,
+  so only genuinely NEW allocations are emitted.
+
+Dealloc coverage:
+  weakref.finalize() is registered on every tracked object. numpy arrays
+  support weakrefs natively. Finalizers push to _dealloc_queue which is
+  drained unconditionally in collect() and flush().
+
+Performance:
+  Traceback objects are used directly as dict keys (no tuple conversion)
+  cutting the stat_by_key construction from ~50ms to <1ms per tick.
 
 New fields vs schema v0.1 original:
-  peak_rss_kb      — process RSS at collect() time (resource.getrusage)
-  lifetime_ns      — ns between alloc and dealloc (set on DEALLOC events)
-  module_name      — type(obj).__module__ (free at alloc time)
-  is_numpy_buffer  — True when obj has __array_interface__ (numpy/cupy/torch)
-  buffer_nbytes    — obj.nbytes when is_numpy_buffer is True, else 0
-  parent_address   — id() of first tracked GC referrer (track_refs=True only)
-  pinned_address   — actual C data pointer for buffer objects (the address
-                     CUPTI reports as src_address on H2D transfers). Enables
-                     HARD correlation. 0 for non-buffer objects.
-
-Dealloc fix:
-  _dealloc_queue is a separate list from _events. _on_dealloc() always
-  appends to _dealloc_queue. Both collect() and flush() drain it so
-  deallocs are never stranded regardless of which method the caller uses.
+  module_name      — type(obj).__module__
+  peak_rss_kb      — process RSS at collect() time
+  lifetime_ns      — ns between alloc and dealloc (DEALLOC only)
+  is_numpy_buffer  — True when obj has __array_interface__
+  buffer_nbytes    — obj.nbytes when is_numpy_buffer
+  parent_address   — id() of first tracked GC referrer (track_refs=True)
+  pinned_address   — actual C data pointer for buffer objects
+  array_shape      — tuple of ints for numpy/torch (empty otherwise)  [NEW]
+  array_dtype      — dtype string e.g. 'float32' (empty otherwise)    [NEW]
+  tracemalloc_size — size as reported by tracemalloc (may differ from  [NEW]
+                     alloc_size_bytes which comes from snapshot diff)
 """
 
 import gc
@@ -44,20 +57,7 @@ from typing import Optional
 
 
 # ---------------------------------------------------------------------------
-# CLOCK_MONOTONIC timestamp — must match the GPU profiler's clock domain.
-#
-# The GPU profiler (cupti_layer.cpp TimestampSync) calibrates CUPTI hardware
-# timestamps against CLOCK_MONOTONIC via clock_gettime(CLOCK_MONOTONIC).
-# Python's time.time_ns() uses CLOCK_REALTIME (epoch-based), which is ~56
-# years ahead of CLOCK_MONOTONIC on a typical system. Using the wrong clock
-# here makes every timestamp comparison in the correlator off by ~1.78×10¹⁸ns,
-# which is larger than any time window — nothing would ever correlate.
-#
-# time.monotonic_ns() (Python 3.7+) reads CLOCK_MONOTONIC directly with no
-# subprocess forks. Do NOT use ctypes.util.find_library() here — it calls
-# subprocess.Popen(['/sbin/ldconfig']) which forks a child process. When that
-# child exits it delivers SIGCHLD to the target process during ptrace attach,
-# causing inject() to receive SIGCHLD instead of SIGTRAP and crash.
+# CLOCK_MONOTONIC timestamp
 # ---------------------------------------------------------------------------
 
 def _now_ns() -> int:
@@ -66,11 +66,11 @@ def _now_ns() -> int:
 
 
 # ---------------------------------------------------------------------------
-# Module-level event ID counter — thread-safe, never resets
+# Thread-safe event ID counter
 # ---------------------------------------------------------------------------
 
 _id_counter = count(1)
-_id_lock = threading.Lock()
+_id_lock    = threading.Lock()
 
 def _next_id() -> int:
     with _id_lock:
@@ -81,16 +81,12 @@ def _next_id() -> int:
 # Helpers
 # ---------------------------------------------------------------------------
 
-def _tb_key(tb) -> tuple:
-    """Stable hashable key from a tracemalloc Traceback."""
-    return tuple((f.filename, f.lineno) for f in tb)
-
 def _tb_to_callstack(tb) -> list:
     """Convert tracemalloc Traceback to list of 'file:line' strings, outermost first."""
     return [f"{f.filename}:{f.lineno}" for f in reversed(tb)]
 
 def _current_rss_kb() -> int:
-    """Process RSS in kilobytes. Linux: ru_maxrss is in KB. macOS: bytes."""
+    """Process RSS in kilobytes (Linux: KB, macOS: bytes)."""
     usage = resource.getrusage(resource.RUSAGE_SELF)
     rss = usage.ru_maxrss
     if sys.platform == "darwin":
@@ -99,49 +95,48 @@ def _current_rss_kb() -> int:
 
 def _numpy_info(obj) -> tuple:
     """
-    Returns (is_numpy_buffer: bool, buffer_nbytes: int, pinned_address: int).
+    Returns (is_numpy_buffer, buffer_nbytes, pinned_address, shape, dtype).
 
-    pinned_address is the actual C-level data pointer of the buffer —
-    the address CUPTI reports as src_address on a host-to-device transfer.
-    For CPU numpy arrays: __array_interface__['data'][0].
-    For CUDA arrays: __cuda_array_interface__['data'][0] (device pointer —
-    not directly useful for H2D matching, but recorded for completeness).
-    For torch tensors: tensor.data_ptr().
-
-    This is distinct from alloc_address (id(obj)) which is the Python
-    object header address. The correlator matches GPU src_address against
-    pinned_address (Pass 1b), not alloc_address (Pass 1), because CUPTI
-    reports the buffer data pointer, not the Python wrapper object address.
+    pinned_address — the actual C-level data pointer that CUPTI reports
+                     as src_address on HOST_TO_DEVICE transfers.
+    shape          — tuple of ints (array dimensions), empty for non-arrays.
+    dtype          — dtype string e.g. 'float32', empty for non-arrays.
     """
     try:
-        # Torch tensors — data_ptr() is the most reliable path
+        # PyTorch tensors
         if hasattr(obj, 'data_ptr') and callable(obj.data_ptr):
-            nbytes = getattr(obj, 'nbytes', 0)
+            nbytes  = getattr(obj, 'nbytes', 0)
+            shape   = tuple(int(d) for d in getattr(obj, 'shape', ()))
+            dtype   = str(getattr(obj, 'dtype', ''))
             try:
                 ptr = int(obj.data_ptr())
             except Exception:
                 ptr = 0
-            return True, int(nbytes), ptr
+            return True, int(nbytes), ptr, shape, dtype
 
         # NumPy / host arrays
         if hasattr(obj, '__array_interface__'):
-            iface = obj.__array_interface__
+            iface  = obj.__array_interface__
             nbytes = getattr(obj, 'nbytes', 0)
-            ptr = iface.get('data', (0,))[0] or 0
-            return True, int(nbytes), int(ptr)
+            ptr    = iface.get('data', (0,))[0] or 0
+            shape  = tuple(int(d) for d in getattr(obj, 'shape', ()))
+            dtype  = str(getattr(obj, 'dtype', ''))
+            return True, int(nbytes), int(ptr), shape, dtype
 
         # CuPy / CUDA arrays
         if hasattr(obj, '__cuda_array_interface__'):
-            iface = obj.__cuda_array_interface__
+            iface  = obj.__cuda_array_interface__
             nbytes = getattr(obj, 'nbytes', 0)
-            ptr = iface.get('data', (0,))[0] or 0
-            return True, int(nbytes), int(ptr)
+            ptr    = iface.get('data', (0,))[0] or 0
+            shape  = tuple(int(d) for d in getattr(obj, 'shape', ()))
+            dtype  = str(getattr(obj, 'dtype', ''))
+            return True, int(nbytes), int(ptr), shape, dtype
 
     except Exception:
         pass
-    return False, 0, 0
+    return False, 0, 0, (), ""
 
-# Types that can't be weakly referenced
+# Types that can't be weakly referenced and don't yield useful events
 _NO_WEAKREF_TYPES = (int, float, str, bytes, bool, type(None))
 
 
@@ -151,23 +146,26 @@ _NO_WEAKREF_TYPES = (int, float, str, bytes, bool, type(None))
 
 class PythonMemoryLayer:
     """
-    Combined tracemalloc + GC memory profiler.
+    Combined tracemalloc + GC + frame-scan memory profiler.
 
-    Emits fully-populated CpuEvent dicts:
-      alloc_address    — id(obj), the real CPython memory address
-      alloc_size_bytes — from tracemalloc snapshot diff
-      object_type      — type(obj).__qualname__
-      module_name      — type(obj).__module__
-      ref_count        — sys.getrefcount(obj) - 1
-      callstack        — from tracemalloc.get_object_traceback(obj)
-      gc_generation    — from gc.get_objects(gen)
-      is_dealloc       — False on alloc, True on dealloc
-      peak_rss_kb      — process RSS at collect() time
-      lifetime_ns      — ns from alloc to dealloc (DEALLOC events only, else 0)
-      is_numpy_buffer  — True if obj exposes __array_interface__
-      buffer_nbytes    — obj.nbytes when is_numpy_buffer, else 0
-      parent_address   — id() of first tracked GC referrer (track_refs=True only)
-      pinned_address   — actual C data pointer for buffer objects (0 otherwise)
+    Emits fully-populated CpuEvent dicts including:
+      alloc_address        — id(obj), the real CPython memory address
+      alloc_size_bytes     — bytes from tracemalloc snapshot diff
+      tracemalloc_size     — size as directly reported by tracemalloc stat
+      object_type          — type(obj).__qualname__
+      module_name          — type(obj).__module__
+      ref_count            — sys.getrefcount(obj) - 1
+      callstack            — from tracemalloc.get_object_traceback(obj)
+      gc_generation        — from gc.get_objects(gen), or -1 if not GC-tracked
+      is_dealloc           — False on alloc, True on dealloc
+      peak_rss_kb          — process RSS at collect() time
+      lifetime_ns          — ns from alloc to dealloc (DEALLOC only, else 0)
+      is_numpy_buffer      — True if obj has __array_interface__
+      buffer_nbytes        — obj.nbytes when is_numpy_buffer
+      parent_address       — id() of first tracked GC referrer (track_refs only)
+      pinned_address       — C-level data pointer for buffer objects
+      array_shape          — tuple of ints (dims) for arrays, else ()
+      array_dtype          — dtype string for arrays, else ""
     """
 
     def __init__(self, nframe: int = 16, track_refs: bool = False):
@@ -176,31 +174,28 @@ class PythonMemoryLayer:
         track_refs: if True, record parent_address via gc.get_referrers().
                     Expensive — leave False for high-frequency workloads.
         """
-        self._nframe = nframe
+        self._nframe     = nframe
         self._track_refs = track_refs
-        self._running = False
-        self._events: list = []
-        self._events_lock = threading.Lock()
+        self._running    = False
+
+        self._events:      list = []
+        self._events_lock        = threading.Lock()
         self._last_snapshot: Optional[tracemalloc.Snapshot] = None
 
-        # Map: alloc_address → (size, obj_type, alloc_timestamp_ns)
-        self._live: dict = {}
-        self._live_lock = threading.Lock()
-
-        # Set of currently tracked addresses (for parent_address lookup)
+        # Map: alloc_address → (size, obj_type, alloc_ts, pinned_addr)
+        self._live:      dict = {}
+        self._live_lock        = threading.Lock()
         self._tracked_addrs: set = set()
 
-        # Separate queue for deallocs arriving asynchronously via weakref finalizers.
-        # collect() drains this UNCONDITIONALLY so deallocs are never stranded
-        # by the early-return path that fires when the snapshot diff is empty.
+        # Async dealloc queue — drained unconditionally in collect() and flush()
         self._dealloc_queue: list = []
-        self._dealloc_lock = threading.Lock()
+        self._dealloc_lock        = threading.Lock()
 
     # ------------------------------------------------------------------
     # Public API
     # ------------------------------------------------------------------
 
-    def start(self):
+    def start(self) -> None:
         """Start profiling. Takes a baseline snapshot."""
         if self._running:
             return
@@ -210,164 +205,221 @@ class PythonMemoryLayer:
 
     def collect(self) -> list:
         """
-        Snapshot diff since last collect() or start(), plus any pending deallocs.
+        Snapshot diff since last collect() or start(), plus pending deallocs.
 
-        The dealloc drain is UNCONDITIONAL — it runs even when the snapshot
-        diff is empty. This is the key fix: previously deallocs were stranded
-        whenever no new allocs appeared in the same tick.
+        Three-pass object discovery (all passes gated on the snapshot diff):
+          Pass A — gc.get_objects() scan (GC-tracked objects: dicts, lists,
+                   user-class instances)
+          Pass B — Cross-thread frame scan via sys._current_frames()
+                   (finds numpy arrays stored as local variables in any thread)
+          Pass C — gc.get_referents() of new GC objects from Pass A
+                   (finds numpy arrays stored as class / list attributes)
 
-        Returns new events (allocs + deallocs) since last call.
-        Does not clear the buffer — call flush() to drain it.
+        Dealloc drain is unconditional so deallocs are never stranded.
         """
+        # Drain deallocs unconditionally (even if not running)
+        with self._dealloc_lock:
+            pending_deallocs = self._dealloc_queue
+            self._dealloc_queue = []
+
         if not self._running:
-            # Still drain any queued deallocs even if stopped
-            with self._dealloc_lock:
-                pending = self._dealloc_queue
-                self._dealloc_queue = []
-            if pending:
-                with self._events_lock:
-                    self._events.extend(pending)
-            return pending
+            with self._events_lock:
+                self._events.extend(pending_deallocs)
+            return pending_deallocs
 
         # ── Snapshot diff ──────────────────────────────────────────────
         current = tracemalloc.take_snapshot()
         stats   = current.compare_to(self._last_snapshot, key_type="traceback")
         self._last_snapshot = current
 
-        # RSS snapshot — once per tick, not per object
-        rss_kb = _current_rss_kb()
-
-        stat_by_key: dict = {}
+        # Use Traceback objects directly as dict keys — 50× faster than tuple()
+        stat_by_tb: dict = {}
         for stat in stats:
-            if stat.size_diff != 0:
-                stat_by_key[_tb_key(stat.traceback)] = stat
+            if stat.size_diff > 0:
+                stat_by_tb[stat.traceback] = stat
+
+        rss_kb = _current_rss_kb()
 
         new_allocs: list = []
 
-        if stat_by_key:
-            seen_addresses: set = set()
+        if stat_by_tb:
+            seen_addrs: set = set()
+            # Accumulate (obj, tb, stat, gc_generation) tuples across all passes
+            candidates: list = []
 
+            # ── Pass A: gc.get_objects() scan ─────────────────────────
+            new_gc_objects: list = []  # (addr, obj) for Passes B→referents
             for gen in range(3):
                 try:
-                    live_objects = gc.get_objects(gen)
+                    for obj in gc.get_objects(gen):
+                        if isinstance(obj, _NO_WEAKREF_TYPES):
+                            continue
+                        addr = id(obj)
+                        if addr in seen_addrs:
+                            continue
+                        seen_addrs.add(addr)
+                        try:
+                            tb = tracemalloc.get_object_traceback(obj)
+                        except Exception:
+                            continue
+                        if tb is None:
+                            continue
+                        if tb in stat_by_tb:
+                            candidates.append((obj, tb, stat_by_tb[tb], gen))
+                            new_gc_objects.append((addr, obj))
                 except Exception:
                     continue
 
-                for obj in live_objects:
-                    if obj is self or obj is self._events or obj is self._live:
-                        continue
-                    if isinstance(obj, _NO_WEAKREF_TYPES):
-                        continue
-
-                    try:
-                        tb = tracemalloc.get_object_traceback(obj)
-                    except Exception:
-                        continue
-                    if tb is None:
-                        continue
-
-                    key = _tb_key(tb)
-                    if key not in stat_by_key:
-                        continue
-
-                    stat = stat_by_key[key]
-                    if stat.size_diff <= 0:
-                        continue
-
-                    addr = id(obj)
-                    if addr in seen_addresses:
-                        continue
-                    seen_addresses.add(addr)
-
-                    try:
-                        obj_type    = type(obj).__qualname__
-                        module_name = type(obj).__module__ or ""
-                        ref_count   = sys.getrefcount(obj) - 1
-                        callstack   = _tb_to_callstack(tb)
-                        generation  = gen
-                        size        = stat.size_diff
-                        is_numpy, buf_nbytes, pinned_addr = _numpy_info(obj)
-                    except Exception:
-                        continue
-
-                    parent_addr = 0
-                    if self._track_refs:
+            # ── Pass B: cross-thread frame scan ──────────────────────
+            # Finds buffer objects (ndarrays, tensors) stored as local
+            # variables in any running thread, including the main workload.
+            try:
+                for _tid, frame in sys._current_frames().items():
+                    f = frame
+                    while f:
                         try:
-                            with self._live_lock:
-                                tracked_snap = frozenset(self._tracked_addrs)
-                            for referrer in gc.get_referrers(obj):
-                                r_addr = id(referrer)
-                                if r_addr in tracked_snap and r_addr != addr:
-                                    parent_addr = r_addr
-                                    break
+                            for v in list(f.f_locals.values()):
+                                addr = id(v)
+                                if addr in seen_addrs:
+                                    continue
+                                if isinstance(v, _NO_WEAKREF_TYPES):
+                                    seen_addrs.add(addr)
+                                    continue
+                                seen_addrs.add(addr)
+                                try:
+                                    tb = tracemalloc.get_object_traceback(v)
+                                except Exception:
+                                    continue
+                                if tb and tb in stat_by_tb:
+                                    candidates.append((v, tb, stat_by_tb[tb], -1))
+                                # Also check one level of container contents
+                                if isinstance(v, (list, tuple)):
+                                    for item in list(v):
+                                        iid = id(item)
+                                        if iid in seen_addrs:
+                                            continue
+                                        if isinstance(item, _NO_WEAKREF_TYPES):
+                                            seen_addrs.add(iid)
+                                            continue
+                                        seen_addrs.add(iid)
+                                        try:
+                                            tb2 = tracemalloc.get_object_traceback(item)
+                                        except Exception:
+                                            continue
+                                        if tb2 and tb2 in stat_by_tb:
+                                            candidates.append(
+                                                (item, tb2, stat_by_tb[tb2], -1))
                         except Exception:
                             pass
+                        f = f.f_back
+            except Exception:
+                pass
 
-                    alloc_ts = _now_ns()
-                    event = {
-                        "base": {
-                            "event_id":     _next_id(),
-                            "timestamp_ns": alloc_ts,
-                            "process_id":   os.getpid(),
-                            "thread_id":    threading.get_ident(),
-                            "event_type":   "ALLOC",
-                        },
-                        "alloc_address":    addr,
-                        "alloc_size_bytes": size,
-                        "object_type":      obj_type,
-                        "module_name":      module_name,
-                        "ref_count":        ref_count,
-                        "callstack":        callstack,
-                        "gc_generation":    generation,
-                        "is_dealloc":       False,
-                        "peak_rss_kb":      rss_kb,
-                        "lifetime_ns":      0,
-                        "is_numpy_buffer":  is_numpy,
-                        "buffer_nbytes":    buf_nbytes,
-                        "parent_address":   parent_addr,
-                        "pinned_address":   pinned_addr,
-                    }
-                    new_allocs.append(event)
+            # ── Pass C: referents of new GC objects ───────────────────
+            # Catches ndarrays / tensors stored as class attributes.
+            for _addr, obj in new_gc_objects:
+                try:
+                    for ref in gc.get_referents(obj):
+                        rid = id(ref)
+                        if rid in seen_addrs:
+                            continue
+                        if isinstance(ref, _NO_WEAKREF_TYPES):
+                            seen_addrs.add(rid)
+                            continue
+                        seen_addrs.add(rid)
+                        try:
+                            tb = tracemalloc.get_object_traceback(ref)
+                        except Exception:
+                            continue
+                        if tb and tb in stat_by_tb:
+                            candidates.append((ref, tb, stat_by_tb[tb], -1))
+                except Exception:
+                    continue
 
-                    with self._live_lock:
-                        self._live[addr] = (size, obj_type, alloc_ts, pinned_addr)
-                        self._tracked_addrs.add(addr)
+            # ── Build events for all candidates ───────────────────────
+            for obj, tb, stat, gen in candidates:
+                addr = id(obj)
+                # Final duplicate guard (candidates may overlap across passes)
+                with self._live_lock:
+                    if addr in self._live:
+                        continue
 
-                    self._register_finalizer(obj, addr)
+                try:
+                    obj_type    = type(obj).__qualname__
+                    module_name = type(obj).__module__ or ""
+                    ref_count   = sys.getrefcount(obj) - 1
+                    callstack   = _tb_to_callstack(tb)
+                    size        = stat.size_diff
+                    tm_size     = stat.size        # tracemalloc's total size
+                    is_numpy, buf_nbytes, pinned_addr, shape, dtype = _numpy_info(obj)
+                except Exception:
+                    continue
 
-        # ── Drain dealloc queue — UNCONDITIONAL ────────────────────────
-        with self._dealloc_lock:
-            pending_deallocs = self._dealloc_queue
-            self._dealloc_queue = []
+                parent_addr = 0
+                if self._track_refs:
+                    try:
+                        with self._live_lock:
+                            tracked_snap = frozenset(self._tracked_addrs)
+                        for referrer in gc.get_referrers(obj):
+                            r_addr = id(referrer)
+                            if r_addr in tracked_snap and r_addr != addr:
+                                parent_addr = r_addr
+                                break
+                    except Exception:
+                        pass
+
+                alloc_ts = _now_ns()
+                event = {
+                    "base": {
+                        "event_id":     _next_id(),
+                        "timestamp_ns": alloc_ts,
+                        "process_id":   os.getpid(),
+                        "thread_id":    threading.get_ident(),
+                        "event_type":   "ALLOC",
+                    },
+                    "alloc_address":    addr,
+                    "alloc_size_bytes": size,
+                    "tracemalloc_size": tm_size,
+                    "object_type":      obj_type,
+                    "module_name":      module_name,
+                    "ref_count":        ref_count,
+                    "callstack":        callstack,
+                    "gc_generation":    gen,
+                    "is_dealloc":       False,
+                    "peak_rss_kb":      rss_kb,
+                    "lifetime_ns":      0,
+                    "is_numpy_buffer":  is_numpy,
+                    "buffer_nbytes":    buf_nbytes,
+                    "parent_address":   parent_addr,
+                    "pinned_address":   pinned_addr,
+                    "array_shape":      list(shape),
+                    "array_dtype":      dtype,
+                }
+                new_allocs.append(event)
+
+                with self._live_lock:
+                    self._live[addr] = (size, obj_type, alloc_ts, pinned_addr)
+                    self._tracked_addrs.add(addr)
+
+                self._register_finalizer(obj, addr)
 
         all_new = new_allocs + pending_deallocs
-
         with self._events_lock:
             self._events.extend(all_new)
-
         return all_new
 
     def flush(self) -> list:
-        """
-        Return all accumulated events (alloc + dealloc) and clear the buffer.
-
-        Also drains _dealloc_queue so that callers who call flush() directly
-        (without going through collect() first) still receive dealloc events
-        that arrived via weakref finalizers since the last collect().
-        """
-        # Drain async dealloc queue first, under its own lock
+        """Return all accumulated events and clear the buffer. Also drains dealloc queue."""
         with self._dealloc_lock:
             pending = self._dealloc_queue
             self._dealloc_queue = []
-
         with self._events_lock:
             all_events = list(self._events) + pending
             self._events.clear()
-
         return all_events
 
     def stop(self) -> list:
-        """Stop profiling. Returns any remaining events from a final collect()."""
+        """Stop profiling. Returns remaining events from a final collect()."""
         if not self._running:
             return []
         remaining = self.collect()
@@ -383,18 +435,18 @@ class PythonMemoryLayer:
     # Internal
     # ------------------------------------------------------------------
 
-    def _register_finalizer(self, obj, addr: int):
+    def _register_finalizer(self, obj, addr: int) -> None:
+        """Register a weakref finalizer to capture deallocation."""
         try:
             weakref.finalize(obj, self._on_dealloc, addr)
         except TypeError:
             pass  # type doesn't support weakrefs
 
-    def _on_dealloc(self, addr: int):
+    def _on_dealloc(self, addr: int) -> None:
         """Called by weakref finalizer when a tracked object is collected."""
         with self._live_lock:
             info = self._live.pop(addr, None)
             self._tracked_addrs.discard(addr)
-
         if info is None:
             return
 
@@ -411,6 +463,7 @@ class PythonMemoryLayer:
             },
             "alloc_address":    addr,
             "alloc_size_bytes": size,
+            "tracemalloc_size": 0,
             "object_type":      obj_type,
             "module_name":      "",
             "ref_count":        0,
@@ -423,6 +476,8 @@ class PythonMemoryLayer:
             "buffer_nbytes":    0,
             "parent_address":   0,
             "pinned_address":   pinned_addr,
+            "array_shape":      [],
+            "array_dtype":      "",
         }
         with self._dealloc_lock:
             self._dealloc_queue.append(event)

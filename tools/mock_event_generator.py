@@ -30,7 +30,7 @@ def _base(eid, ts, pid=1, tid=1, etype="ALLOC"):
     }
 
 
-def _cpu_alloc(eid, ts, addr, size, pinned=0):
+def _cpu_alloc(eid, ts, addr, size, pinned=0, shape=None, dtype="float32"):
     return {
         "base":             _base(eid, ts, etype="ALLOC"),
         "alloc_address":    addr,
@@ -47,10 +47,14 @@ def _cpu_alloc(eid, ts, addr, size, pinned=0):
         "buffer_nbytes":    size if pinned else 0,
         "parent_address":   0,
         "pinned_address":   pinned,
+        "tracemalloc_size": size,
+        "array_shape":      list(shape) if shape else [size // 4],
+        "array_dtype":      dtype,
     }
 
 
 def _gpu_transfer(eid, ts, src, size, kind="HOST_TO_DEVICE"):
+    is_htod = (kind == "HOST_TO_DEVICE")
     return {
         "base":                _base(eid, ts, etype="TRANSFER"),
         "device_id":           0,
@@ -63,6 +67,13 @@ def _gpu_transfer(eid, ts, src, size, kind="HOST_TO_DEVICE"):
         "kernel_duration_ns":  0,
         "stream_id":           0,
         "device_mem_used_mb":  0,
+        "um_bytes_htod":       size if is_htod else 0,
+        "um_bytes_dtoh":       size if not is_htod else 0,
+        "grid":                {"x": 0, "y": 0, "z": 0},
+        "block":               {"x": 0, "y": 0, "z": 0},
+        "registers_per_thread": 0,
+        "shared_mem_bytes":    0,
+        "correlation_id":      eid,
     }
 
 
@@ -79,6 +90,13 @@ def _gpu_kernel(eid, ts, name="volta_sgemm"):
         "kernel_duration_ns":  50_000,
         "stream_id":           0,
         "device_mem_used_mb":  0,
+        "um_bytes_htod":       0,
+        "um_bytes_dtoh":       0,
+        "grid":                {"x": 128, "y": 1, "z": 1},
+        "block":               {"x": 256, "y": 1, "z": 1},
+        "registers_per_thread": 32,
+        "shared_mem_bytes":    4096,
+        "correlation_id":      eid,
     }
 
 

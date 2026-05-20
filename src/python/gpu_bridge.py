@@ -3,54 +3,57 @@ gpu_bridge.py
 -------------
 Python consumer for the GPU ring buffer written by cupti_layer.so.
 
-cupti_layer.so calls rb_create(shm_name, capacity, 1) internally when
-cupti_start() is called — it owns and creates the segment. This module
-opens a *consumer* handle (create=0) to the same segment and provides:
+Binary wire format (little-endian, mirrors cupti_layer.cpp serialise_event):
 
-  GpuBridge.open()         — attach to existing segment
-  GpuBridge.read()         — read one raw payload (bytes) or None
-  GpuBridge.close()        — detach (never unlinks — cupti_layer owns it)
-  GpuBridge.deserialize()  — static: bytes → GpuEvent dict
-
-Binary wire format (little-endian, mirrors cupti_layer.cpp write order):
-
+  ── Base header (53 bytes, struct "<QQIQBBQQIBH") ──────────────────────────
   Offset  Size  Field
-  ------  ----  -----
-  0        8    event_id              (uint64)
-  8        8    timestamp_ns          (uint64)
-  16       4    process_id            (uint32)
-  20       8    thread_id             (uint64)  — always 0 for GPU events
-  28       1    event_type            (uint8)   2=TRANSFER 3=PAGE_FAULT 4=KERNEL
-  29       1    is_dealloc            (uint8)   — always 0
-  30       8    alloc_address         (uint64)  — unused; 0
-  38       8    alloc_size            (uint64)  — unused; 0
-  46       4    ref_count             (uint32)  — unused; 0
-  50       1    gc_gen                (int8)    — unused; 0
-  51       2    label_len             (uint16)
-  53       N    label                 (utf-8)   — kernel name or transfer kind
-  53+N     4    device_id             (uint32)
-  57+N     8    src_address           (uint64)
-  65+N     8    dst_address           (uint64)
-  73+N     8    transfer_size         (uint64)
-  81+N     1    transfer_kind         (uint8)
-  82+N     4    page_faults           (uint32)
-  86+N     8    kernel_duration_ns    (uint64)
-  94+N     4    stream_id             (uint32)
-  98+N     4    device_mem_used_mb    (uint32)
+  0        8    event_id              uint64
+  8        8    timestamp_ns          uint64   CLOCK_MONOTONIC ns
+  16       4    process_id            uint32
+  20       8    thread_id             uint64   always 0 for GPU events
+  28       1    event_type            uint8    2=TRANSFER 3=PAGE_FAULT 4=KERNEL
+  29       1    is_dealloc            uint8    always 0
+  30       8    alloc_address         uint64   unused, 0
+  38       8    alloc_size_bytes      uint64   unused, 0
+  46       4    ref_count             uint32   unused, 0
+  50       1    gc_generation         int8     unused, 0
+  51       2    label_len             uint16
+  53       N    label                 utf-8    kernel name or transfer kind
 
-Header struct "<QQIQBBQQIBH"  = 8+8+4+8+1+1+8+8+4+1+2 = 53 bytes
-Extension struct "<IQQQBIQii" = 4+8+8+8+1+4+8+4+4     = 49 bytes
-Minimum total (label_len=0)  = 53 + 49                 = 102 bytes
+  ── GPU extension (after label) ─────────────────────────────────────────────
+  +0       4    device_id             uint32
+  +4       8    src_address           uint64
+  +12      8    dst_address           uint64
+  +20      8    transfer_size         uint64
+  +28      1    transfer_kind         uint8    0=H2D 1=D2H 2=D2D 3=PREFETCH
+  +29      4    page_faults           uint32
+  +33      8    kernel_duration_ns    uint64
+  +41      4    stream_id             uint32
+  +45      4    device_mem_used_mb    uint32
+  +49      8    um_bytes_htod         uint64   [NEW] UM migration bytes H→D
+  +57      8    um_bytes_dtoh         uint64   [NEW] UM migration bytes D→H
+  +65      4    grid_x                uint32   [NEW] kernel grid dims
+  +69      4    grid_y                uint32
+  +73      4    grid_z                uint32
+  +77      4    block_x               uint32   [NEW] kernel block dims
+  +81      4    block_y               uint32
+  +85      4    block_z               uint32
+  +89      4    registers_per_thread  uint32   [NEW]
+  +93      4    shared_mem_bytes      uint32   [NEW] static + dynamic shared mem
+  +97      4    correlation_id        uint32   [NEW] CUPTI correlation ID
+
+  Header = 53 bytes
+  Extension = 4+8+8+8+1+4+8+4+4+8+8+4+4+4+4+4+4+4+4+4 = 101 bytes
+  Minimum total (label_len=0) = 53 + 101 = 154 bytes
 """
 
 import struct
 import ctypes
-import sys
 from pathlib import Path
 from typing import Optional
 
-ROOT    = Path(__file__).parent.parent.parent
-_RB_SO  = str(ROOT / "src" / "cpp" / "ring_buffer.so")
+ROOT   = Path(__file__).parent.parent.parent
+_RB_SO = str(ROOT / "src" / "cpp" / "ring_buffer.so")
 
 _TRANSFER_KIND = {
     0: "HOST_TO_DEVICE",
@@ -66,18 +69,33 @@ _EVENT_TYPE = {
     4: "KERNEL",
 }
 
+# Base header: event_id, ts, pid, tid, etype, is_dealloc,
+#              alloc_addr, alloc_size, ref_count, gc_gen, label_len
 _HDR_FMT = struct.Struct("<QQIQBBQQIBH")   # 53 bytes
-_EXT_FMT = struct.Struct("<IQQQBIQII")    # 4+8+8+8+1+4+8+4+4 = 45 bytes
-#  device_id uint32, src uint64, dst uint64, xfer_size uint64,
-#  transfer_kind uint8, page_faults uint32,
-#  kernel_duration_ns uint64, stream_id uint32, device_mem_used_mb uint32
-_MIN_LEN  = _HDR_FMT.size + _EXT_FMT.size   # 53 + 45 = 98 (label_len=0)
+
+# GPU extension block: all fields in serialisation order
+# Original fields (49 bytes):
+#   device_id uint32, src uint64, dst uint64, xfer_size uint64,
+#   xfer_kind uint8, page_faults uint32,
+#   kernel_duration_ns uint64, stream_id uint32, device_mem_used_mb uint32
+# New fields (52 bytes):
+#   um_bytes_htod uint64, um_bytes_dtoh uint64,
+#   grid_x/y/z uint32x3, block_x/y/z uint32x3,
+#   registers_per_thread uint32, shared_mem_bytes uint32,
+#   correlation_id uint32
+_EXT_FMT = struct.Struct("<IQQQBIQIIQQIIIIIIIIi")
+# Breakdown: I=device_id, Q=src, Q=dst, Q=xfer_size,
+#            B=xfer_kind, I=page_faults, Q=kern_dur, I=stream, I=dev_mem,
+#            Q=um_htod, Q=um_dtoh,
+#            I=gx, I=gy, I=gz, I=bx, I=by, I=bz,
+#            I=regs, I=shmem, i=corr_id (signed to handle CUPTI's uint32)
+# Sizes: 4+8+8+8+1+4+8+4+4+8+8+4+4+4+4+4+4+4+4+4 = 101 bytes
+
+_MIN_LEN = _HDR_FMT.size + _EXT_FMT.size   # 53 + 101 = 154
 
 
 class GpuBridge:
-    """
-    Consumer-side reader for the GPU ring buffer created by cupti_layer.so.
-    """
+    """Consumer-side reader for the GPU ring buffer created by cupti_layer.so."""
 
     def __init__(
         self,
@@ -102,15 +120,11 @@ class GpuBridge:
 
         lib.rb_create.restype  = ctypes.c_void_p
         lib.rb_create.argtypes = [ctypes.c_char_p, ctypes.c_uint32, ctypes.c_int]
-
-        lib.rb_read.restype  = ctypes.c_int
-        lib.rb_read.argtypes = [
-            ctypes.c_void_p,
-            ctypes.c_char_p,
-            ctypes.c_uint32,
+        lib.rb_read.restype    = ctypes.c_int
+        lib.rb_read.argtypes   = [
+            ctypes.c_void_p, ctypes.c_char_p, ctypes.c_uint32,
             ctypes.POINTER(ctypes.c_uint32),
         ]
-
         lib.rb_destroy.restype  = None
         lib.rb_destroy.argtypes = [ctypes.c_void_p]
 
@@ -129,9 +143,7 @@ class GpuBridge:
             return None
         out_len = ctypes.c_uint32(0)
         ok = self._lib.rb_read(
-            self._rb,
-            self._buf,
-            ctypes.c_uint32(len(self._buf)),
+            self._rb, self._buf, ctypes.c_uint32(len(self._buf)),
             ctypes.byref(out_len),
         )
         if not ok or out_len.value == 0:
@@ -146,60 +158,69 @@ class GpuBridge:
         self.is_open = False
 
     # ------------------------------------------------------------------
-    # Deserializer
+    # Deserialiser
     # ------------------------------------------------------------------
 
     @staticmethod
     def deserialize(payload: bytes) -> dict:
         """
         Parse a raw GPU event payload into a GpuEvent dict.
-        Format mirrors the write order in cupti_layer.cpp and the read
-        order in test_gpu.cu's deserialize() function.
+        Backwards-compatible: payloads shorter than the new minimum are
+        parsed with zero-filled new fields so old cupti_layer.so binaries
+        still work until rebuilt.
         """
         n = len(payload)
-        if n < _MIN_LEN:
-            raise ValueError(f"GPU payload too short: {n} < {_MIN_LEN}")
+        if n < _HDR_FMT.size:
+            raise ValueError(f"GPU payload too short for header: {n} < {_HDR_FMT.size}")
 
-        # ── Header (53 bytes) ──────────────────────────────────────────
+        # ── Header ────────────────────────────────────────────────────────
         (
-            event_id,        # Q uint64 offset  0
-            timestamp_ns,    # Q uint64 offset  8
-            process_id,      # I uint32 offset 16
-            _thread_id,      # Q uint64 offset 20
-            event_type_byte, # B uint8  offset 28
-            _is_dealloc,     # B uint8  offset 29
-            _alloc_addr,     # Q uint64 offset 30
-            _alloc_size,     # Q uint64 offset 38
-            _ref_count,      # I uint32 offset 46
-            _gc_gen,         # B uint8  offset 50
-            label_len,       # H uint16 offset 51
+            event_id, timestamp_ns, process_id, _thread_id,
+            event_type_byte, _is_dealloc,
+            _alloc_addr, _alloc_size, _ref_count, _gc_gen,
+            label_len,
         ) = _HDR_FMT.unpack_from(payload, 0)
 
-        # ── Variable-length label ──────────────────────────────────────
-        off = 53
+        # ── Variable-length label ─────────────────────────────────────────
+        off = _HDR_FMT.size
         if n < off + label_len:
-            raise ValueError(
-                f"GPU payload truncated: label needs {off+label_len} bytes, have {n}"
-            )
+            raise ValueError(f"GPU payload truncated at label: need {off+label_len}, have {n}")
         label = payload[off: off + label_len].decode("utf-8", errors="replace")
         off  += label_len
 
-        # ── Extension fields ───────────────────────────────────────────
-        if n < off + _EXT_FMT.size:
-            raise ValueError(
-                f"GPU payload truncated in extension fields at offset {off}, have {n}"
-            )
-        (
-            device_id,            # I uint32
-            src_address,          # Q uint64
-            dst_address,          # Q uint64
-            transfer_size,        # Q uint64
-            transfer_kind_byte,   # B uint8
-            page_faults,          # I uint32
-            kernel_duration_ns,   # Q uint64
-            stream_id,            # I uint32
-            device_mem_used_mb,   # I uint32
-        ) = _EXT_FMT.unpack_from(payload, off)
+        # ── Extension fields (with backwards-compat zero-fill) ─────────────
+        ext_available = n - off
+
+        # Defaults for all extension fields
+        device_id = src_address = dst_address = transfer_size = 0
+        transfer_kind_byte = page_faults = stream_id = device_mem_used_mb = 0
+        kernel_duration_ns = 0
+        um_bytes_htod = um_bytes_dtoh = 0
+        grid_x = grid_y = grid_z = 0
+        block_x = block_y = block_z = 0
+        registers_per_thread = shared_mem_bytes = correlation_id = 0
+
+        if ext_available >= _EXT_FMT.size:
+            # Full new-format payload
+            (
+                device_id, src_address, dst_address, transfer_size,
+                transfer_kind_byte, page_faults,
+                kernel_duration_ns, stream_id, device_mem_used_mb,
+                um_bytes_htod, um_bytes_dtoh,
+                grid_x, grid_y, grid_z,
+                block_x, block_y, block_z,
+                registers_per_thread, shared_mem_bytes,
+                correlation_id,
+            ) = _EXT_FMT.unpack_from(payload, off)
+        elif ext_available >= 49:
+            # Old format — original 9 fields only (49 bytes)
+            _old = struct.Struct("<IQQQBIQii")
+            (
+                device_id, src_address, dst_address, transfer_size,
+                transfer_kind_byte, page_faults,
+                kernel_duration_ns, stream_id, device_mem_used_mb,
+            ) = _old.unpack_from(payload, off)
+        # else: payload has no extension at all — all zeros
 
         return {
             "base": {
@@ -207,16 +228,26 @@ class GpuBridge:
                 "timestamp_ns": timestamp_ns,
                 "process_id":  process_id,
                 "thread_id":   0,
-                "event_type":  _EVENT_TYPE.get(event_type_byte, f"UNKNOWN_{event_type_byte}"),
+                "event_type":  _EVENT_TYPE.get(event_type_byte,
+                                               f"UNKNOWN_{event_type_byte}"),
             },
-            "device_id":              device_id,
-            "src_address":            src_address,
-            "dst_address":            dst_address,
-            "transfer_size_bytes":    transfer_size,
-            "transfer_kind":          _TRANSFER_KIND.get(transfer_kind_byte, "UNKNOWN"),
-            "um_page_faults":         page_faults,
-            "kernel_name":            label,
-            "kernel_duration_ns":     kernel_duration_ns,
-            "stream_id":              stream_id,
-            "device_mem_used_mb":     device_mem_used_mb,
+            # Original fields
+            "device_id":           device_id,
+            "src_address":         src_address,
+            "dst_address":         dst_address,
+            "transfer_size_bytes": transfer_size,
+            "transfer_kind":       _TRANSFER_KIND.get(transfer_kind_byte, "UNKNOWN"),
+            "um_page_faults":      page_faults,
+            "kernel_name":         label,
+            "kernel_duration_ns":  kernel_duration_ns,
+            "stream_id":           stream_id,
+            "device_mem_used_mb":  device_mem_used_mb,
+            # New fields
+            "um_bytes_htod":          um_bytes_htod,
+            "um_bytes_dtoh":          um_bytes_dtoh,
+            "grid":                   {"x": grid_x, "y": grid_y, "z": grid_z},
+            "block":                  {"x": block_x, "y": block_y, "z": block_z},
+            "registers_per_thread":   registers_per_thread,
+            "shared_mem_bytes":       shared_mem_bytes,
+            "correlation_id":         correlation_id,
         }
