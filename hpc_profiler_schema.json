@@ -67,7 +67,8 @@
         "lifetime_ns",
         "is_numpy_buffer",
         "buffer_nbytes",
-        "parent_address"
+        "parent_address",
+        "pinned_address"
       ],
       "properties": {
         "base": {
@@ -134,6 +135,11 @@
           "type": "integer",
           "minimum": 0,
           "description": "id() of the first tracked GC referrer of this object, or 0 if none found or track_refs=False."
+        },
+        "pinned_address": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Actual C-level data pointer for buffer objects (numpy/cupy/torch). For a numpy array this is __array_interface__['data'][0]; for torch it is tensor.data_ptr(). CUPTI reports this address as src_address on HOST_TO_DEVICE transfers, enabling HARD correlation via Pass 1b. 0 for non-buffer objects."
         }
       },
       "additionalProperties": false

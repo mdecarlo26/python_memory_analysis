@@ -85,9 +85,10 @@ _FIXED_SIZE = _FIXED_FMT.size  # 53 bytes
 #   is_numpy_buffer  uint8
 #   buffer_nbytes    uint64
 #   parent_address   uint64
+#   pinned_address   uint64   ← actual C data pointer (0 for non-buffer objects)
 # Fixed part of CPU extension (everything except the variable module_name string):
-_CPU_EXT_FMT  = struct.Struct("<QQBQQ")   # peak_rss_kb, lifetime_ns, is_numpy, buffer_nbytes, parent_address
-_CPU_EXT_SIZE = _CPU_EXT_FMT.size         # 8+8+1+8+8 = 33 bytes
+_CPU_EXT_FMT  = struct.Struct("<QQBQQQ")   # peak_rss_kb, lifetime_ns, is_numpy, buffer_nbytes, parent_address, pinned_address
+_CPU_EXT_SIZE = _CPU_EXT_FMT.size         # 8+8+1+8+8+8 = 41 bytes
 
 # ---------------------------------------------------------------------------
 # cffi declarations for ring_buffer.so
@@ -290,11 +291,12 @@ class Bridge:
         is_numpy        = 1 if event.get("is_numpy_buffer", False) else 0
         buffer_nbytes   = event.get("buffer_nbytes", 0)
         parent_address  = event.get("parent_address", 0)
+        pinned_address  = event.get("pinned_address", 0)
 
         cpu_ext = (
             struct.pack("<H", module_name_len)
             + module_name_enc
-            + _CPU_EXT_FMT.pack(peak_rss_kb, lifetime_ns, is_numpy, buffer_nbytes, parent_address)
+            + _CPU_EXT_FMT.pack(peak_rss_kb, lifetime_ns, is_numpy, buffer_nbytes, parent_address, pinned_address)
         )
 
         return fixed + object_type_enc + cpu_ext
@@ -325,6 +327,7 @@ class Bridge:
         is_numpy       = False
         buffer_nbytes  = 0
         parent_address = 0
+        pinned_address = 0
 
         if off + 2 <= len(payload):
             module_name_len = struct.unpack_from("<H", payload, off)[0]
@@ -334,7 +337,8 @@ class Bridge:
                 off += module_name_len
             if off + _CPU_EXT_SIZE <= len(payload):
                 (peak_rss_kb, lifetime_ns,
-                 is_numpy_byte, buffer_nbytes, parent_address) = _CPU_EXT_FMT.unpack_from(payload, off)
+                 is_numpy_byte, buffer_nbytes,
+                 parent_address, pinned_address) = _CPU_EXT_FMT.unpack_from(payload, off)
                 is_numpy = bool(is_numpy_byte)
 
         type_map_rev   = {v: k for k, v in _EVENT_TYPE_MAP.items()}
@@ -361,4 +365,5 @@ class Bridge:
             "is_numpy_buffer":  is_numpy,
             "buffer_nbytes":    buffer_nbytes,
             "parent_address":   parent_address,
+            "pinned_address":   pinned_address,
         }

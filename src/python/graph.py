@@ -49,6 +49,7 @@ class GraphNode:
         "first_seen_ns",
         "last_seen_ns",
         "callstack",
+        "gpu_correlations",   # list of CorrelatedEvent dicts for this node
     )
 
     def __init__(
@@ -70,6 +71,7 @@ class GraphNode:
         self.first_seen_ns = first_seen_ns
         self.last_seen_ns: Optional[int] = None
         self.callstack = callstack
+        self.gpu_correlations: list = []
 
     def mark_dead(self, timestamp_ns: int):
         self.alive = False
@@ -93,13 +95,15 @@ class GraphNode:
             "last_seen_ns": self.last_seen_ns,
             "lifetime_ns": self.lifetime_ns(),
             "callstack": self.callstack,
+            "gpu_correlations": self.gpu_correlations,
         }
 
     def __repr__(self):
         status = "alive" if self.alive else "dead"
+        gpu_str = f", gpu={len(self.gpu_correlations)}" if self.gpu_correlations else ""
         return (
             f"GraphNode(id={self.node_id}, type={self.object_type}, "
-            f"size={self.size_bytes}, {status})"
+            f"size={self.size_bytes}, {status}{gpu_str})"
         )
 
 
@@ -200,6 +204,79 @@ class ObjectGraph:
             if dst_id not in self._nodes:
                 continue
             self._edges.append(GraphEdge(src_id, dst_id, ts))
+
+    def gpu_correlated_nodes(self) -> list:
+        """Return only nodes that have at least one GPU correlation."""
+        return [n for n in self._nodes.values() if n.gpu_correlations]
+
+    def merge_gpu_correlations(
+        self,
+        correlated_events: list,
+        gpu_events: list,
+        cpu_events: Optional[list] = None,
+    ):
+        """
+        Annotate graph nodes with their GPU correlation data.
+
+        After building the graph with ingest(), call this to attach
+        CorrelatedEvent records (and the corresponding GpuEvent metadata)
+        to each node. The UI can then display GPU transfer/kernel details
+        directly on the object that triggered them.
+
+        Args:
+            correlated_events: List of CorrelatedEvent dicts from the correlator.
+            gpu_events:        List of GpuEvent dicts (the full GPU event list).
+            cpu_events:        Optional. If provided, used to resolve cpu_event_id
+                               to alloc_address when a node isn't found by event_id.
+                               Handles the case where graph was built from a subset.
+        """
+        # Build GPU event lookup by event_id for O(1) access
+        gpu_by_id: dict = {
+            e["base"]["event_id"]: e for e in gpu_events
+        }
+
+        # Build CPU event_id → alloc_address lookup if provided
+        cpu_addr_by_event_id: dict = {}
+        if cpu_events:
+            for e in cpu_events:
+                eid  = e["base"]["event_id"]
+                addr = e["alloc_address"]
+                cpu_addr_by_event_id[eid] = addr
+
+        for corr in correlated_events:
+            cpu_eid = corr["cpu_event_id"]
+            gpu_eid = corr["gpu_event_id"]
+
+            # Find the graph node — try by alloc_address derived from event_id
+            addr = cpu_addr_by_event_id.get(cpu_eid)
+            node = self._nodes.get(addr) if addr is not None else None
+
+            # Fallback: linear scan by node_id == cpu_eid (rare)
+            if node is None:
+                node = self._nodes.get(cpu_eid)
+
+            if node is None:
+                continue
+
+            gpu_ev = gpu_by_id.get(gpu_eid)
+            if gpu_ev is None:
+                continue
+
+            # Attach a compact annotation to the node
+            node.gpu_correlations.append({
+                "confidence":          corr["confidence"],
+                "match_reason":        corr["match_reason"],
+                "latency_ns":          corr["latency_ns"],
+                "gpu_event_id":        gpu_eid,
+                "gpu_event_type":      gpu_ev["base"]["event_type"],
+                "gpu_timestamp_ns":    gpu_ev["base"]["timestamp_ns"],
+                "transfer_size_bytes": gpu_ev.get("transfer_size_bytes", 0),
+                "transfer_kind":       gpu_ev.get("transfer_kind", ""),
+                "kernel_name":         gpu_ev.get("kernel_name", ""),
+                "kernel_duration_ns":  gpu_ev.get("kernel_duration_ns", 0),
+                "stream_id":           gpu_ev.get("stream_id", 0),
+                "device_id":           gpu_ev.get("device_id", 0),
+            })
 
     # ------------------------------------------------------------------
     # Queries

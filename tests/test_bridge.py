@@ -119,6 +119,36 @@ class TestSerialization(unittest.TestCase):
         r = self._roundtrip(e)
         self.assertEqual(r["callstack"], [])
 
+    def test_pinned_address_roundtrip(self):
+        """pinned_address must survive serialization and deserialization intact."""
+        e = make_cpu_event()
+        e["is_numpy_buffer"] = True
+        e["buffer_nbytes"]   = 64
+        e["pinned_address"]  = 0xCAFE_BABE_DEAD_BEEF
+        r = self._roundtrip(e)
+        self.assertEqual(r["pinned_address"], 0xCAFE_BABE_DEAD_BEEF,
+            f"pinned_address mismatch: got {hex(r['pinned_address'])}")
+
+    def test_pinned_address_zero_roundtrip(self):
+        """pinned_address=0 (non-buffer objects) must deserialize as 0."""
+        e = make_cpu_event()
+        # No pinned_address key — simulates events from older code or non-buffer objects
+        r = self._roundtrip(e)
+        self.assertEqual(r["pinned_address"], 0,
+            "Missing pinned_address must default to 0 after deserialization")
+
+    def test_pinned_address_distinct_from_alloc_address(self):
+        """
+        pinned_address and alloc_address are independent fields.
+        A buffer object has alloc_address=id(wrapper), pinned_address=data_ptr.
+        Both must survive the roundtrip independently.
+        """
+        e = make_cpu_event(addr=0x1234_5678)
+        e["pinned_address"] = 0xABCD_EF01
+        r = self._roundtrip(e)
+        self.assertEqual(r["alloc_address"],  0x1234_5678)
+        self.assertEqual(r["pinned_address"], 0xABCD_EF01)
+
 
 # ---------------------------------------------------------------------------
 # B — Write/read roundtrip through ring buffer

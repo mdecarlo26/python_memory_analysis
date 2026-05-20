@@ -21,6 +21,9 @@ New fields vs schema v0.1 original:
   is_numpy_buffer  — True when obj has __array_interface__ (numpy/cupy/torch)
   buffer_nbytes    — obj.nbytes when is_numpy_buffer is True, else 0
   parent_address   — id() of first tracked GC referrer (track_refs=True only)
+  pinned_address   — actual C data pointer for buffer objects (the address
+                     CUPTI reports as src_address on H2D transfers). Enables
+                     HARD correlation. 0 for non-buffer objects.
 
 Dealloc fix:
   _dealloc_queue is a separate list from _events. _on_dealloc() always
@@ -96,17 +99,47 @@ def _current_rss_kb() -> int:
 
 def _numpy_info(obj) -> tuple:
     """
-    Returns (is_numpy_buffer: bool, buffer_nbytes: int).
-    Detects numpy/cupy/torch tensors whose real data lives in a C-level
-    buffer that tracemalloc cannot see because it bypasses Python's allocator.
+    Returns (is_numpy_buffer: bool, buffer_nbytes: int, pinned_address: int).
+
+    pinned_address is the actual C-level data pointer of the buffer —
+    the address CUPTI reports as src_address on a host-to-device transfer.
+    For CPU numpy arrays: __array_interface__['data'][0].
+    For CUDA arrays: __cuda_array_interface__['data'][0] (device pointer —
+    not directly useful for H2D matching, but recorded for completeness).
+    For torch tensors: tensor.data_ptr().
+
+    This is distinct from alloc_address (id(obj)) which is the Python
+    object header address. The correlator matches GPU src_address against
+    pinned_address (Pass 1b), not alloc_address (Pass 1), because CUPTI
+    reports the buffer data pointer, not the Python wrapper object address.
     """
     try:
-        if hasattr(obj, '__array_interface__') or hasattr(obj, '__cuda_array_interface__'):
+        # Torch tensors — data_ptr() is the most reliable path
+        if hasattr(obj, 'data_ptr') and callable(obj.data_ptr):
             nbytes = getattr(obj, 'nbytes', 0)
-            return True, int(nbytes)
+            try:
+                ptr = int(obj.data_ptr())
+            except Exception:
+                ptr = 0
+            return True, int(nbytes), ptr
+
+        # NumPy / host arrays
+        if hasattr(obj, '__array_interface__'):
+            iface = obj.__array_interface__
+            nbytes = getattr(obj, 'nbytes', 0)
+            ptr = iface.get('data', (0,))[0] or 0
+            return True, int(nbytes), int(ptr)
+
+        # CuPy / CUDA arrays
+        if hasattr(obj, '__cuda_array_interface__'):
+            iface = obj.__cuda_array_interface__
+            nbytes = getattr(obj, 'nbytes', 0)
+            ptr = iface.get('data', (0,))[0] or 0
+            return True, int(nbytes), int(ptr)
+
     except Exception:
         pass
-    return False, 0
+    return False, 0, 0
 
 # Types that can't be weakly referenced
 _NO_WEAKREF_TYPES = (int, float, str, bytes, bool, type(None))
@@ -134,6 +167,7 @@ class PythonMemoryLayer:
       is_numpy_buffer  — True if obj exposes __array_interface__
       buffer_nbytes    — obj.nbytes when is_numpy_buffer, else 0
       parent_address   — id() of first tracked GC referrer (track_refs=True only)
+      pinned_address   — actual C data pointer for buffer objects (0 otherwise)
     """
 
     def __init__(self, nframe: int = 16, track_refs: bool = False):
@@ -252,7 +286,7 @@ class PythonMemoryLayer:
                         callstack   = _tb_to_callstack(tb)
                         generation  = gen
                         size        = stat.size_diff
-                        is_numpy, buf_nbytes = _numpy_info(obj)
+                        is_numpy, buf_nbytes, pinned_addr = _numpy_info(obj)
                     except Exception:
                         continue
 
@@ -291,11 +325,12 @@ class PythonMemoryLayer:
                         "is_numpy_buffer":  is_numpy,
                         "buffer_nbytes":    buf_nbytes,
                         "parent_address":   parent_addr,
+                        "pinned_address":   pinned_addr,
                     }
                     new_allocs.append(event)
 
                     with self._live_lock:
-                        self._live[addr] = (size, obj_type, alloc_ts)
+                        self._live[addr] = (size, obj_type, alloc_ts, pinned_addr)
                         self._tracked_addrs.add(addr)
 
                     self._register_finalizer(obj, addr)
@@ -363,7 +398,7 @@ class PythonMemoryLayer:
         if info is None:
             return
 
-        size, obj_type, alloc_ts = info
+        size, obj_type, alloc_ts, pinned_addr = info
         dealloc_ts = _now_ns()
 
         event = {
@@ -387,6 +422,7 @@ class PythonMemoryLayer:
             "is_numpy_buffer":  False,
             "buffer_nbytes":    0,
             "parent_address":   0,
+            "pinned_address":   pinned_addr,
         }
         with self._dealloc_lock:
             self._dealloc_queue.append(event)

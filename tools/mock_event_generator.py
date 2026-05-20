@@ -1,267 +1,158 @@
 """
 mock_event_generator.py
 -----------------------
-Generates synthetic profiling sessions for testing and UI development.
-Produces schema-valid CpuEvent, GpuEvent, and CorrelatedEvent dicts.
+Generates synthetic ProfilingSession data for integration tests.
+
+Produces realistic CPU and GPU events with known HARD correlations so
+tests can verify recovery rate, schema validity, and structural correctness
+without requiring a GPU or ptrace permissions.
+
+Usage:
+    from mock_event_generator import generate_session
+    session = generate_session(n_alloc_pairs=100)
 """
 
-import argparse
-import json
 import random
 import time
 import uuid
-from pathlib import Path
 
-# ---------------------------------------------------------------------------
-# Constants
-# ---------------------------------------------------------------------------
-
-PYTHON_TYPES = [
-    "numpy.ndarray", "list", "dict", "tuple", "torch.Tensor",
-    "pandas.DataFrame", "bytes", "set", "str", "float",
-]
-
-KERNEL_NAMES = [
-    "void gemm_kernel<float>",
-    "elementwise_add",
-    "batch_norm_forward",
-    "conv2d_winograd",
-    "softmax_kernel",
-]
-
-CALLSTACKS = [
-    ["train.py:42", "model.py:118", "torch/nn/modules/linear.py:87"],
-    ["inference.py:15", "numpy/core/fromnumeric.py:86"],
-    ["data_loader.py:201", "numpy/lib/stride_tricks.py:119"],
-    [],
-]
+# ~60% of CPU allocs have a matching GPU transfer (ADDRESS_MATCH)
+_HARD_MATCH_RATE = 0.60
 
 
-# ---------------------------------------------------------------------------
-# Helpers
-# ---------------------------------------------------------------------------
-
-_event_id_counter = 0
-
-def _next_id():
-    global _event_id_counter
-    _event_id_counter += 1
-    return _event_id_counter
-
-
-def base_event(timestamp_ns, event_type):
+def _base(eid, ts, pid=1, tid=1, etype="ALLOC"):
     return {
-        "event_id": _next_id(),
-        "timestamp_ns": timestamp_ns,
-        "process_id": 12345,
-        "thread_id": 67890,
-        "event_type": event_type,
+        "event_id":     eid,
+        "timestamp_ns": ts,
+        "process_id":   pid,
+        "thread_id":    tid,
+        "event_type":   etype,
     }
 
 
-def make_cpu_alloc(timestamp_ns, address, size, object_type=None):
-    otype = object_type or random.choice(PYTHON_TYPES)
-    is_numpy = "ndarray" in otype or "Tensor" in otype
+def _cpu_alloc(eid, ts, addr, size, pinned=0):
     return {
-        "base": base_event(timestamp_ns, "ALLOC"),
-        "alloc_address": address,
+        "base":             _base(eid, ts, etype="ALLOC"),
+        "alloc_address":    addr,
         "alloc_size_bytes": size,
-        "object_type": otype,
-        "module_name": "numpy" if "ndarray" in otype else ("torch" if "Tensor" in otype else "builtins"),
-        "ref_count": random.randint(1, 5),
-        "callstack": random.choice(CALLSTACKS),
-        "gc_generation": random.randint(0, 2),
-        "is_dealloc": False,
-        "peak_rss_kb": random.randint(50000, 200000),
-        "lifetime_ns": 0,
-        "is_numpy_buffer": is_numpy,
-        "buffer_nbytes": size if is_numpy else 0,
-        "parent_address": 0,
+        "object_type":      "numpy.ndarray",
+        "module_name":      "numpy",
+        "ref_count":        2,
+        "gc_generation":    0,
+        "is_dealloc":       False,
+        "callstack":        [f"workload.py:{eid % 50 + 1}"],
+        "peak_rss_kb":      1024,
+        "lifetime_ns":      0,
+        "is_numpy_buffer":  bool(pinned),
+        "buffer_nbytes":    size if pinned else 0,
+        "parent_address":   0,
+        "pinned_address":   pinned,
     }
 
 
-def make_cpu_dealloc(timestamp_ns, address, size, object_type, alloc_ts=None):
-    lifetime = (timestamp_ns - alloc_ts) if alloc_ts else random.randint(1_000_000, 500_000_000)
+def _gpu_transfer(eid, ts, src, size, kind="HOST_TO_DEVICE"):
     return {
-        "base": base_event(timestamp_ns, "DEALLOC"),
-        "alloc_address": address,
-        "alloc_size_bytes": size,
-        "object_type": object_type,
-        "module_name": "",
-        "ref_count": 0,
-        "callstack": [],
-        "gc_generation": 0,
-        "is_dealloc": True,
-        "peak_rss_kb": 0,
-        "lifetime_ns": lifetime,
-        "is_numpy_buffer": False,
-        "buffer_nbytes": 0,
-        "parent_address": 0,
-    }
-
-
-def make_gpu_transfer(timestamp_ns, src_address, dst_address, size, kind, duration_ns=None):
-    return {
-        "base": base_event(timestamp_ns, "TRANSFER"),
-        "device_id": 0,
-        "src_address": src_address,
-        "dst_address": dst_address,
+        "base":                _base(eid, ts, etype="TRANSFER"),
+        "device_id":           0,
+        "src_address":         src,
+        "dst_address":         0,
         "transfer_size_bytes": size,
-        "transfer_kind": kind,
-        "um_page_faults": 0,
-        "kernel_name": "",
-        "kernel_duration_ns": duration_ns if duration_ns is not None else random.randint(10_000, 5_000_000),
-        "stream_id": random.randint(0, 4),
-        "device_mem_used_mb": random.randint(100, 8000),
+        "transfer_kind":       kind,
+        "um_page_faults":      0,
+        "kernel_name":         "",
+        "kernel_duration_ns":  0,
+        "stream_id":           0,
+        "device_mem_used_mb":  0,
     }
 
 
-def make_gpu_kernel(timestamp_ns):
+def _gpu_kernel(eid, ts, name="volta_sgemm"):
     return {
-        "base": base_event(timestamp_ns, "KERNEL"),
-        "device_id": 0,
-        "src_address": 0,
-        "dst_address": 0,
+        "base":                _base(eid, ts, etype="KERNEL"),
+        "device_id":           0,
+        "src_address":         0,
+        "dst_address":         0,
         "transfer_size_bytes": 0,
-        "transfer_kind": "DEVICE_TO_DEVICE",
-        "um_page_faults": random.randint(0, 50),
-        "kernel_name": random.choice(KERNEL_NAMES),
-        "kernel_duration_ns": random.randint(50_000, 20_000_000),
-        "stream_id": random.randint(0, 4),
-        "device_mem_used_mb": random.randint(100, 8000),
+        "transfer_kind":       "HOST_TO_DEVICE",
+        "um_page_faults":      0,
+        "kernel_name":         name,
+        "kernel_duration_ns":  50_000,
+        "stream_id":           0,
+        "device_mem_used_mb":  0,
     }
 
 
-def make_correlated(cpu_event_id, gpu_event_id, cpu_ts, gpu_ts, hard=True):
-    return {
-        "cpu_event_id": cpu_event_id,
-        "gpu_event_id": gpu_event_id,
-        "confidence": "HARD" if hard else "WEAK",
-        "match_reason": "ADDRESS_MATCH" if hard else "SIZE_AND_TIMESTAMP",
-        "latency_ns": max(0, gpu_ts - cpu_ts),
-    }
-
-
-# ---------------------------------------------------------------------------
-# Session generator
-# ---------------------------------------------------------------------------
-
-def generate_session(n_alloc_pairs=50):
+def generate_session(
+    n_alloc_pairs: int = 100,
+    hard_match_rate: float = _HARD_MATCH_RATE,
+    seed: int = 42,
+) -> dict:
     """
-    Generates a realistic profiling session:
-      - n_alloc_pairs CPU alloc/dealloc pairs
-      - ~60% get a matching GPU transfer (HARD correlation)
-      - Additional GPU kernel events (WEAK or no correlation)
+    Generate a synthetic ProfilingSession with known HARD correlations.
+
+    Parameters
+    ----------
+    n_alloc_pairs   : Number of CPU alloc events to generate.
+    hard_match_rate : Fraction that get a matching GPU TRANSFER.
+    seed            : RNG seed for reproducibility.
+
+    Returns
+    -------
+    ProfilingSession dict (schema v0.1).
     """
-    global _event_id_counter
-    _event_id_counter = 0
+    rng = random.Random(seed)
+    eid = 1
 
     cpu_events = []
     gpu_events = []
     correlated_events = []
 
-    session_start = int(time.time_ns())
-    cursor = session_start
-    gpu_base = 0x700000000
+    base_addr  = 0x1000_0000
+    alloc_size = 4096
+    ts_cpu     = 1_000_000   # 1 ms
 
-    for _ in range(n_alloc_pairs):
-        cpu_address = random.randint(0x100000, 0x9FFFFFFF)
-        size = random.choice([64, 256, 1024, 4096, 16384, 65536, 1048576])
-        obj_type = random.choice(PYTHON_TYPES)
-        cursor += random.randint(1_000, 100_000)
-        alloc_ts = cursor
-        alloc_event = make_cpu_alloc(cursor, cpu_address, size, obj_type)
-        cpu_events.append(alloc_event)
+    for i in range(n_alloc_pairs):
+        # CPU alloc — pinned_address set to the C-buffer ptr for matched allocs
+        addr        = base_addr + i * alloc_size * 2   # non-overlapping
+        pinned      = addr + 0x4000_0000  # synthetic buffer ptr ≠ alloc_address
+        cpu_ev      = _cpu_alloc(eid, ts_cpu, addr=addr, size=alloc_size, pinned=pinned)
+        cpu_eid     = eid
+        eid        += 1
+        ts_cpu     += 5_000   # 5 µs apart
 
-        if random.random() < 0.6:
-            cursor += random.randint(5_000, 500_000)
-            gpu_dst = gpu_base + random.randint(0, 0x0FFFFFFF)
-            transfer = make_gpu_transfer(cursor, cpu_address, gpu_dst, size, "HOST_TO_DEVICE")
-            gpu_events.append(transfer)
+        cpu_events.append(cpu_ev)
 
-            corr = make_correlated(
-                alloc_event["base"]["event_id"],
-                transfer["base"]["event_id"],
-                alloc_event["base"]["timestamp_ns"],
-                transfer["base"]["timestamp_ns"],
-                hard=True,
-            )
-            correlated_events.append(corr)
+        # 60% of allocs get a matching GPU TRANSFER
+        if rng.random() < hard_match_rate:
+            ts_gpu  = ts_cpu + rng.randint(100_000, 2_000_000)  # 0.1–2 ms later
+            # Use the CPU alloc_address as src so Pass 1a fires (address range match)
+            gpu_ev  = _gpu_transfer(eid, ts_gpu, src=addr, size=alloc_size)
+            gpu_eid = eid
+            eid    += 1
+            gpu_events.append(gpu_ev)
 
-            if random.random() < 0.5:
-                cursor += random.randint(10_000, 200_000)
-                gpu_events.append(make_gpu_kernel(cursor))
+            correlated_events.append({
+                "cpu_event_id": cpu_eid,
+                "gpu_event_id": gpu_eid,
+                "confidence":   "HARD",
+                "match_reason": "ADDRESS_MATCH",
+                "latency_ns":   ts_gpu - ts_cpu,
+            })
 
-        cursor += random.randint(100_000, 10_000_000)
-        dealloc_event = make_cpu_dealloc(cursor, cpu_address, size, obj_type, alloc_ts)
-        cpu_events.append(dealloc_event)
+    # Add some kernel events (WEAK match candidates)
+    ts_k = 1_000_000
+    kernels = ["volta_sgemm_128x64", "relu_forward", "batch_norm_bwd"]
+    for i in range(min(20, n_alloc_pairs // 5)):
+        gpu_events.append(_gpu_kernel(eid, ts_k + i * 100_000, name=kernels[i % 3]))
+        eid += 1
 
-    for _ in range(n_alloc_pairs // 5):
-        cursor += random.randint(50_000, 500_000)
-        gpu_events.append(make_gpu_kernel(cursor))
-
-    session_end = cursor + random.randint(1_000_000, 10_000_000)
-
+    now = time.time_ns()
     return {
-        "session_id": str(uuid.uuid4()),
-        "schema_version": "0.1",
-        "start_time_ns": session_start,
-        "end_time_ns": session_end,
-        "cpu_events": cpu_events,
-        "gpu_events": gpu_events,
+        "session_id":        str(uuid.uuid4()),
+        "schema_version":    "0.1",
+        "start_time_ns":     now,
+        "end_time_ns":       now + 10_000_000,
+        "cpu_events":        cpu_events,
+        "gpu_events":        gpu_events,
         "correlated_events": correlated_events,
     }
-
-
-# ---------------------------------------------------------------------------
-# Validation
-# ---------------------------------------------------------------------------
-
-def validate(session, schema_path):
-    try:
-        import jsonschema
-    except ImportError:
-        print("jsonschema not installed — skipping validation. Run: pip install jsonschema")
-        return True
-
-    with open(schema_path) as f:
-        schema = json.load(f)
-
-    try:
-        jsonschema.validate(instance=session, schema=schema)
-        print("Schema validation passed.")
-        return True
-    except jsonschema.ValidationError as e:
-        print(f"Schema validation FAILED: {e.message}")
-        return False
-
-
-# ---------------------------------------------------------------------------
-# Entry point
-# ---------------------------------------------------------------------------
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Generate a mock HPC profiler session JSON.")
-    parser.add_argument("--events", type=int, default=50)
-    parser.add_argument("--output", type=str, default="mock_session.json")
-    parser.add_argument("--schema", type=str, default="../hpc_profiler_schema.json")
-    args = parser.parse_args()
-
-    print(f"Generating session with {args.events} allocation pairs...")
-    session = generate_session(n_alloc_pairs=args.events)
-
-    output_path = Path(args.output)
-    with open(output_path, "w") as f:
-        json.dump(session, f, indent=2)
-
-    cpu_count = len(session["cpu_events"])
-    gpu_count = len(session["gpu_events"])
-    corr_count = len(session["correlated_events"])
-    print(f"Generated: {cpu_count} CPU events, {gpu_count} GPU events, {corr_count} correlated pairs.")
-    print(f"Output: {output_path}")
-
-    schema_path = Path(args.schema)
-    if schema_path.exists():
-        validate(session, schema_path)
-    else:
-        print(f"Schema not found at {schema_path} — skipping validation.")

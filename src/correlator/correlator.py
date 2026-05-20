@@ -5,10 +5,19 @@ Phase 3 correlator: reads CpuEvents and GpuEvents from their respective
 POSIX ring buffers and emits CorrelatedEvent records.
 
 Correlation algorithm (three-pass, in priority order):
-  Pass 1 — ADDRESS_MATCH (HARD)
+  Pass 1a — ADDRESS_MATCH on alloc_address (HARD)
       GPU transfer src_address falls within a live CPU allocation's
       [alloc_address, alloc_address + alloc_size_bytes).
       Highest confidence: the GPU is operating on memory we tracked.
+
+  Pass 1b — ADDRESS_MATCH on pinned_address (HARD)
+      GPU transfer src_address or dst_address exactly matches a CPU
+      event's pinned_address (the C-level data pointer of a numpy/
+      cupy/torch buffer). This fires where Pass 1a cannot: when the
+      Python object wrapper address (id(obj)) differs from the actual
+      buffer data pointer that CUPTI reports. For a host-to-device
+      cudaMemcpy, CUPTI's src_address IS the host buffer data pointer,
+      not the Python object pointer. pinned_address captures this.
 
   Pass 2 — SIZE_AND_TIMESTAMP (HARD)
       GPU transfer_size_bytes == cpu alloc_size_bytes AND the GPU event
@@ -75,15 +84,18 @@ DRAIN_POLL_INTERVAL    = 0.005             # 5 ms poll cadence
 
 class _LiveAlloc:
     """Tracks a single CPU allocation that hasn't been deallocated yet."""
-    __slots__ = ("event_id", "timestamp_ns", "address", "size", "end_address")
+    __slots__ = ("event_id", "timestamp_ns", "address", "size", "end_address", "pinned_address")
 
     def __init__(self, event: dict):
-        base               = event["base"]
-        self.event_id      = base["event_id"]
-        self.timestamp_ns  = base["timestamp_ns"]
-        self.address       = event["alloc_address"]
-        self.size          = event["alloc_size_bytes"]
-        self.end_address   = self.address + self.size   # exclusive upper bound
+        base                 = event["base"]
+        self.event_id        = base["event_id"]
+        self.timestamp_ns    = base["timestamp_ns"]
+        self.address         = event["alloc_address"]
+        self.size            = event["alloc_size_bytes"]
+        self.end_address     = self.address + self.size   # exclusive upper bound
+        # Actual C data pointer for buffer objects (numpy/cupy/torch).
+        # CUPTI reports this as src_address on H2D transfers.
+        self.pinned_address  = event.get("pinned_address", 0)
 
     def contains(self, addr: int) -> bool:
         """True if addr falls within [address, end_address)."""
@@ -311,7 +323,7 @@ def _run_correlation(
     matched_gpu:  set = set()
 
     # ------------------------------------------------------------------
-    # Pass 1 — ADDRESS_MATCH (HARD)
+    # Pass 1a — ADDRESS_MATCH on alloc_address (HARD)
     # ------------------------------------------------------------------
     # Build interval index: list of _LiveAlloc sorted by address
     live_allocs = [_LiveAlloc(e) for e in cpu_allocs]
@@ -327,6 +339,46 @@ def _run_correlation(
         if match is None:
             continue
         if match.event_id in matched_cpu or gpu_id in matched_gpu:
+            continue
+
+        correlated.append(_make_correlated(
+            cpu_event_id=match.event_id,
+            gpu_event_id=gpu_id,
+            confidence="HARD",
+            match_reason="ADDRESS_MATCH",
+            latency_ns=gpu_ts - match.timestamp_ns,
+        ))
+        matched_cpu.add(match.event_id)
+        matched_gpu.add(gpu_id)
+
+    # ------------------------------------------------------------------
+    # Pass 1b — ADDRESS_MATCH on pinned_address (HARD)
+    # ------------------------------------------------------------------
+    # For numpy/cupy/torch arrays, CUPTI's src_address on an H2D transfer
+    # is the C-level data buffer pointer, NOT the Python object address.
+    # pinned_address captures this pointer at alloc time via
+    # __array_interface__['data'][0] or tensor.data_ptr().
+    # Build a direct lookup: pinned_address → _LiveAlloc.
+    # Only include allocs where pinned_address is non-zero.
+    pinned_index: Dict[int, _LiveAlloc] = {}
+    for alloc in live_allocs:
+        if alloc.pinned_address and alloc.pinned_address not in pinned_index:
+            pinned_index[alloc.pinned_address] = alloc
+
+    for gpu_ev in gpu_transfers:
+        gpu_id   = gpu_ev["base"]["event_id"]
+        gpu_ts   = gpu_ev["base"]["timestamp_ns"]
+
+        if gpu_id in matched_gpu:
+            continue
+
+        src_addr = gpu_ev.get("src_address", 0)
+        dst_addr = gpu_ev.get("dst_address", 0)
+
+        match = pinned_index.get(src_addr) or pinned_index.get(dst_addr)
+        if match is None:
+            continue
+        if match.event_id in matched_cpu:
             continue
 
         correlated.append(_make_correlated(
