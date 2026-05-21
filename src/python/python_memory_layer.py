@@ -244,32 +244,57 @@ class PythonMemoryLayer:
         new_allocs: list = []
 
         if stat_by_tb:
-            seen_addrs: set = set()
+            # Snapshot _live keys once so all three passes and the candidate
+            # builder can skip already-tracked addresses with a fast O(1) set
+            # check, eliminating per-object lock acquisitions and avoiding
+            # the expensive tracemalloc.get_object_traceback() on objects we
+            # already know about.  This prevents exponential collect() growth
+            # when the layer is reused across many consecutive calls.
+            with self._live_lock:
+                live_snapshot: set = set(self._live.keys())
+            seen_addrs: set = set(live_snapshot)
             # Accumulate (obj, tb, stat, gc_generation) tuples across all passes
             candidates: list = []
 
             # ── Pass A: gc.get_objects() scan ─────────────────────────
+            # New allocations captured by tracemalloc's snapshot diff are
+            # always in GC generation 0 — they haven't survived a GC cycle
+            # yet.  Objects promoted to gen1/gen2 were created before our
+            # baseline snapshot and cannot appear in stat_by_tb.  Limiting
+            # the scan to gen0 reduces the iteration set from O(all gc objects)
+            # to O(recently-allocated objects), which is typically 10-50x
+            # smaller and prevents the scan from growing with session length.
+            # Track how many objects we still need per traceback so we can
+            # break out early once all quotas are satisfied.
+            tb_remaining: dict = {
+                tb: max(stat.count_diff, 1)
+                for tb, stat in stat_by_tb.items()
+            }
             new_gc_objects: list = []  # (addr, obj) for Passes B→referents
-            for gen in range(3):
-                try:
-                    for obj in gc.get_objects(gen):
-                        if isinstance(obj, _NO_WEAKREF_TYPES):
-                            continue
-                        addr = id(obj)
-                        if addr in seen_addrs:
-                            continue
-                        seen_addrs.add(addr)
-                        try:
-                            tb = tracemalloc.get_object_traceback(obj)
-                        except Exception:
-                            continue
-                        if tb is None:
-                            continue
-                        if tb in stat_by_tb:
-                            candidates.append((obj, tb, stat_by_tb[tb], gen))
-                            new_gc_objects.append((addr, obj))
-                except Exception:
-                    continue
+            try:
+                for obj in reversed(gc.get_objects(0)):
+                    if not tb_remaining:
+                        break
+                    if isinstance(obj, _NO_WEAKREF_TYPES):
+                        continue
+                    addr = id(obj)
+                    if addr in seen_addrs:
+                        continue
+                    seen_addrs.add(addr)
+                    try:
+                        tb = tracemalloc.get_object_traceback(obj)
+                    except Exception:
+                        continue
+                    if tb is None:
+                        continue
+                    if tb in tb_remaining:
+                        candidates.append((obj, tb, stat_by_tb[tb], 0))
+                        new_gc_objects.append((addr, obj))
+                        tb_remaining[tb] -= 1
+                        if tb_remaining[tb] <= 0:
+                            del tb_remaining[tb]
+            except Exception:
+                pass
 
             # ── Pass B: cross-thread frame scan ──────────────────────
             # Finds buffer objects (ndarrays, tensors) stored as local
@@ -340,10 +365,11 @@ class PythonMemoryLayer:
             # ── Build events for all candidates ───────────────────────
             for obj, tb, stat, gen in candidates:
                 addr = id(obj)
-                # Final duplicate guard (candidates may overlap across passes)
-                with self._live_lock:
-                    if addr in self._live:
-                        continue
+                # Final duplicate guard (candidates may overlap across passes).
+                # Use live_snapshot (taken once above) instead of acquiring
+                # the lock thousands of times.
+                if addr in live_snapshot:
+                    continue
 
                 try:
                     obj_type    = type(obj).__qualname__

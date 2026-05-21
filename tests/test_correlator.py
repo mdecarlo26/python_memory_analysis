@@ -588,8 +588,6 @@ class TestBinarySearch(unittest.TestCase):
         self.assertEqual(result.address, 0x2000)
 
 
-if __name__ == "__main__":
-    unittest.main(verbosity=2)
 # ---------------------------------------------------------------------------
 # C1b — Pass 1b: ADDRESS_MATCH via pinned_address
 # ---------------------------------------------------------------------------
