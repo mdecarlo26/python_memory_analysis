@@ -578,10 +578,12 @@ function Timeline({data,filter,onSelect,selected}){
         const yRss=d3.scaleLinear().domain([0,maxRss]).range([cpuH2-2,2]);
         const visRss=rssEvents.filter(e=>{const px=xScale(e.base.timestamp_ns);return px>=-2&&px<=innerW+2;});
         if(visRss.length>1){
-          const area=d3.area().x(d=>xScale(d.base.timestamp_ns)).y0(cpuH2).y1(d=>yRss(d.peak_rss_kb)).curve(d3.curveMonotoneX);
-          const line=d3.line().x(d=>xScale(d.base.timestamp_ns)).y(d=>yRss(d.peak_rss_kb)).curve(d3.curveMonotoneX);
-          rssG.append('path').datum(visRss).attr('d',area).attr('fill','rgba(245,197,66,.04)');
-          rssG.append('path').datum(visRss).attr('d',line).attr('fill','none').attr('stroke','rgba(245,197,66,.4)').attr('stroke-width',1.2);
+          // Pre-convert to [x,y] pairs to avoid D3 InternMap crashing on object datums
+          const rssPts=visRss.map(e=>[xScale(e.base.timestamp_ns),yRss(e.peak_rss_kb)]);
+          const area=d3.area().x(d=>d[0]).y0(cpuH2).y1(d=>d[1]).curve(d3.curveMonotoneX);
+          const line=d3.line().x(d=>d[0]).y(d=>d[1]).curve(d3.curveMonotoneX);
+          rssG.append('path').datum(rssPts).attr('d',area).attr('fill','rgba(245,197,66,.04)');
+          rssG.append('path').datum(rssPts).attr('d',line).attr('fill','none').attr('stroke','rgba(245,197,66,.4)').attr('stroke-width',1.2);
         }
       }
 
@@ -730,56 +732,63 @@ function PressureStrip({data}){
   const ref=useRef(null);
   useEffect(()=>{
     if(!ref.current||!data)return;
-    const svg=d3.select(ref.current);svg.selectAll('*').remove();
-    const W=ref.current.clientWidth||800,H=56,ML=52,MR=12,MT=3,MB=14;
-    const{allocs,gpu,startNs,endNs,rssEvents,maxRss}=data;
-    const x=d3.scaleLinear().domain([startNs,endNs]).range([ML,W-MR]);
-    const innerW=W-ML-MR;
+    try{
+      const svg=d3.select(ref.current);svg.selectAll('*').remove();
+      const W=ref.current.clientWidth||800,H=56,ML=52,MR=12,MT=3,MB=14;
+      const{allocs,gpu,startNs,endNs,rssEvents,maxRss}=data;
+      const domainEnd=endNs>startNs?endNs:startNs+1;
+      const x=d3.scaleLinear().domain([startNs,domainEnd]).range([ML,W-MR]);
+      const innerW=W-ML-MR;
 
-    // Build density histogram: N_BUCKETS columns, count per type
-    const N=Math.min(innerW,200);
-    const buckets=new Array(N).fill(null).map(()=>({}));
-    allocs.forEach(e=>{
-      if(!e||!e.base)return;
-      const b=Math.min(N-1,Math.floor(((e.base.timestamp_ns-startNs)/(endNs-startNs||1))*N));
-      const t=e.object_type||'?';
-      buckets[b][t]=(buckets[b][t]||0)+1;
-    });
-    const maxBucket=Math.max(1,...buckets.map(b=>Object.values(b).reduce((s,v)=>s+v,0)));
-    const bw=innerW/N;
-    const barH=10;
+      // Density histogram
+      const N=Math.max(1,Math.min(innerW,200));
+      const buckets=new Array(N).fill(null).map(()=>({}));
+      allocs.forEach(e=>{
+        if(!e||!e.base||e.base.timestamp_ns==null)return;
+        const b=Math.min(N-1,Math.max(0,Math.floor(((e.base.timestamp_ns-startNs)/(domainEnd-startNs))*N)));
+        const t=(e.object_type||'?').trim()||'?';
+        buckets[b][t]=(buckets[b][t]||0)+1;
+      });
+      const maxBucket=Math.max(1,...buckets.map(b=>Object.values(b).reduce((s,v)=>s+v,0)));
+      const bw=innerW/N;
+      const barH=10;
+      buckets.forEach((b,i)=>{
+        const total=Object.values(b).reduce((s,v)=>s+v,0);
+        if(!total)return;
+        const h=Math.max(1,Math.round((total/maxBucket)*barH));
+        const types=Object.keys(b);
+        const col=types.length===1?tc(types[0]):'#41b3f5';
+        svg.append('rect')
+          .attr('x',ML+i*bw).attr('y',MT+(barH-h)).attr('width',Math.ceil(bw)).attr('height',h)
+          .attr('fill',col).attr('opacity',.55).attr('rx',.5);
+      });
 
-    buckets.forEach((b,i)=>{
-      const total=Object.values(b).reduce((s,v)=>s+v,0);
-      if(!total)return;
-      const h=Math.max(1,Math.round((total/maxBucket)*barH));
-      // Just draw a single blended rect per bucket (fast)
-      const types=Object.keys(b);
-      const col=types.length===1?tc(types[0]):'#41b3f5';
-      svg.append('rect')
-        .attr('x',ML+i*bw).attr('y',MT+(barH-h)).attr('width',Math.ceil(bw)).attr('height',h)
-        .attr('fill',col).attr('opacity',.55).attr('rx',.5);
-    });
+      // RSS curve — filter to only valid events with numeric timestamps
+      const validRss=(rssEvents||[]).filter(e=>e&&e.base&&typeof e.base.timestamp_ns==='number'&&typeof e.peak_rss_kb==='number');
+      if(validRss.length>1&&maxRss>0){
+        const yRss=d3.scaleLinear().domain([0,maxRss]).range([H-MB,MT]);
+        // Use explicit accessors with guards to avoid D3 InternMap crash
+        const pts=validRss.map(e=>([x(e.base.timestamp_ns), yRss(e.peak_rss_kb)]));
+        const line=d3.line().x(d=>d[0]).y(d=>d[1]).curve(d3.curveMonotoneX);
+        svg.append('path').datum(pts).attr('d',line).attr('fill','none')
+          .attr('stroke','rgba(245,197,66,.55)').attr('stroke-width',1.4);
+      }
 
-    // RSS curve
-    if(rssEvents.length>1&&maxRss>0){
-      const yRss=d3.scaleLinear().domain([0,maxRss]).range([H-MB,MT]);
-      const line=d3.line().x(d=>x(d.base.timestamp_ns)).y(d=>yRss(d.peak_rss_kb)).curve(d3.curveMonotoneX);
-      svg.append('path').datum(rssEvents).attr('d',line).attr('fill','none').attr('stroke','rgba(245,197,66,.55)').attr('stroke-width',1.4);
-    }
+      // GPU ticks — guard each event
+      (gpu||[]).forEach(e=>{
+        if(!e||!e.base||e.base.timestamp_ns==null)return;
+        const px=x(e.base.timestamp_ns);
+        const isK=e.base.event_type==='KERNEL',isPF=e.base.event_type==='PAGE_FAULT';
+        svg.append('line').attr('x1',px).attr('x2',px).attr('y1',MT).attr('y2',H-MB-1)
+          .attr('stroke',isK?'rgba(157,132,245,.5)':isPF?'rgba(245,101,101,.5)':'rgba(46,204,152,.5)')
+          .attr('stroke-width',.7);
+      });
 
-    // GPU ticks
-    gpu.forEach(e=>{
-      const px=x(e.base.timestamp_ns);
-      const isK=e.base.event_type==='KERNEL',isPF=e.base.event_type==='PAGE_FAULT';
-      svg.append('line').attr('x1',px).attr('x2',px).attr('y1',MT).attr('y2',H-MB-1)
-        .attr('stroke',isK?'rgba(157,132,245,.5)':isPF?'rgba(245,101,101,.5)':'rgba(46,204,152,.5)').attr('stroke-width',.7);
-    });
-
-    const axG=svg.append('g').attr('transform',`translate(0,${H-MB})`);
-    axG.call(d3.axisBottom(x).ticks(8).tickFormat(t=>fmtNs(t-startNs)).tickSize(2));
-    axG.selectAll('text').attr('font-family','JetBrains Mono,monospace').attr('font-size',6).attr('fill','#3d4f68');
-    axG.select('.domain').attr('stroke','#1c2235');axG.selectAll('.tick line').attr('stroke','#1c2235');
+      const axG=svg.append('g').attr('transform',`translate(0,${H-MB})`);
+      axG.call(d3.axisBottom(x).ticks(8).tickFormat(t=>fmtNs(t-startNs)).tickSize(2));
+      axG.selectAll('text').attr('font-family','JetBrains Mono,monospace').attr('font-size',6).attr('fill','#3d4f68');
+      axG.select('.domain').attr('stroke','#1c2235');axG.selectAll('.tick line').attr('stroke','#1c2235');
+    }catch(err){console.error('[PressureStrip]',err);}
   },[data]);
   return <div id="pressure-strip"><svg ref={ref} style={{width:'100%',height:56}}/></div>;
 }
