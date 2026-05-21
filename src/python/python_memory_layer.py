@@ -157,6 +157,7 @@ class PythonMemoryLayer:
       ref_count            — sys.getrefcount(obj) - 1
       callstack            — from tracemalloc.get_object_traceback(obj)
       gc_generation        — from gc.get_objects(gen), or -1 if not GC-tracked
+                             (numpy ndarrays found via frame/referent scan)
       is_dealloc           — False on alloc, True on dealloc
       peak_rss_kb          — process RSS at collect() time
       lifetime_ns          — ns from alloc to dealloc (DEALLOC only, else 0)

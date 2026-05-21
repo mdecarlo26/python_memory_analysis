@@ -21,74 +21,78 @@ html,body{height:100%}
   --mono:'JetBrains Mono',monospace; --sans:'Space Grotesk',sans-serif;
 }
 body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14px;overflow:hidden;display:flex;flex-direction:column;height:100vh}
-#topbar{height:52px;background:var(--panel);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 20px;gap:16px;flex-shrink:0}
-.logo{font-family:var(--mono);font-size:12px;font-weight:600;color:var(--cpu);letter-spacing:.2em;text-transform:uppercase;white-space:nowrap}
+
+/* ── Top bar ─────────────────────────────────────────────── */
+#topbar{height:52px;background:var(--panel);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 18px;gap:14px;flex-shrink:0;overflow:hidden}
+.logo{font-family:var(--mono);font-size:11px;font-weight:600;color:var(--cpu);letter-spacing:.2em;text-transform:uppercase;white-space:nowrap}
 .logo .s{color:var(--dim);font-weight:300;margin:0 4px}
 .vdiv{width:1px;height:20px;background:var(--border2);flex-shrink:0}
-.kpi{display:flex;flex-direction:column;gap:1px;white-space:nowrap}
-.kpi-v{font-family:var(--mono);font-size:15px;font-weight:600;line-height:1;color:var(--text)}
-.kpi-v.g{color:var(--green)}.kpi-v.b{color:var(--cpu)}.kpi-v.y{color:var(--yellow)}.kpi-v.p{color:var(--purple)}
-.kpi-l{font-size:10px;color:var(--dim);letter-spacing:.04em;text-transform:uppercase}
+.kpi{display:flex;flex-direction:column;gap:1px;white-space:nowrap;min-width:0}
+.kpi-v{font-family:var(--mono);font-size:14px;font-weight:600;line-height:1;color:var(--text)}
+.kpi-v.g{color:var(--green)}.kpi-v.b{color:var(--cpu)}.kpi-v.y{color:var(--yellow)}.kpi-v.p{color:var(--purple)}.kpi-v.r{color:var(--red)}
+.kpi-l{font-size:9px;color:var(--dim);letter-spacing:.04em;text-transform:uppercase}
 .spacer{flex:1}
-.load-btn{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:var(--bg);background:var(--cpu);border:none;border-radius:6px;padding:8px 18px;cursor:pointer;transition:opacity .15s;white-space:nowrap}
-.load-btn:hover{opacity:.85}
-#app{flex:1;display:grid;grid-template-columns:280px 1fr 320px;overflow:hidden;min-height:0}
-.panel{background:var(--panel);display:flex;flex-direction:column;overflow:hidden}
-.ph{height:38px;border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 16px;gap:10px;flex-shrink:0}
-.ph-title{font-family:var(--mono);font-size:9px;font-weight:600;color:var(--text2);letter-spacing:.14em;text-transform:uppercase}
+.load-btn{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--bg);background:var(--cpu);border:none;border-radius:6px;padding:7px 16px;cursor:pointer;transition:opacity .15s;white-space:nowrap;flex-shrink:0}
+.load-btn:hover{opacity:.82}
+
+/* ── Main layout ─────────────────────────────────────────── */
+#app{flex:1;display:grid;grid-template-columns:260px 1fr 310px;overflow:hidden;min-height:0}
+.panel{background:var(--panel);display:flex;flex-direction:column;overflow:hidden;min-height:0}
+.ph{height:38px;border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 14px;gap:10px;flex-shrink:0}
+.ph-title{font-family:var(--mono);font-size:9px;font-weight:600;color:var(--text2);letter-spacing:.12em;text-transform:uppercase}
 .ph-count{font-family:var(--mono);font-size:9px;color:var(--dim);margin-left:auto}
-.scrollable{flex:1;overflow-y:auto}
-.scrollable::-webkit-scrollbar{width:4px}
-.scrollable::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
-#center-nav{height:42px;border-bottom:1px solid var(--border);background:var(--panel);display:flex;align-items:center;padding:0 16px;gap:4px;flex-shrink:0}
-.tab{font-family:var(--mono);font-size:10px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;padding:6px 14px;border-radius:5px;cursor:pointer;border:none;background:transparent;color:var(--dim);transition:color .12s,background .12s}
+
+/* ── Scrollable areas ────────────────────────────────────── */
+.scrollable{flex:1;overflow-y:auto;overflow-x:hidden}
+.scrollable::-webkit-scrollbar{width:5px}
+.scrollable::-webkit-scrollbar-track{background:transparent}
+.scrollable::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+.scrollable::-webkit-scrollbar-thumb:hover{background:var(--dim)}
+
+/* ── Tabs ────────────────────────────────────────────────── */
+#center-nav{height:40px;border-bottom:1px solid var(--border);background:var(--panel);display:flex;align-items:center;padding:0 12px;gap:2px;flex-shrink:0}
+.tab{font-family:var(--mono);font-size:10px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;padding:5px 12px;border-radius:5px;cursor:pointer;border:none;background:transparent;color:var(--dim);transition:color .12s,background .12s;white-space:nowrap}
 .tab.on{color:var(--cpu);background:rgba(65,179,245,.1)}
 .tab:not(.on):hover{color:var(--text2);background:var(--card)}
-.tab-right{margin-left:auto;display:flex;align-items:center;gap:10px}
-.leg{display:flex;align-items:center;gap:5px;font-family:var(--mono);font-size:9px;color:var(--dim)}
+
+/* ── Legend ──────────────────────────────────────────────── */
+.legend-strip{display:flex;align-items:center;gap:12px;margin-left:auto;flex-wrap:nowrap}
+.leg{display:flex;align-items:center;gap:5px;font-family:var(--mono);font-size:9px;color:var(--dim);white-space:nowrap}
 .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
-.card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:14px 16px;margin:10px 12px}
+
+/* ── Timeline zoom controls ──────────────────────────────── */
+.zoom-ctrl{display:flex;align-items:center;gap:4px;margin-right:4px}
+.zb{font-family:var(--mono);font-size:10px;background:var(--card);border:1px solid var(--border2);color:var(--text2);border-radius:4px;padding:3px 8px;cursor:pointer;transition:background .1s,color .1s}
+.zb:hover{background:var(--card2);color:var(--text)}
+.zb.act{color:var(--cpu);border-color:rgba(65,179,245,.4)}
+.zoom-range{font-family:var(--mono);font-size:9px;color:var(--dim);margin-left:4px;min-width:80px}
+
+/* ── Timeline wrap ───────────────────────────────────────── */
+#tl-outer{flex:1;display:flex;flex-direction:column;overflow:hidden;min-height:0}
+#timeline-wrap{flex:1;position:relative;overflow:hidden;background:var(--bg);cursor:crosshair}
+#timeline-wrap svg{display:block;width:100%;height:100%}
+
+/* ── Scrollbar track (horizontal time scrubber) ──────────── */
+#time-scrollbar{height:18px;background:var(--panel);border-top:1px solid var(--border);flex-shrink:0;position:relative;overflow:hidden;cursor:pointer}
+#time-scrollbar-track{position:absolute;top:4px;left:0;right:0;height:10px;background:var(--border)}
+#time-scrollbar-thumb{position:absolute;top:4px;height:10px;background:var(--border2);border-radius:3px;cursor:grab;transition:background .1s;min-width:20px}
+#time-scrollbar-thumb:hover,#time-scrollbar-thumb.dragging{background:var(--dim)}
+
+/* ── Mini pressure map ───────────────────────────────────── */
+#pressure-strip{height:64px;flex-shrink:0;border-top:1px solid var(--border);background:var(--panel);position:relative;overflow:hidden}
+#pressure-strip svg{width:100%;height:64px;display:block}
+#brush-rect{fill:rgba(65,179,245,.08);stroke:rgba(65,179,245,.35);stroke-width:1;cursor:ew-resize;pointer-events:all}
+
+/* ── Cards / Inspector helpers ───────────────────────────── */
+.card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:12px 14px;margin:8px 10px}
 .card-title{font-family:var(--mono);font-size:9px;font-weight:600;color:var(--dim);letter-spacing:.12em;text-transform:uppercase;margin-bottom:10px}
-.insight{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:12px 14px;margin:0 12px 8px;border-left:3px solid var(--border2);cursor:pointer;transition:border-color .15s,background .15s}
-.insight:first-child{margin-top:10px}
-.insight:hover{background:var(--card2)}
-.insight.sel{border-color:var(--cpu);background:rgba(65,179,245,.04)}
-.insight-head{display:flex;align-items:center;gap:8px;margin-bottom:6px}
-.insight-icon{font-size:16px;line-height:1}
-.insight-type{font-family:var(--sans);font-size:12px;font-weight:600;color:var(--text)}
-.ibadge{font-family:var(--mono);font-size:8px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;padding:2px 7px;border-radius:3px;margin-left:auto}
-.ib-hi{background:rgba(245,101,101,.12);color:var(--red);border:1px solid rgba(245,101,101,.25)}
-.ib-md{background:rgba(245,197,66,.1);color:var(--yellow);border:1px solid rgba(245,197,66,.2)}
-.ib-lo{background:rgba(46,204,152,.08);color:var(--green);border:1px solid rgba(46,204,152,.15)}
-.ib-if{background:rgba(65,179,245,.08);color:var(--cpu);border:1px solid rgba(65,179,245,.15)}
-.insight-desc{font-size:12px;color:var(--text2);line-height:1.55;margin-bottom:6px}
-.insight-stat{font-family:var(--mono);font-size:11px}
-.ibar{height:3px;background:var(--border2);border-radius:2px;margin-top:6px;overflow:hidden}
-.ibar-fill{height:100%;border-radius:2px}
-.type-row{display:flex;align-items:center;gap:10px;padding:8px 14px;cursor:pointer;border-left:2px solid transparent;transition:background .1s}
-.type-row:hover{background:var(--card)}
-.type-row.sel{background:rgba(65,179,245,.05);border-left-color:var(--cpu)}
-.tr-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
-.tr-info{flex:1;min-width:0}
-.tr-name{font-family:var(--mono);font-size:11px;color:var(--text);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.tr-sub{font-size:11px;color:var(--dim);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.tr-num{font-family:var(--mono);font-size:11px;color:var(--text2);flex-shrink:0;text-align:right}
-.tr-bar{height:2px;background:var(--border2);border-radius:1px;margin-top:4px}
-.tr-bar-fill{height:100%;border-radius:1px}
-#timeline-wrap{flex:1;position:relative;overflow:hidden;background:var(--bg)}
-#timeline-wrap svg{display:block}
-#pressure-strip{height:72px;flex-shrink:0;border-top:1px solid var(--border);background:var(--panel)}
-#pressure-strip svg{width:100%;height:72px;display:block}
-.empty{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;pointer-events:none}
-.empty-t{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:.1em;text-transform:uppercase}
-.empty-s{font-family:var(--mono);font-size:10px;color:var(--border2)}
-.isec{margin-bottom:16px}
-.isec-t{font-family:var(--mono);font-size:8px;color:var(--dim);letter-spacing:.12em;text-transform:uppercase;margin-bottom:7px;padding-bottom:4px;border-bottom:1px solid var(--border)}
-.irow{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5px;gap:10px}
+.isec{margin-bottom:14px}
+.isec-t{font-family:var(--mono);font-size:8px;color:var(--dim);letter-spacing:.12em;text-transform:uppercase;margin-bottom:6px;padding-bottom:4px;border-bottom:1px solid var(--border)}
+.irow{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px;gap:8px}
 .ik{font-family:var(--mono);font-size:10px;color:var(--dim);white-space:nowrap;flex-shrink:0}
-.iv{font-family:var(--mono);font-size:10px;color:var(--text);text-align:right;word-break:break-all}
-.iv.a{color:var(--cpu)}.iv.g{color:var(--green)}.iv.y{color:var(--yellow)}.iv.p{color:var(--purple)}.iv.r{color:var(--red)}.iv.d{color:var(--text2)}
-.badge{display:inline-flex;align-items:center;font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:3px 9px;border-radius:4px;margin-bottom:14px}
+.iv{font-family:var(--mono);font-size:10px;color:var(--text);text-align:right;word-break:break-all;min-width:0}
+.iv.a{color:var(--cpu)}.iv.g{color:var(--green)}.iv.y{color:var(--yellow)}.iv.p{color:var(--purple)}.iv.r{color:var(--red)}.iv.d{color:var(--text2)}.iv.o{color:var(--orange)}
+.badge{display:inline-flex;align-items:center;font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:3px 8px;border-radius:4px;margin-bottom:12px}
 .badge-cpu{background:rgba(65,179,245,.1);color:var(--cpu);border:1px solid rgba(65,179,245,.25)}
 .badge-gpu{background:rgba(46,204,152,.08);color:var(--green);border:1px solid rgba(46,204,152,.2)}
 .badge-grp{background:rgba(157,132,245,.08);color:var(--purple);border:1px solid rgba(157,132,245,.2)}
@@ -98,74 +102,151 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14
 .frame.u{color:var(--cpu);border-left-color:var(--cpu)}
 .cpill{background:var(--card2);border:1px solid var(--border2);border-radius:6px;padding:8px 10px;margin-bottom:6px;border-left:3px solid var(--border2)}
 .cpill.hard{border-left-color:var(--green)}
-#drop-ov{position:fixed;inset:0;background:rgba(7,9,14,.96);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;opacity:0;pointer-events:none;transition:opacity .15s}
-#drop-ov.show{opacity:1;pointer-events:all}
-.wc{background:var(--card2);border:1px solid var(--border2);border-radius:8px;padding:12px 14px;margin:0 12px 8px}
-.wc-t{font-family:var(--mono);font-size:9px;color:var(--dim);letter-spacing:.12em;text-transform:uppercase;margin-bottom:8px}
-.wc-b{font-size:12px;color:var(--text2);line-height:1.65}
+
+/* ── Insight cards ───────────────────────────────────────── */
+.insight{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:11px 13px;margin:0 10px 7px;border-left:3px solid var(--border2);cursor:pointer;transition:border-color .15s,background .15s}
+.insight:first-child{margin-top:8px}
+.insight:hover{background:var(--card2)}
+.insight.sel{border-color:var(--cpu);background:rgba(65,179,245,.04)}
+.insight-head{display:flex;align-items:center;gap:8px;margin-bottom:5px}
+.insight-icon{font-size:15px;line-height:1}
+.insight-type{font-family:var(--sans);font-size:12px;font-weight:600;color:var(--text)}
+.ibadge{font-family:var(--mono);font-size:8px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;padding:2px 6px;border-radius:3px;margin-left:auto}
+.ib-hi{background:rgba(245,101,101,.12);color:var(--red);border:1px solid rgba(245,101,101,.25)}
+.ib-md{background:rgba(245,197,66,.1);color:var(--yellow);border:1px solid rgba(245,197,66,.2)}
+.ib-lo{background:rgba(46,204,152,.08);color:var(--green);border:1px solid rgba(46,204,152,.15)}
+.ib-if{background:rgba(65,179,245,.08);color:var(--cpu);border:1px solid rgba(65,179,245,.15)}
+.insight-desc{font-size:12px;color:var(--text2);line-height:1.5;margin-bottom:5px}
+.insight-stat{font-family:var(--mono);font-size:11px}
+.ibar{height:3px;background:var(--border2);border-radius:2px;margin-top:5px;overflow:hidden}
+.ibar-fill{height:100%;border-radius:2px}
+
+/* ── Type list ───────────────────────────────────────────── */
+.type-row{display:flex;align-items:center;gap:10px;padding:7px 12px;cursor:pointer;border-left:2px solid transparent;transition:background .1s}
+.type-row:hover{background:var(--card)}
+.type-row.sel{background:rgba(65,179,245,.05);border-left-color:var(--cpu)}
+.tr-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.tr-info{flex:1;min-width:0}
+.tr-name{font-family:var(--mono);font-size:11px;color:var(--text);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tr-sub{font-size:10px;color:var(--dim);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tr-bar{height:2px;background:var(--border2);border-radius:1px;margin-top:4px}
+.tr-bar-fill{height:100%;border-radius:1px}
+.tr-num{font-family:var(--mono);font-size:11px;color:var(--text2);flex-shrink:0;text-align:right;min-width:30px}
+
+/* ── Empty state ─────────────────────────────────────────── */
+.empty{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;pointer-events:none}
+.empty-t{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:.1em;text-transform:uppercase}
+.empty-s{font-family:var(--mono);font-size:10px;color:var(--border2)}
+
+/* ── Workload summary card ───────────────────────────────── */
+.wc{background:var(--card2);border:1px solid var(--border2);border-radius:8px;padding:11px 13px;margin:8px 10px}
+.wc-t{font-family:var(--mono);font-size:9px;color:var(--dim);letter-spacing:.12em;text-transform:uppercase;margin-bottom:7px}
+.wc-b{font-size:12px;color:var(--text2);line-height:1.6}
 .wc-b strong{color:var(--text);font-weight:600}
 .wc-b .hi{color:var(--cpu);font-family:var(--mono);font-size:11px}
+
+/* ── Tooltip ─────────────────────────────────────────────── */
+#tl-tooltip{position:fixed;pointer-events:none;z-index:999;background:rgba(12,15,24,.97);border:1px solid var(--border2);border-radius:7px;padding:9px 12px;font-family:var(--mono);font-size:10px;color:var(--text);max-width:240px;box-shadow:0 4px 24px rgba(0,0,0,.5);opacity:0;transition:opacity .08s}
+#tl-tooltip.show{opacity:1}
+#tl-tooltip .tt-type{font-size:11px;font-weight:600;color:var(--cpu);margin-bottom:5px}
+#tl-tooltip .tt-row{display:flex;gap:8px;margin-bottom:2px;justify-content:space-between}
+#tl-tooltip .tt-k{color:var(--dim)}
+#tl-tooltip .tt-v{color:var(--text)}
+
+/* ── Drop overlay ────────────────────────────────────────── */
+#drop-ov{position:fixed;inset:0;background:rgba(7,9,14,.96);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;opacity:0;pointer-events:none;transition:opacity .15s}
+#drop-ov.show{opacity:1;pointer-events:all}
 </style>
 </head>
 <body>
 <div id="root"></div>
-<input type="file" id="file-input" accept=".json" style="display:none"/>
+<div id="tl-tooltip"></div>
 <div id="drop-ov">
   <div style="font-size:40px;margin-bottom:12px">⬇</div>
   <div style="font-family:var(--mono);font-size:13px;color:var(--cpu);letter-spacing:.1em">DROP SESSION.JSON</div>
 </div>
+<input type="file" id="file-input" accept=".json" style="display:none"/>
 <script type="text/babel">
-const {useState,useEffect,useRef,useCallback,useMemo}=React;
-const fmtB=n=>{if(n==null)return'—';if(n<1024)return`${n} B`;if(n<1048576)return`${(n/1024).toFixed(1)} KB`;if(n<1073741824)return`${(n/1048576).toFixed(2)} MB`;return`${(n/1073741824).toFixed(2)} GB`};
-const fmtNs=ns=>{if(!ns||ns<0)return'—';if(ns<1000)return`${ns}ns`;if(ns<1e6)return`${(ns/1000).toFixed(0)}µs`;if(ns<1e9)return`${(ns/1e6).toFixed(1)}ms`;return`${(ns/1e9).toFixed(2)}s`};
-const fmtN=n=>n>=1e6?`${(n/1e6).toFixed(1)}M`:n>=1000?`${(n/1000).toFixed(1)}k`:String(n);
-const fmtAddr=n=>n?'0x'+n.toString(16).toUpperCase().padStart(12,'0'):'—';
-const PALETTE=['#41b3f5','#2ecc98','#f5c542','#9d84f5','#f56565','#f59c42','#f56bb4','#42d4c8','#7ec8f5','#a8f5c8','#f5e08a','#c9b8fc'];
-const _cm={};let _ci=0;
-const tc=t=>{const k=t.split('.').pop();if(!_cm[k])_cm[k]=PALETTE[_ci++%PALETTE.length];return _cm[k]};
+const {useState,useEffect,useRef,useCallback,useMemo,useReducer}=React;
 
+// ── Formatters ────────────────────────────────────────────────────────────────
+const fmtB=n=>{if(n==null||n<0)return'—';if(n<1024)return`${n} B`;if(n<1048576)return`${(n/1024).toFixed(1)} KB`;if(n<1073741824)return`${(n/1048576).toFixed(2)} MB`;return`${(n/1073741824).toFixed(2)} GB`};
+const fmtNs=ns=>{if(!ns||ns<0)return'—';if(ns<1000)return`${ns} ns`;if(ns<1e6)return`${(ns/1000).toFixed(1)} µs`;if(ns<1e9)return`${(ns/1e6).toFixed(2)} ms`;return`${(ns/1e9).toFixed(3)} s`};
+const fmtN=n=>n==null?'—':n>=1e6?`${(n/1e6).toFixed(1)}M`:n>=1000?`${(n/1000).toFixed(1)}k`:String(n);
+const fmtAddr=n=>n?'0x'+n.toString(16).toUpperCase().padStart(12,'0'):'—';
+const fmtPct=f=>`${(f*100).toFixed(1)}%`;
+
+// ── Color palette ─────────────────────────────────────────────────────────────
+const PALETTE=['#41b3f5','#2ecc98','#f5c542','#9d84f5','#f56565','#f59c42','#f56bb4','#42d4c8','#7ec8f5','#a8f5c8','#f5e08a','#c9b8fc','#f5a27e','#82e0aa'];
+const _cm={};let _ci=0;
+const tc=t=>{const k=(t||'unknown').split('.').pop();if(!_cm[k])_cm[k]=PALETTE[_ci++%PALETTE.length];return _cm[k]};
+
+// ── Session analysis ──────────────────────────────────────────────────────────
 function analyzeSession(session){
   if(!session)return null;
-  const allocs=session.cpu_events.filter(e=>!e.is_dealloc);
-  const deallocs=session.cpu_events.filter(e=>e.is_dealloc);
-  const gpu=session.gpu_events||[];
-  const corrs=session.correlated_events||[];
-  const dur=session.end_time_ns-session.start_time_ns;
+  const allocs  = session.cpu_events.filter(e=>!e.is_dealloc);
+  const deallocs= session.cpu_events.filter(e=>e.is_dealloc);
+  const gpu     = session.gpu_events||[];
+  const corrs   = session.correlated_events||[];
+  const startNs = session.start_time_ns||0;
+  const endNs   = session.end_time_ns  ||0;
+  const dur     = endNs-startNs;
+
   const deallocMap={};deallocs.forEach(e=>{deallocMap[e.alloc_address]=e});
-  const gpuById={};gpu.forEach(e=>{gpuById[e.base.event_id]=e});
-  const cpuCorrs={};corrs.forEach(c=>{if(!cpuCorrs[c.cpu_event_id])cpuCorrs[c.cpu_event_id]=[];cpuCorrs[c.cpu_event_id].push({...c,gpuEvent:gpuById[c.gpu_event_id]})});
+  const gpuById  ={};gpu.forEach(e=>{gpuById[e.base.event_id]=e});
+  const cpuCorrs ={};corrs.forEach(c=>{if(!cpuCorrs[c.cpu_event_id])cpuCorrs[c.cpu_event_id]=[];cpuCorrs[c.cpu_event_id].push({...c,gpuEvent:gpuById[c.gpu_event_id]})});
+
+  // Type aggregation
   const byType={};
   allocs.forEach(e=>{
     const t=e.object_type||'unknown';
-    if(!byType[t])byType[t]={type:t,count:0,totalBytes:0,bufBytes:0,sizes:[],gcGens:[0,0,0],corrCount:0,events:[],module:e.module_name||''};
-    const g=byType[t];g.count++;g.totalBytes+=e.alloc_size_bytes||0;g.bufBytes+=e.buffer_nbytes||0;
+    if(!byType[t])byType[t]={type:t,count:0,totalBytes:0,bufBytes:0,sizes:[],gcGens:[-1,0,0,0],corrCount:0,events:[],module:e.module_name||''};
+    const g=byType[t];
+    g.count++;
+    g.totalBytes+=e.alloc_size_bytes||0;
+    g.bufBytes  +=e.buffer_nbytes||0;
     g.sizes.push(e.alloc_size_bytes||0);
-    if(e.gc_generation>=0&&e.gc_generation<=2)g.gcGens[e.gc_generation]++;
+    const gen=e.gc_generation;
+    if(gen===-1)g.gcGens[0]++;
+    else if(gen>=0&&gen<=2)g.gcGens[gen+1]++;
     if(cpuCorrs[e.base.event_id]?.length)g.corrCount++;
     if(g.events.length<5)g.events.push(e);
   });
   const typeList=Object.values(byType).sort((a,b)=>b.count-a.count);
   const totalBytes=typeList.reduce((s,t)=>s+(t.bufBytes||t.totalBytes),0);
+
+  // RSS curve
   const rssEvents=allocs.filter(e=>(e.peak_rss_kb||0)>0).sort((a,b)=>a.base.timestamp_ns-b.base.timestamp_ns);
   const maxRss=rssEvents.length?Math.max(...rssEvents.map(e=>e.peak_rss_kb)):0;
-  const BUCKETS=60;const bsz=dur/BUCKETS;
+
+  // Alloc rate series (60 buckets)
+  const BUCKETS=60;const bsz=dur/BUCKETS||1;
   const rateSeries=Array.from({length:BUCKETS},(_,i)=>{
-    const t0=session.start_time_ns+i*bsz,t1=t0+bsz;
-    const cnt=allocs.filter(e=>e.base.timestamp_ns>=t0&&e.base.timestamp_ns<t1).length;
-    return{t:t0,count:cnt};
+    const t0=startNs+i*bsz,t1=t0+bsz;
+    return{t:t0,count:allocs.filter(e=>e.base.timestamp_ns>=t0&&e.base.timestamp_ns<t1).length};
   });
-  const sizeBuckets={'<1KB':0,'1-4KB':0,'4-16KB':0,'16-64KB':0,'64KB+':0};
-  allocs.forEach(e=>{const s=e.alloc_size_bytes||0;if(s<1024)sizeBuckets['<1KB']++;else if(s<4096)sizeBuckets['1-4KB']++;else if(s<16384)sizeBuckets['4-16KB']++;else if(s<65536)sizeBuckets['16-64KB']++;else sizeBuckets['64KB+']++});
-  const gen0=allocs.filter(e=>e.gc_generation===0).length;
-  const gen1=allocs.filter(e=>e.gc_generation===1).length;
-  const gen2=allocs.filter(e=>e.gc_generation===2).length;
-  const kernels=gpu.filter(e=>e.base.event_type==='KERNEL');
+
+  // Size distribution
+  const sizeBuckets={'<1 KB':0,'1–4 KB':0,'4–16 KB':0,'16–64 KB':0,'64 KB+':0};
+  allocs.forEach(e=>{const s=e.alloc_size_bytes||0;if(s<1024)sizeBuckets['<1 KB']++;else if(s<4096)sizeBuckets['1–4 KB']++;else if(s<16384)sizeBuckets['4–16 KB']++;else if(s<65536)sizeBuckets['16–64 KB']++;else sizeBuckets['64 KB+']++});
+
+  // GC generations (−1 = non-GC, 0/1/2 = GC)
+  const genCounts={'-1':0,'0':0,'1':0,'2':0};
+  allocs.forEach(e=>{const g=e.gc_generation;genCounts[g>=0&&g<=2?String(g):'-1']++});
+
+  // GPU summary
+  const kernels  =gpu.filter(e=>e.base.event_type==='KERNEL');
   const transfers=gpu.filter(e=>e.base.event_type==='TRANSFER');
+  const pageFaults=gpu.filter(e=>e.base.event_type==='PAGE_FAULT');
   const xferBytes=transfers.reduce((s,e)=>s+(e.transfer_size_bytes||0),0);
+  const umBytesH2D=transfers.reduce((s,e)=>s+(e.um_bytes_htod||0),0);
+  const umBytesD2H=transfers.reduce((s,e)=>s+(e.um_bytes_dtoh||0),0);
   const kDur=kernels.reduce((s,e)=>s+(e.kernel_duration_ns||0),0);
   const maxDevMem=Math.max(0,...gpu.map(e=>e.device_mem_used_mb||0));
-  const streams=[...new Set(gpu.map(e=>e.stream_id).filter(x=>x!=null))];
-  const bursts=detectBursts(allocs);
+  const streams=[...new Set(gpu.map(e=>e.stream_id).filter(x=>x!=null&&x!==0))];
+  const totalPageFaults=pageFaults.reduce((s,e)=>s+(e.um_page_faults||0),0);
+
+  // Callsites
   const callsiteCounts={};
   allocs.forEach(e=>{
     const frames=e.callstack||[];
@@ -173,9 +254,15 @@ function analyzeSession(session){
     const site=uf[0]||frames[0]||null;
     if(site){if(!callsiteCounts[site])callsiteCounts[site]={count:0,bytes:0,types:new Set()};callsiteCounts[site].count++;callsiteCounts[site].bytes+=e.alloc_size_bytes||0;callsiteCounts[site].types.add(e.object_type)}
   });
-  const topCallsites=Object.entries(callsiteCounts).sort((a,b)=>b[1].bytes-a[1].bytes).slice(0,10).map(([site,d])=>({site,...d,types:[...d.types]}));
-  const insights=generateInsights({typeList,allocs,deallocs,bursts,dur,gpu,transfers,kernels,xferBytes,sizeBuckets,gen0,gen1,gen2,gcTotal:allocs.length,corrs,maxRss,totalBytes});
-  return{allocs,deallocs,gpu,corrs,deallocMap,gpuById,cpuCorrs,typeList,totalBytes,rssEvents,maxRss,rateSeries,sizeBuckets,gen0,gen1,gen2,gcTotal:allocs.length,kernels,transfers,xferBytes,kDur,maxDevMem,streams,bursts,topCallsites,insights,dur,startNs:session.start_time_ns,endNs:session.end_time_ns};
+  const topCallsites=Object.entries(callsiteCounts).sort((a,b)=>b[1].bytes-a[1].bytes).slice(0,12).map(([site,d])=>({site,...d,types:[...d.types]}));
+
+  const bursts=detectBursts(allocs);
+  const insights=generateInsights({typeList,allocs,deallocs,bursts,dur,gpu,transfers,kernels,xferBytes,sizeBuckets,genCounts,corrs,maxRss,totalBytes,pageFaults,totalPageFaults});
+
+  return{allocs,deallocs,gpu,corrs,deallocMap,gpuById,cpuCorrs,
+         typeList,totalBytes,rssEvents,maxRss,rateSeries,sizeBuckets,genCounts,
+         kernels,transfers,pageFaults,xferBytes,umBytesH2D,umBytesD2H,kDur,maxDevMem,streams,totalPageFaults,
+         bursts,topCallsites,insights,dur,startNs,endNs};
 }
 
 function detectBursts(allocs){
@@ -190,40 +277,79 @@ function detectBursts(allocs){
   return bursts.sort((a,b)=>b.count-a.count).slice(0,8);
 }
 
-function generateInsights({typeList,allocs,deallocs,bursts,dur,gpu,transfers,kernels,xferBytes,sizeBuckets,gen0,gen1,gen2,gcTotal,corrs,maxRss,totalBytes}){
+function generateInsights({typeList,allocs,deallocs,bursts,dur,gpu,transfers,kernels,xferBytes,sizeBuckets,genCounts,corrs,maxRss,totalBytes,pageFaults,totalPageFaults}){
   const ins=[];
+  const RED='#f56565',YEL='#f5c542',GRN='#2ecc98',CPU='#41b3f5',ORA='#f59c42';
   const survived=allocs.length-deallocs.length;
-  if(survived>0&&survived/allocs.length>0.25)ins.push({id:'leak',icon:'⚠',sev:'hi',title:'Possible Memory Leak',desc:`${fmtN(survived)} objects allocated but never freed (${(survived/allocs.length*100).toFixed(0)}% of all allocs). These were still live at session end — check for retained references or missing cleanup.`,stat:`${fmtN(survived)} objects still live`,pct:survived/allocs.length,color:getComputedStyle(document.documentElement).getPropertyValue('--red').trim()||'#f56565'});
-  const oldGen=(gen1+gen2)/Math.max(1,gcTotal);
-  if(oldGen>0.15)ins.push({id:'gc',icon:'♻',sev:'md',title:'GC Generation Pressure',desc:`${(oldGen*100).toFixed(0)}% of objects are in GC gen 1 or 2. Objects that survive multiple GC cycles indicate long-lived data structures or reference cycles. This slows garbage collection and increases memory pressure.`,stat:`gen1: ${fmtN(gen1)}  gen2: ${fmtN(gen2)}`,pct:oldGen,color:'#f5c542'});
-  if(bursts.length>0){const top=bursts[0];ins.push({id:'burst',icon:'⚡',sev:'if',title:'Repeated Allocation Burst',desc:`${top.count}× ${top.type} objects each exactly ${fmtB(top.size)}. Identical-size bursts usually indicate a computation loop, list comprehension, numpy array inspection, or iterating over a container — each iteration allocates the same wrapper type.`,stat:`${top.count}× ${top.type} @ ${fmtB(top.size)}`,pct:Math.min(1,top.count/allocs.length*5),color:'#41b3f5',burst:top})}
+  if(survived>0&&survived/allocs.length>0.2)ins.push({id:'leak',icon:'⚠',sev:'hi',color:RED,title:'Possible Memory Leak',
+    desc:`${fmtN(survived)} objects (${fmtPct(survived/allocs.length)}) allocated but never freed during the session. Check for retained references, circular data structures, or missing cleanup.`,
+    stat:`${fmtN(survived)} objects still live`,pct:survived/allocs.length});
+  const oldGen=(parseInt(genCounts['1']||0)+parseInt(genCounts['2']||0))/Math.max(1,allocs.length);
+  if(oldGen>0.1)ins.push({id:'gc',icon:'♻',sev:'md',color:YEL,title:'GC Generation Pressure',
+    desc:`${fmtPct(oldGen)} of objects reached GC gen 1 or 2, indicating long-lived data structures or reference cycles. This slows collection cycles and keeps memory occupied.`,
+    stat:`gen1: ${fmtN(genCounts['1'])}  gen2: ${fmtN(genCounts['2'])}`,pct:oldGen});
+  const nonGcFrac=parseInt(genCounts['-1']||0)/Math.max(1,allocs.length);
+  if(nonGcFrac>0.3)ins.push({id:'nongc',icon:'📦',sev:'if',color:CPU,title:'High Non-GC Object Count',
+    desc:`${fmtPct(nonGcFrac)} of tracked objects are non-GC-tracked (gc_generation = −1), typically numpy arrays, torch tensors, or other C-extension buffer objects. These bypass the GC and must be managed manually.`,
+    stat:`${fmtN(genCounts['-1'])} non-GC objects`,pct:nonGcFrac});
+  if(bursts.length>0){const top=bursts[0];ins.push({id:'burst',icon:'⚡',sev:'if',color:CPU,
+    title:'Repeated Allocation Burst',desc:`${top.count}× ${top.type} objects each exactly ${fmtB(top.size)}. Identical-size bursts indicate computation loops, list comprehensions, or iterator materialization.`,
+    stat:`${top.count}× ${top.type.split('.').pop()} @ ${fmtB(top.size)}`,pct:Math.min(1,top.count/allocs.length*5),burst:top})}
   const largeAllocs=allocs.filter(e=>(e.alloc_size_bytes||0)>65536);
-  if(largeAllocs.length>0){const totalLarge=largeAllocs.reduce((s,e)=>s+(e.alloc_size_bytes||0),0);const topTypes=[...new Set(largeAllocs.map(e=>e.object_type))].slice(0,3);ins.push({id:'large',icon:'📦',sev:'md',title:'Large Object Allocations',desc:`${largeAllocs.length} allocations over 64 KB totaling ${fmtB(totalLarge)}. Types: ${topTypes.join(', ')}. Large Python objects often wrap numpy/pandas buffers. Check is_numpy_buffer in newer sessions.`,stat:`${largeAllocs.length} objects · ${fmtB(totalLarge)}`,pct:largeAllocs.length/Math.max(1,allocs.length),color:'#f59c42'})}
-  if(transfers.length>0){const h2d=transfers.filter(e=>e.transfer_kind==='HOST_TO_DEVICE');ins.push({id:'xfer',icon:'🚀',sev:'if',title:'CPU→GPU Data Movement',desc:`${fmtB(xferBytes)} transferred in ${transfers.length} operations (${h2d.length} host→device, ${transfers.length-h2d.length} device→host). ${corrs.filter(c=>c.confidence==='HARD').length} transfers matched to specific CPU allocations.`,stat:`${fmtB(xferBytes)} · ${transfers.length} ops`,pct:1,color:'#2ecc98'})}
+  if(largeAllocs.length>0){const totalLarge=largeAllocs.reduce((s,e)=>s+(e.alloc_size_bytes||0),0);ins.push({id:'large',icon:'🗄',sev:'md',color:ORA,
+    title:'Large Object Allocations',desc:`${largeAllocs.length} allocations over 64 KB totaling ${fmtB(totalLarge)}. Types: ${[...new Set(largeAllocs.map(e=>e.object_type))].slice(0,3).join(', ')}.`,
+    stat:`${largeAllocs.length} objects · ${fmtB(totalLarge)}`,pct:largeAllocs.length/Math.max(1,allocs.length)})}
+  if(transfers.length>0){const hard=corrs.filter(c=>c.confidence==='HARD').length;ins.push({id:'xfer',icon:'🚀',sev:'if',color:GRN,
+    title:'CPU→GPU Data Movement',desc:`${fmtB(xferBytes)} transferred in ${transfers.length} operations. ${hard} transfers HARD-matched to specific CPU allocations via pinned_address.`,
+    stat:`${fmtB(xferBytes)} · ${transfers.length} ops · ${hard} hard matches`,pct:1})}
+  if(totalPageFaults>0)ins.push({id:'fault',icon:'💥',sev:'md',color:RED,
+    title:'Unified Memory Page Faults',desc:`${fmtN(totalPageFaults)} GPU page fault groups detected. Frequent UM page faults indicate that the GPU is accessing memory that hasn't been migrated yet — consider prefetching with cudaMemPrefetchAsync.`,
+    stat:`${fmtN(totalPageFaults)} fault groups in ${pageFaults.length} events`,pct:Math.min(1,totalPageFaults/1000)});
   const highRef=allocs.filter(e=>(e.ref_count||0)>10);
-  if(highRef.length>50){const types=[...new Set(highRef.map(e=>e.object_type))].slice(0,3);ins.push({id:'refs',icon:'🔗',sev:'lo',title:'Highly Shared Objects',desc:`${highRef.length} objects with >10 references. Types: ${types.join(', ')}. Highly shared objects are pinned in memory and resist GC. Common causes: module-level caches, singleton dicts, class method tables.`,stat:`${highRef.length} objects · max refs: ${Math.max(...highRef.map(e=>e.ref_count))}`,pct:highRef.length/Math.max(1,allocs.length),color:'#42d4c8'})}
+  if(highRef.length>30)ins.push({id:'refs',icon:'🔗',sev:'lo',color:'#42d4c8',
+    title:'Highly Shared Objects',desc:`${highRef.length} objects with >10 references. Common sources: module-level caches, singleton dicts, class method tables. These resist GC.`,
+    stat:`${highRef.length} objects · max refs: ${Math.max(...highRef.map(e=>e.ref_count))}`,pct:highRef.length/Math.max(1,allocs.length)});
   return ins;
 }
 
+// ── Workload narrative ────────────────────────────────────────────────────────
 function WorkloadNarrative({data}){
   if(!data)return null;
-  const{allocs,deallocs,gpu,typeList,bursts,dur,xferBytes,kernels,totalBytes,gen1,gen2,gcTotal}=data;
+  const{allocs,deallocs,gpu,typeList,bursts,dur,xferBytes,kernels,totalBytes,genCounts,umBytesH2D,umBytesD2H,totalPageFaults}=data;
   const top3=typeList.slice(0,3).map(t=>t.type.split('.').pop());
   const numpyTypes=typeList.filter(t=>t.module==='numpy'||t.type.includes('ndarray'));
   const survived=allocs.length-deallocs.length;
-  const burstTop=bursts[0];
   return(
     <div className="wc">
       <div className="wc-t">Workload Summary</div>
       <div className="wc-b">
-        Over <strong>{fmtNs(dur)}</strong>, the process made <span className="hi">{fmtN(allocs.length)}</span> allocations
-        totaling <span className="hi">{fmtB(totalBytes)}</span>.{' '}
-        Dominant object types: <strong>{top3.join(', ')}</strong>.{' '}
-        {numpyTypes.length>0&&<>Numpy arrays were present ({numpyTypes.map(t=>t.type.split('.').pop()).join(', ')}), which typically carry large C-level buffers invisible to the Python allocator. </>}
-        {burstTop&&<>A burst of <strong>{fmtN(burstTop.count)}× {burstTop.type}</strong> @ {fmtB(burstTop.size)} each suggests a tight computation loop. </>}
-        {survived>allocs.length*.2&&<><span className="hi">{fmtN(survived)}</span> objects were never freed. </>}
-        {(gen1+gen2)>gcTotal*.15&&<>GC gen 1/2 objects ({(( gen1+gen2)/gcTotal*100).toFixed(0)}%) indicate long-lived data. </>}
-        {gpu.length>0&&<>GPU: <span className="hi">{kernels.length}</span> kernels · <span className="hi">{fmtB(xferBytes)}</span> transferred.</>}
+        Over <strong>{fmtNs(dur)}</strong>, {fmtN(allocs.length)} allocations totaling <span className="hi">{fmtB(totalBytes)}</span>.{' '}
+        Dominant types: <strong>{top3.join(', ')}</strong>.{' '}
+        {numpyTypes.length>0&&<>Numpy buffers detected ({numpyTypes.map(t=>t.type.split('.').pop()).join(', ')}), carrying C-level data invisible to tracemalloc. </>}
+        {survived>0?<><span className="hi">{fmtN(survived)}</span> objects still live at session end. </>:'All tracked objects were freed. '}
+        {genCounts['-1']>0&&<><span className="hi">{fmtN(genCounts['-1'])}</span> non-GC objects (arrays/tensors) tracked via frame scan. </>}
+        {gpu.length>0&&<>GPU: <strong>{kernels.length}</strong> kernels · <strong>{fmtB(xferBytes)}</strong> transferred{umBytesH2D>0?` (${fmtB(umBytesH2D)} UM H→D, ${fmtB(umBytesD2H)} D→H)`:''}{totalPageFaults>0?` · ${fmtN(totalPageFaults)} UM page faults`:''}. </>}
+      </div>
+    </div>
+  );
+}
+
+// ── Charts ────────────────────────────────────────────────────────────────────
+function MiniBarChart({data,colorKey}){
+  const max=Math.max(1,...Object.values(data));
+  return(
+    <div className="card">
+      <div className="card-title">{colorKey}</div>
+      <div style={{display:'flex',flexDirection:'column',gap:5}}>
+        {Object.entries(data).map(([k,v])=>(
+          <div key={k} style={{display:'flex',alignItems:'center',gap:8}}>
+            <div style={{fontFamily:'var(--mono)',fontSize:10,color:'var(--dim)',width:52,flexShrink:0,textAlign:'right'}}>{k}</div>
+            <div style={{flex:1,height:14,background:'var(--border)',borderRadius:2,overflow:'hidden'}}>
+              <div style={{width:`${(v/max)*100}%`,height:'100%',background:'var(--cpu)',borderRadius:2,opacity:.7}}/>
+            </div>
+            <div style={{fontFamily:'var(--mono)',fontSize:10,color:'var(--text)',width:36,textAlign:'right'}}>{fmtN(v)}</div>
+          </div>
+        ))}
       </div>
     </div>
   );
@@ -233,88 +359,51 @@ function RateChart({data}){
   const ref=useRef(null);
   useEffect(()=>{
     if(!ref.current||!data)return;
-    const svg=d3.select(ref.current);svg.selectAll('*').remove();
-    const W=ref.current.clientWidth||600,H=64,ML=0,MR=0,MT=4,MB=16;
-    const series=data.rateSeries,maxC=d3.max(series,d=>d.count)||1;
-    const x=d3.scaleLinear().domain([0,series.length]).range([ML,W-MR]);
-    const y=d3.scaleLinear().domain([0,maxC]).range([H-MB,MT]);
-    const area=d3.area().x((_,i)=>x(i+.5)).y0(H-MB).y1(d=>y(d.count)).curve(d3.curveMonotoneX);
-    svg.append('path').datum(series).attr('d',area).attr('fill','rgba(65,179,245,.08)');
-    const line=d3.line().x((_,i)=>x(i+.5)).y(d=>y(d.count)).curve(d3.curveMonotoneX);
-    svg.append('path').datum(series).attr('d',line).attr('fill','none').attr('stroke','rgba(65,179,245,.6)').attr('stroke-width',1.5);
-    data.gpu.forEach(e=>{
-      const frac=(e.base.timestamp_ns-data.startNs)/data.dur;
-      const px=ML+frac*(W-ML-MR);
-      const isK=e.base.event_type==='KERNEL';
-      svg.append('line').attr('x1',px).attr('x2',px).attr('y1',MT).attr('y2',H-MB).attr('stroke',isK?'rgba(157,132,245,.5)':'rgba(46,204,152,.5)').attr('stroke-width',.8);
-    });
-    const axG=svg.append('g').attr('transform',`translate(0,${H-MB})`);
-    axG.call(d3.axisBottom(d3.scaleLinear().domain([data.startNs,data.endNs]).range([ML,W-MR])).ticks(6).tickFormat(t=>fmtNs(t-data.startNs)).tickSize(2));
-    axG.selectAll('text').attr('font-family','JetBrains Mono,monospace').attr('font-size',8).attr('fill','#3d4f68');
-    axG.select('.domain').attr('stroke','#1c2235');axG.selectAll('.tick line').attr('stroke','#1c2235');
+    const el=ref.current;const W=el.clientWidth||240,H=70;
+    const svg=d3.select(el);svg.selectAll('*').remove();
+    svg.attr('width',W).attr('height',H);
+    const rs=data.rateSeries;const max=Math.max(1,...rs.map(d=>d.count));
+    const x=d3.scaleLinear().domain([0,rs.length-1]).range([0,W]);
+    const y=d3.scaleLinear().domain([0,max]).range([H-2,2]);
+    const area=d3.area().x((_,i)=>x(i)).y0(H).y1(d=>y(d.count)).curve(d3.curveMonotoneX);
+    const line=d3.line().x((_,i)=>x(i)).y(d=>y(d.count)).curve(d3.curveMonotoneX);
+    svg.append('path').datum(rs).attr('d',area).attr('fill','rgba(65,179,245,.12)');
+    svg.append('path').datum(rs).attr('d',line).attr('fill','none').attr('stroke','rgba(65,179,245,.6)').attr('stroke-width',1.5);
   },[data]);
   return(
-    <div style={{padding:'0 14px 8px'}}>
-      <div style={{fontFamily:'var(--mono)',fontSize:9,color:'var(--dim)',letterSpacing:'.1em',textTransform:'uppercase',marginBottom:4}}>Alloc Rate + GPU Events</div>
-      <svg ref={ref} style={{width:'100%',height:64,display:'block'}}/>
-    </div>
-  );
-}
-
-function SizeDistChart({data}){
-  if(!data)return null;
-  const{sizeBuckets}=data,entries=Object.entries(sizeBuckets),max=Math.max(...entries.map(([,v])=>v))||1;
-  const colors=['#41b3f5','#2ecc98','#f5c542','#f59c42','#f56565'];
-  return(
-    <div className="card" style={{margin:'0 12px 8px'}}>
-      <div className="card-title">Allocation Size Distribution</div>
-      {entries.map(([label,count],i)=>(
-        <div key={label} style={{display:'flex',alignItems:'center',gap:8,marginBottom:6}}>
-          <div style={{fontFamily:'var(--mono)',fontSize:10,color:'var(--text2)',width:52,flexShrink:0}}>{label}</div>
-          <div style={{flex:1,height:14,background:'var(--border)',borderRadius:2,overflow:'hidden',position:'relative'}}>
-            <div style={{width:`${(count/max)*100}%`,height:'100%',background:colors[i],borderRadius:2}}/>
-          </div>
-          <div style={{fontFamily:'var(--mono)',fontSize:10,color:'var(--dim)',width:40,textAlign:'right'}}>{fmtN(count)}</div>
-        </div>
-      ))}
+    <div className="card">
+      <div className="card-title">Alloc Rate Over Time</div>
+      <svg ref={ref} style={{width:'100%',height:70,display:'block'}}/>
     </div>
   );
 }
 
 function GcChart({data}){
   if(!data)return null;
-  const{gen0,gen1,gen2,gcTotal}=data;
-  const gens=[{n:'gen 0',v:gen0,c:'#41b3f5'},{n:'gen 1',v:gen1,c:'#f5c542'},{n:'gen 2',v:gen2,c:'#f56565'}];
-  return(
-    <div className="card" style={{margin:'0 12px 8px'}}>
-      <div className="card-title">GC Generation Distribution</div>
-      {gens.map(g=>(
-        <div key={g.n} style={{display:'flex',alignItems:'center',gap:8,marginBottom:6}}>
-          <div style={{fontFamily:'var(--mono)',fontSize:10,color:'var(--text2)',width:40,flexShrink:0}}>{g.n}</div>
-          <div style={{flex:1,height:14,background:'var(--border)',borderRadius:2,overflow:'hidden'}}>
-            <div style={{width:`${(g.v/Math.max(1,gcTotal))*100}%`,height:'100%',background:g.c,borderRadius:2}}/>
-          </div>
-          <div style={{fontFamily:'var(--mono)',fontSize:10,color:'var(--dim)',width:52,textAlign:'right'}}>{fmtN(g.v)} ({(g.v/Math.max(1,gcTotal)*100).toFixed(0)}%)</div>
-        </div>
-      ))}
-      <div style={{fontFamily:'var(--mono)',fontSize:9,color:(gen1+gen2)>gcTotal*.2?'var(--yellow)':'var(--green)',marginTop:4}}>
-        {(gen1+gen2)>gcTotal*.2?'⚠ elevated gen 1/2 — long-lived data or ref cycles':'✓ mostly short-lived objects (gen 0)'}
-      </div>
-    </div>
-  );
+  const{genCounts}=data;
+  const labels={'-1':'non-GC','0':'gen 0','1':'gen 1','2':'gen 2'};
+  const colors={'-1':'#9d84f5','0':'#41b3f5','1':'#f5c542','2':'#f56565'};
+  const entries=Object.entries(genCounts).map(([k,v])=>({k,v:parseInt(v||0),label:labels[k],color:colors[k]})).filter(e=>e.v>0);
+  return <MiniBarChart data={Object.fromEntries(entries.map(e=>[e.label,e.v]))} colorKey="GC Generations"/>;
+}
+
+function SizeDistChart({data}){
+  if(!data)return null;
+  return <MiniBarChart data={data.sizeBuckets} colorKey="Allocation Size Distribution"/>;
 }
 
 function BurstPanel({data,onSelect}){
   if(!data||!data.bursts.length)return null;
   return(
-    <div className="card" style={{margin:'0 12px 8px'}}>
-      <div className="card-title">Allocation Bursts (same type+size runs)</div>
+    <div className="card">
+      <div className="card-title">Top Allocation Bursts</div>
       {data.bursts.slice(0,5).map((b,i)=>(
-        <div key={i} style={{display:'flex',alignItems:'center',gap:8,marginBottom:7,cursor:'pointer',padding:'3px 0'}} onClick={()=>onSelect({type:'burst',data:b})}>
-          <div style={{width:8,height:8,borderRadius:'50%',background:tc(b.type),flexShrink:0}}/>
+        <div key={i} style={{display:'flex',alignItems:'center',gap:8,marginBottom:7,cursor:'pointer',padding:'4px 0'}}
+          onClick={()=>onSelect({type:'burst',data:b})}>
+          <div style={{width:7,height:7,borderRadius:'50%',background:tc(b.type),flexShrink:0}}/>
           <div style={{flex:1,minWidth:0}}>
             <div style={{fontFamily:'var(--mono)',fontSize:11,color:'var(--text)',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{b.type.split('.').pop()}</div>
-            <div style={{fontFamily:'var(--mono)',fontSize:9,color:'var(--dim)'}}>{fmtN(b.count)}× @ {fmtB(b.size)} = {fmtB(b.count*b.size)}</div>
+            <div style={{fontFamily:'var(--mono)',fontSize:9,color:'var(--dim)'}}>{fmtN(b.count)}× @ {fmtB(b.size)}</div>
           </div>
           <div style={{fontFamily:'var(--mono)',fontSize:11,color:'var(--cpu)',flexShrink:0}}>{fmtN(b.count)}</div>
         </div>
@@ -323,215 +412,446 @@ function BurstPanel({data,onSelect}){
   );
 }
 
-function TypeList({data,filter,onFilter}){
-  if(!data)return <div className="scrollable" style={{display:'flex',alignItems:'center',justifyContent:'center'}}><span style={{fontFamily:'var(--mono)',fontSize:10,color:'var(--dim)'}}>—</span></div>;
-  const{typeList}=data;const maxC=typeList[0]?.count||1;
+// ── Type list (left panel) ─────────────────────────────────────────────────────
+function TypeList({data,filter,onFilter,searchQ,onSearch}){
+  const list=data?data.typeList:[];
+  const maxC=list[0]?.count||1;
+  const filtered=searchQ?list.filter(t=>t.type.toLowerCase().includes(searchQ.toLowerCase())):list;
   return(
-    <div className="scrollable">
-      <div className={`type-row ${!filter?'sel':''}`} onClick={()=>onFilter(null)}>
-        <div className="tr-dot" style={{background:'var(--dim)'}}/>
-        <div className="tr-info">
-          <div className="tr-name" style={{color:'var(--text2)'}}>All types</div>
-          <div className="tr-sub">{fmtN(data.allocs.length)} allocs · {fmtB(data.totalBytes)}</div>
-        </div>
-        <div className="tr-num">{fmtN(data.allocs.length)}</div>
+    <div style={{display:'flex',flexDirection:'column',height:'100%',overflow:'hidden'}}>
+      <div style={{padding:'6px 10px',borderBottom:'1px solid var(--border)',flexShrink:0}}>
+        <input value={searchQ} onChange={e=>onSearch(e.target.value)} placeholder="Filter types…"
+          style={{width:'100%',background:'var(--card)',border:'1px solid var(--border2)',borderRadius:5,padding:'5px 9px',fontFamily:'var(--mono)',fontSize:10,color:'var(--text)',outline:'none'}}
+          onFocus={e=>e.target.style.borderColor='rgba(65,179,245,.4)'}
+          onBlur={e=>e.target.style.borderColor='var(--border2)'}
+        />
       </div>
-      {typeList.map(t=>{
-        const col=tc(t.type);
-        const dispB=t.bufBytes>0?t.bufBytes:t.totalBytes;
-        const isN=t.module==='numpy'||t.type.includes('ndarray')||t.type.includes('Tensor');
-        const avg=t.sizes.length?Math.round(t.sizes.reduce((a,b)=>a+b,0)/t.sizes.length):0;
-        return(
-          <div key={t.type} className={`type-row ${filter===t.type?'sel':''}`} onClick={()=>onFilter(filter===t.type?null:t.type)}>
-            <div className="tr-dot" style={{background:col}}/>
+      {!data?<div className="scrollable" style={{display:'flex',alignItems:'center',justifyContent:'center'}}><span style={{fontFamily:'var(--mono)',fontSize:10,color:'var(--dim)'}}>—</span></div>:(
+        <div className="scrollable">
+          <div className={`type-row ${!filter?'sel':''}`} onClick={()=>onFilter(null)}>
+            <div className="tr-dot" style={{background:'var(--dim)'}}/>
             <div className="tr-info">
-              <div style={{display:'flex',alignItems:'center',gap:5}}>
-                <span className="tr-name">{t.type.split('.').pop()}</span>
-                {isN&&<span style={{fontFamily:'var(--mono)',fontSize:7,background:'rgba(46,204,152,.12)',color:'var(--green)',border:'1px solid rgba(46,204,152,.2)',borderRadius:2,padding:'1px 4px'}}>buf</span>}
-              </div>
-              <div className="tr-sub">{fmtB(dispB)} · avg {fmtB(avg)} · gen{t.gcGens.indexOf(Math.max(...t.gcGens))}</div>
-              <div className="tr-bar"><div className="tr-bar-fill" style={{width:`${(t.count/maxC)*100}%`,background:col}}/></div>
+              <div className="tr-name" style={{color:'var(--text2)'}}>All types</div>
+              <div className="tr-sub">{fmtN(data.allocs.length)} allocs · {fmtB(data.totalBytes)}</div>
             </div>
-            <div className="tr-num" style={{color:col}}>{fmtN(t.count)}</div>
+            <div className="tr-num">{fmtN(data.allocs.length)}</div>
           </div>
-        );
-      })}
+          {filtered.map(t=>{
+            const col=tc(t.type);
+            const dispB=t.bufBytes>0?t.bufBytes:t.totalBytes;
+            const isN=t.module==='numpy'||t.type.includes('ndarray')||t.type.includes('Tensor');
+            const avg=t.sizes.length?Math.round(t.sizes.reduce((a,b)=>a+b,0)/t.sizes.length):0;
+            const dominantGen=t.gcGens.indexOf(Math.max(...t.gcGens));
+            const genLabel=['-1','0','1','2'][dominantGen];
+            return(
+              <div key={t.type} className={`type-row ${filter===t.type?'sel':''}`} onClick={()=>onFilter(filter===t.type?null:t.type)}>
+                <div className="tr-dot" style={{background:col}}/>
+                <div className="tr-info">
+                  <div style={{display:'flex',alignItems:'center',gap:4}}>
+                    <span className="tr-name">{t.type.split('.').pop()}</span>
+                    {isN&&<span style={{fontFamily:'var(--mono)',fontSize:7,background:'rgba(46,204,152,.12)',color:'var(--green)',border:'1px solid rgba(46,204,152,.2)',borderRadius:2,padding:'1px 3px'}}>buf</span>}
+                    {t.corrCount>0&&<span style={{fontFamily:'var(--mono)',fontSize:7,background:'rgba(65,179,245,.12)',color:'var(--cpu)',border:'1px solid rgba(65,179,245,.2)',borderRadius:2,padding:'1px 3px'}}>GPU</span>}
+                  </div>
+                  <div className="tr-sub">{fmtB(dispB)} · avg {fmtB(avg)} · gen {genLabel}</div>
+                  <div className="tr-bar"><div className="tr-bar-fill" style={{width:`${(t.count/maxC)*100}%`,background:col}}/></div>
+                </div>
+                <div className="tr-num" style={{color:col}}>{fmtN(t.count)}</div>
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
 
+// ── Timeline ──────────────────────────────────────────────────────────────────
+// State: {domain:[t0,t1], thumbPct:[left,width]} — kept in a ref to avoid re-renders
 function Timeline({data,filter,onSelect,selected}){
   const wrapRef=useRef(null);
-  const svgRef=useRef(null);
+  const svgRef =useRef(null);
+  const zoomRef=useRef(null);   // d3 zoom behaviour
+  const xBaseRef=useRef(null);  // base (full-range) scale
+  const curDomRef=useRef(null); // current visible domain [t0,t1]
+  const [zoomLabel,setZoomLabel]=useState('1×');
+  const [domLabel, setDomLabel ]=useState('');
+  const tooltip=document.getElementById('tl-tooltip');
 
+  // Build/rebuild when data or filter changes
   useEffect(()=>{
     if(!wrapRef.current||!data)return;
-    const W=wrapRef.current.clientWidth||800,H=wrapRef.current.clientHeight||400;
-    const svg=d3.select(svgRef.current);svg.selectAll('*').remove();
+    const W=wrapRef.current.clientWidth||800;
+    const H=wrapRef.current.clientHeight||400;
+    const svg=d3.select(svgRef.current);
+    svg.selectAll('*').remove();
     svg.attr('width',W).attr('height',H);
+
     const{allocs,deallocMap,gpu,startNs,endNs,dur}=data;
     const filtered=filter?allocs.filter(e=>e.object_type===filter):allocs;
-    if(!filtered.length)return;
-    const ML=72,MR=12,MT=8,MB=22,innerW=W-ML-MR,innerH=H-MT-MB;
-    const xBase=d3.scaleLinear().domain([startNs,endNs]).range([0,innerW]);
+    if(!filtered.length&&!gpu.length){if(tooltip)tooltip.classList.remove('show');return;}
 
-    // Build lanes
+    const ML=76,MR=14,MT=10,MB=26,innerW=W-ML-MR,innerH=H-MT-MB;
+    const xBase=d3.scaleLinear().domain([startNs,endNs]).range([0,innerW]);
+    xBaseRef.current=xBase;
+    curDomRef.current=[startNs,endNs];
+
+    // ── Lane layout ──────────────────────────────────────────────────────────
     const types=filter?[filter]:[...new Set(filtered.map(e=>e.object_type||'unknown'))];
     const typeCounts={};filtered.forEach(e=>{const t=e.object_type||'unknown';typeCounts[t]=(typeCounts[t]||0)+1});
-    let laneData=types.map(t=>({type:t,count:typeCounts[t]||0,color:tc(t)})).sort((a,b)=>b.count-a.count);
-    laneData=laneData.slice(0,Math.max(1,Math.floor(innerH/20)));
-    const totalC=laneData.reduce((s,l)=>s+l.count,0);
+    let lanes=types.map(t=>({type:t,count:typeCounts[t]||0,color:tc(t)})).sort((a,b)=>b.count-a.count);
+    // Keep top N lanes that fit, min lane height 18px
+    lanes=lanes.slice(0,Math.max(1,Math.floor(innerH/18)));
+    // Give each lane proportional height (min 18px)
+    const totalC=lanes.reduce((s,l)=>s+l.count,0)||1;
     let yOff=0;
-    laneData.forEach(l=>{l.h=Math.max(20,Math.floor((l.count/totalC)*innerH));l.y=yOff;yOff+=l.h});
-    const laneMap=Object.fromEntries(laneData.map(l=>[l.type,l]));
+    lanes.forEach(l=>{l.h=Math.max(18,Math.floor((l.count/totalC)*innerH));l.y=yOff;yOff+=l.h});
+    // Trim last lane to exactly fit
+    if(lanes.length){const last=lanes[lanes.length-1];last.h=innerH-last.y}
+    const laneMap=Object.fromEntries(lanes.map(l=>[l.type,l]));
 
-    // Lane labels (fixed left)
-    laneData.forEach(l=>{
+    // ── Static SVG structure ──────────────────────────────────────────────────
+    // GPU lane below all CPU lanes — fixed 20px strip at bottom
+    const GPU_H=20;
+    const cpuH=innerH-GPU_H;
+    lanes.forEach(l=>{l.h=Math.max(16,Math.floor((l.count/totalC)*cpuH));});
+    yOff=0;lanes.forEach(l=>{l.y=yOff;yOff+=l.h});
+    if(lanes.length){const last=lanes[lanes.length-1];last.h=cpuH-last.y;}
+
+    // Left labels
+    lanes.forEach(l=>{
       svg.append('text').attr('x',ML-6).attr('y',MT+l.y+l.h/2)
         .attr('text-anchor','end').attr('dominant-baseline','middle')
         .attr('font-family','JetBrains Mono,monospace').attr('font-size',9)
-        .attr('fill',l.color).attr('opacity',.85).text(l.type.split('.').pop().slice(0,11));
+        .attr('fill',l.color).attr('opacity',.85)
+        .text(l.type.split('.').pop().slice(0,12));
     });
+    svg.append('text').attr('x',ML-6).attr('y',MT+cpuH+GPU_H/2)
+      .attr('text-anchor','end').attr('dominant-baseline','middle')
+      .attr('font-family','JetBrains Mono,monospace').attr('font-size',9)
+      .attr('fill','rgba(46,204,152,.7)').text('GPU');
 
     const mainG=svg.append('g').attr('transform',`translate(${ML},${MT})`);
-    laneData.forEach(l=>{
-      mainG.append('rect').attr('x',0).attr('y',l.y).attr('width',innerW).attr('height',l.h)
-        .attr('fill',laneData.indexOf(l)%2===0?'rgba(255,255,255,.015)':'transparent');
-    });
-    const barsG=mainG.append('g');
-    const gpuG=mainG.append('g');
 
+    // Lane backgrounds (alternating subtle tint)
+    lanes.forEach((l,i)=>mainG.append('rect').attr('x',0).attr('y',l.y).attr('width',innerW).attr('height',l.h)
+      .attr('fill',i%2===0?'rgba(255,255,255,.015)':'transparent').attr('pointer-events','none'));
+    // GPU strip background
+    mainG.append('rect').attr('x',0).attr('y',cpuH).attr('width',innerW).attr('height',GPU_H)
+      .attr('fill','rgba(46,204,152,.03)').attr('pointer-events','none');
+    // Lane dividers
+    lanes.forEach(l=>mainG.append('line').attr('x1',0).attr('x2',innerW).attr('y1',l.y).attr('y2',l.y)
+      .attr('stroke','rgba(255,255,255,.04)').attr('stroke-width',.5).attr('pointer-events','none'));
+    mainG.append('line').attr('x1',0).attr('x2',innerW).attr('y1',cpuH).attr('y2',cpuH)
+      .attr('stroke','rgba(46,204,152,.2)').attr('stroke-width',.5).attr('pointer-events','none');
+
+    // Clip path so bars don't overflow
+    svg.append('defs').append('clipPath').attr('id','tl-clip')
+      .append('rect').attr('x',0).attr('y',0).attr('width',innerW).attr('height',innerH);
+    const clipped=mainG.append('g').attr('clip-path','url(#tl-clip)');
+    const barsG=clipped.append('g');
+    const gpuG =clipped.append('g');
+
+    // Axis group
+    const axisG=svg.append('g').attr('transform',`translate(${ML},${H-MB})`);
+    const styleAx=g=>{
+      g.selectAll('text').attr('font-family','JetBrains Mono,monospace').attr('font-size',8).attr('fill','#3d4f68');
+      g.select('.domain').attr('stroke','#1c2235');
+      g.selectAll('.tick line').attr('stroke','#1c2235');
+    };
+
+    // ── Render function — called on every zoom ────────────────────────────────
     function renderBars(xScale){
-      barsG.selectAll('*').remove();gpuG.selectAll('*').remove();
-      const xd=xScale.domain();
-      const vis=filtered.filter(e=>{const d=deallocMap[e.alloc_address];const end=d?d.base.timestamp_ns:endNs;return end>=xd[0]&&e.base.timestamp_ns<=xd[1]});
-      const MAX=3500;
+      barsG.selectAll('*').remove();
+      gpuG.selectAll('*').remove();
+      const[t0,t1]=xScale.domain();
+      curDomRef.current=[t0,t1];
+
+      // Update thumb
+      const frac0=(t0-startNs)/dur;
+      const frac1=(t1-startNs)/dur;
+      const thumb=document.getElementById('time-scrollbar-thumb');
+      if(thumb){
+        const trackW=thumb.parentElement.clientWidth-2;
+        thumb.style.left=`${Math.max(0,frac0*trackW)+1}px`;
+        thumb.style.width=`${Math.max(16,(frac1-frac0)*trackW)}px`;
+      }
+
+      // Visible allocs (only those whose lifetime overlaps the visible window)
+      const vis=filtered.filter(e=>{
+        const d=deallocMap[e.alloc_address];
+        const end=d?d.base.timestamp_ns:endNs;
+        return end>=t0&&e.base.timestamp_ns<=t1;
+      });
+      const MAX=4000;
       const src=vis.length>MAX?vis.filter((_,i)=>i%Math.ceil(vis.length/MAX)===0):vis;
+
       src.forEach(e=>{
         const lane=laneMap[e.object_type||'unknown'];if(!lane)return;
         const x0=xScale(e.base.timestamp_ns);
         const d=deallocMap[e.alloc_address];
         const x1=xScale(d?d.base.timestamp_ns:endNs);
-        const bw=Math.max(1.5,x1-x0);
+        const bw=Math.max(2,x1-x0);
         const isSel=selected?.sel?.base?.event_id===e.base.event_id;
         const hasC=(data.cpuCorrs[e.base.event_id]?.length||0)>0;
-        const BY=2,BH=Math.max(3,lane.h-BY*2);
-        barsG.append('rect').attr('x',x0).attr('y',lane.y+BY).attr('width',bw).attr('height',BH).attr('rx',1)
-          .attr('fill',isSel?'#fbbf24':(hasC?lane.color:lane.color+'33'))
-          .attr('stroke',isSel?'#fbbf24':(hasC?lane.color:'none')).attr('stroke-width',.5)
+        // Vertical stagger inside lane: jitter by event_id to avoid solid blocks
+        const jitter=(e.base.event_id%7)/7;
+        const pad=2,laneInner=lane.h-pad*2;
+        const bh=Math.max(3,Math.min(laneInner*0.6,14));
+        const by=lane.y+pad+jitter*(laneInner-bh);
+
+        barsG.append('rect')
+          .attr('x',x0).attr('y',by).attr('width',bw).attr('height',bh).attr('rx',1)
+          .attr('fill',isSel?'#fbbf24':(hasC?lane.color:lane.color))
+          .attr('opacity',isSel?1:(hasC?0.85:0.25))
+          .attr('stroke',isSel?'#fbbf24':(hasC?'none':'none'))
           .style('cursor','pointer')
+          .on('mousemove',evt=>{
+            if(!tooltip)return;
+            const corCount=data.cpuCorrs[e.base.event_id]?.length||0;
+            tooltip.className='show';
+            tooltip.innerHTML=`<div class="tt-type">${e.object_type.split('.').pop()}</div>
+              <div class="tt-row"><span class="tt-k">size</span><span class="tt-v">${fmtB(e.alloc_size_bytes)}</span></div>
+              <div class="tt-row"><span class="tt-k">at</span><span class="tt-v">+${fmtNs(e.base.timestamp_ns-startNs)}</span></div>
+              ${corCount>0?`<div class="tt-row"><span class="tt-k" style="color:var(--green)">GPU corr</span><span class="tt-v" style="color:var(--green)">${corCount}×</span></div>`:''}
+              ${(e.array_shape||[]).length>0?`<div class="tt-row"><span class="tt-k">shape</span><span class="tt-v">[${e.array_shape.join('×')}] ${e.array_dtype||''}</span></div>`:''}`;
+            tooltip.style.left=`${evt.clientX+14}px`;
+            tooltip.style.top =`${evt.clientY-10}px`;
+          })
+          .on('mouseleave',()=>tooltip&&(tooltip.className=''))
           .on('click',evt=>{evt.stopPropagation();onSelect({type:'cpu',data:e})});
       });
-      gpu.forEach(e=>{
-        const px=xScale(e.base.timestamp_ns);if(px<0||px>innerW)return;
+
+      // GPU markers — in the GPU strip
+      const visGpu=gpu.filter(e=>{const px=xScale(e.base.timestamp_ns);return px>=-2&&px<=innerW+2});
+      // Group nearby GPU events to avoid overplotting
+      visGpu.forEach(e=>{
+        const px=xScale(e.base.timestamp_ns);
         const isK=e.base.event_type==='KERNEL';
-        gpuG.append('line').attr('x1',px).attr('x2',px).attr('y1',0).attr('y2',innerH)
-          .attr('stroke',isK?'rgba(157,132,245,.55)':'rgba(46,204,152,.65)').attr('stroke-width',1)
-          .style('cursor','pointer').on('click',evt=>{evt.stopPropagation();onSelect({type:'gpu',data:e})});
+        const isPF=e.base.event_type==='PAGE_FAULT';
+        const col=isK?'rgba(157,132,245,.8)':isPF?'rgba(245,101,101,.7)':'rgba(46,204,152,.8)';
+        // Triangle marker in GPU strip
+        const ty=cpuH+2;const th=GPU_H-4;
+        const sym=isK?'▲':isPF?'✕':'▼';
+        gpuG.append('text')
+          .attr('x',px).attr('y',ty+th/2)
+          .attr('text-anchor','middle').attr('dominant-baseline','middle')
+          .attr('font-size',isPF?7:8).attr('fill',col)
+          .style('cursor','pointer')
+          .text(sym)
+          .on('mousemove',evt=>{
+            if(!tooltip)return;
+            tooltip.className='show';
+            const isT=e.base.event_type==='TRANSFER';
+            tooltip.innerHTML=`<div class="tt-type" style="color:${col}">GPU ${e.base.event_type}</div>
+              ${isK?`<div class="tt-row"><span class="tt-k">kernel</span><span class="tt-v">${e.kernel_name||'—'}</span></div>
+                <div class="tt-row"><span class="tt-k">duration</span><span class="tt-v">${fmtNs(e.kernel_duration_ns)}</span></div>
+                <div class="tt-row"><span class="tt-k">grid</span><span class="tt-v">${e.grid?`${e.grid.x}×${e.grid.y}×${e.grid.z}`:'—'}</span></div>
+                <div class="tt-row"><span class="tt-k">regs/thread</span><span class="tt-v">${e.registers_per_thread||0}</span></div>`:''}
+              ${isT?`<div class="tt-row"><span class="tt-k">kind</span><span class="tt-v">${e.transfer_kind}</span></div>
+                <div class="tt-row"><span class="tt-k">size</span><span class="tt-v">${fmtB(e.transfer_size_bytes)}</span></div>
+                ${(e.um_bytes_htod||0)>0?`<div class="tt-row"><span class="tt-k">UM H→D</span><span class="tt-v">${fmtB(e.um_bytes_htod)}</span></div>`:''}
+                ${(e.um_bytes_dtoh||0)>0?`<div class="tt-row"><span class="tt-k">UM D→H</span><span class="tt-v">${fmtB(e.um_bytes_dtoh)}</span></div>`:''}`:
+              isPF?`<div class="tt-row"><span class="tt-k">faults</span><span class="tt-v">${e.um_page_faults}</span></div>`:''}`;
+            tooltip.style.left=`${evt.clientX+14}px`;
+            tooltip.style.top =`${evt.clientY-10}px`;
+          })
+          .on('mouseleave',()=>tooltip&&(tooltip.className=''))
+          .on('click',evt=>{evt.stopPropagation();onSelect({type:'gpu',data:e})});
+        // Vertical hair across full height (subtle)
+        gpuG.append('line')
+          .attr('x1',px).attr('x2',px).attr('y1',0).attr('y2',cpuH)
+          .attr('stroke',col).attr('stroke-width',.5).attr('opacity',.3)
+          .style('pointer-events','none');
       });
     }
 
     renderBars(xBase);
-
-    const axisG=svg.append('g').attr('transform',`translate(${ML},${H-MB})`);
-    const styleAx=g=>{g.selectAll('text').attr('font-family','JetBrains Mono,monospace').attr('font-size',8).attr('fill','#3d4f68');g.select('.domain').attr('stroke','#1c2235');g.selectAll('.tick line').attr('stroke','#1c2235')};
     axisG.call(d3.axisBottom(xBase).ticks(8).tickFormat(t=>fmtNs(t-startNs)).tickSize(3));
     styleAx(axisG);
 
-    const zoom=d3.zoom().scaleExtent([1,200]).translateExtent([[0,0],[W,H]])
+    // ── D3 zoom ───────────────────────────────────────────────────────────────
+    const zoom=d3.zoom()
+      .scaleExtent([1,500])
+      .translateExtent([[0,0],[W,H]])
       .on('zoom',evt=>{
         const nx=evt.transform.rescaleX(xBase);
         renderBars(nx);
         axisG.call(d3.axisBottom(nx).ticks(8).tickFormat(t=>fmtNs(t-startNs)).tickSize(3));
         styleAx(axisG);
+        const k=evt.transform.k;
+        setZoomLabel(k<1.5?'1×':k<3?`${k.toFixed(1)}×`:k<10?`${k.toFixed(0)}×`:k<100?`${(k/1).toFixed(0)}×`:`${(k/1).toFixed(0)}×`);
+        const[vt0,vt1]=nx.domain();
+        setDomLabel(`+${fmtNs(vt0-startNs)} → +${fmtNs(vt1-startNs)}`);
       });
+    zoomRef.current=zoom;
     svg.call(zoom);
-    svg.on('click',()=>onSelect(null));
+    svg.on('click',()=>{onSelect(null);tooltip&&(tooltip.className='')});
+
+    // Reset zoom label
+    setZoomLabel('1×');
+    setDomLabel('');
   },[data,filter,selected]);
 
+  const resetZoom=useCallback(()=>{
+    if(!svgRef.current||!zoomRef.current)return;
+    d3.select(svgRef.current).transition().duration(300).call(zoomRef.current.transform,d3.zoomIdentity);
+    setZoomLabel('1×');setDomLabel('');
+  },[]);
+
+  const zoomIn=useCallback(()=>{
+    if(!svgRef.current||!zoomRef.current)return;
+    d3.select(svgRef.current).transition().duration(200).call(zoomRef.current.scaleBy,2);
+  },[]);
+
+  const zoomOut=useCallback(()=>{
+    if(!svgRef.current||!zoomRef.current)return;
+    d3.select(svgRef.current).transition().duration(200).call(zoomRef.current.scaleBy,.5);
+  },[]);
+
   return(
-    <div id="timeline-wrap" ref={wrapRef}>
-      {!data&&<div className="empty"><div className="empty-t">No session loaded</div><div className="empty-s">Load a session.json to begin</div></div>}
-      <svg ref={svgRef}/>
+    <div id="tl-outer">
+      {/* Zoom controls bar */}
+      <div style={{height:30,background:'var(--panel)',borderBottom:'1px solid var(--border)',display:'flex',alignItems:'center',padding:'0 12px',gap:4,flexShrink:0}}>
+        <div className="zoom-ctrl">
+          <button className="zb" onClick={zoomOut} title="Zoom out (scroll down)">−</button>
+          <button className="zb" onClick={zoomIn}  title="Zoom in (scroll up)">+</button>
+          <button className="zb act" onClick={resetZoom} title="Reset to full view">⟳ reset</button>
+        </div>
+        <span style={{fontFamily:'var(--mono)',fontSize:9,color:'var(--dim)',marginLeft:4}}>{zoomLabel}</span>
+        {domLabel&&<span style={{fontFamily:'var(--mono)',fontSize:9,color:'var(--border2)',marginLeft:8}}>{domLabel}</span>}
+        <div style={{marginLeft:'auto',display:'flex',alignItems:'center',gap:10}}>
+          <div className="leg"><div className="dot" style={{background:'rgba(65,179,245,.85)'}}/>correlated</div>
+          <div className="leg"><div className="dot" style={{background:'rgba(65,179,245,.25)'}}/>unmatched</div>
+          <div className="leg"><span style={{color:'rgba(157,132,245,.8)',fontFamily:'var(--mono)',fontSize:10}}>▲</span> kernel</div>
+          <div className="leg"><span style={{color:'rgba(46,204,152,.8)',fontFamily:'var(--mono)',fontSize:10}}>▼</span> transfer</div>
+          <div className="leg"><span style={{color:'rgba(245,101,101,.8)',fontFamily:'var(--mono)',fontSize:10}}>✕</span> page fault</div>
+        </div>
+      </div>
+      <div id="timeline-wrap" ref={wrapRef}>
+        {!data&&<div className="empty"><div className="empty-t">No session loaded</div><div className="empty-s">Load a session.json to begin</div></div>}
+        <svg ref={svgRef}/>
+      </div>
+      {/* Horizontal time scrollbar */}
+      {data&&<div id="time-scrollbar" title="Drag to scroll time range">
+        <div id="time-scrollbar-track"/>
+        <div id="time-scrollbar-thumb"/>
+      </div>}
     </div>
   );
 }
 
+// ── Mini overview strip (pressure map + brush) ────────────────────────────────
 function PressureStrip({data}){
   const ref=useRef(null);
   useEffect(()=>{
     if(!ref.current||!data)return;
     const svg=d3.select(ref.current);svg.selectAll('*').remove();
-    const W=ref.current.clientWidth||800,H=72,ML=60,MR=12,MT=6,MB=18;
+    const W=ref.current.clientWidth||800,H=64,ML=56,MR=14,MT=4,MB=18;
     const{allocs,deallocMap,gpu,startNs,endNs,rssEvents,maxRss}=data;
     const x=d3.scaleLinear().domain([startNs,endNs]).range([ML,W-MR]);
-    const BH=14;
+    const BH=12;
+
+    // Alloc lifetime bars (very thin, overview)
     allocs.forEach(e=>{
       const px=x(e.base.timestamp_ns);const d=deallocMap[e.alloc_address];
       const pw=Math.max(1,x(d?d.base.timestamp_ns:endNs)-px);
       svg.append('rect').attr('x',px).attr('y',MT).attr('width',pw).attr('height',BH)
-        .attr('fill',tc(e.object_type||'unknown')+'22').attr('stroke',tc(e.object_type||'unknown')).attr('stroke-width',.4).attr('rx',.5);
+        .attr('fill',tc(e.object_type||'unknown')+'20').attr('stroke',tc(e.object_type||'unknown')).attr('stroke-width',.3).attr('rx',.3);
     });
+
+    // RSS curve
     if(rssEvents.length>1&&maxRss>0){
       const yRss=d3.scaleLinear().domain([0,maxRss]).range([H-MB,MT]);
       const line=d3.line().x(d=>x(d.base.timestamp_ns)).y(d=>yRss(d.peak_rss_kb)).curve(d3.curveMonotoneX);
       svg.append('path').datum(rssEvents).attr('d',line).attr('fill','none').attr('stroke','rgba(245,197,66,.55)').attr('stroke-width',1.5);
-      svg.append('text').attr('x',ML-4).attr('y',yRss(maxRss)).attr('text-anchor','end').attr('dominant-baseline','middle')
-        .attr('font-family','JetBrains Mono,monospace').attr('font-size',7).attr('fill','rgba(245,197,66,.5)').text(fmtB(maxRss*1024));
+      svg.append('text').attr('x',ML-3).attr('y',yRss(maxRss)).attr('text-anchor','end').attr('dominant-baseline','middle')
+        .attr('font-family','JetBrains Mono,monospace').attr('font-size',7).attr('fill','rgba(245,197,66,.45)').text(fmtB(maxRss*1024));
     }
+
+    // GPU events
     gpu.forEach(e=>{
-      const px=x(e.base.timestamp_ns);const isK=e.base.event_type==='KERNEL';
+      const px=x(e.base.timestamp_ns);const isK=e.base.event_type==='KERNEL';const isPF=e.base.event_type==='PAGE_FAULT';
       svg.append('line').attr('x1',px).attr('x2',px).attr('y1',MT).attr('y2',H-MB-2)
-        .attr('stroke',isK?'rgba(157,132,245,.65)':'rgba(46,204,152,.65)').attr('stroke-width',1);
+        .attr('stroke',isK?'rgba(157,132,245,.55)':isPF?'rgba(245,101,101,.55)':'rgba(46,204,152,.55)').attr('stroke-width',.8);
     });
-    svg.append('text').attr('x',ML-4).attr('y',MT+BH/2).attr('text-anchor','end').attr('dominant-baseline','middle')
-      .attr('font-family','JetBrains Mono,monospace').attr('font-size',7).attr('fill','rgba(65,179,245,.5)').text('overview');
+
+    svg.append('text').attr('x',ML-3).attr('y',MT+BH/2).attr('text-anchor','end').attr('dominant-baseline','middle')
+      .attr('font-family','JetBrains Mono,monospace').attr('font-size',7).attr('fill','rgba(65,179,245,.35)').text('overview');
+
     const axG=svg.append('g').attr('transform',`translate(0,${H-MB})`);
     axG.call(d3.axisBottom(x).ticks(8).tickFormat(t=>fmtNs(t-startNs)).tickSize(2));
     axG.selectAll('text').attr('font-family','JetBrains Mono,monospace').attr('font-size',7).attr('fill','#3d4f68');
     axG.select('.domain').attr('stroke','#1c2235');axG.selectAll('.tick line').attr('stroke','#1c2235');
   },[data]);
-  return <div id="pressure-strip"><svg ref={ref} style={{width:'100%',height:72}}/></div>;
+  return <div id="pressure-strip"><svg ref={ref} style={{width:'100%',height:64}}/></div>;
 }
 
+// ── GPU Panel (call sites tab) ─────────────────────────────────────────────────
 function GpuPanel({data}){
   if(!data||!data.gpu.length)return null;
-  const{kernels,transfers,xferBytes,kDur,maxDevMem,streams}=data;
-  const kNames=[...new Set(kernels.map(k=>k.kernel_name||'').filter(Boolean))].slice(0,5);
+  const{kernels,transfers,pageFaults,xferBytes,kDur,maxDevMem,streams,umBytesH2D,umBytesD2H,totalPageFaults}=data;
+  const kNames=[...new Set(kernels.map(k=>k.kernel_name||'').filter(Boolean))].slice(0,6);
+  // Top kernels by total duration
+  const kernelDurs={};kernels.forEach(k=>{const n=k.kernel_name||'unknown';kernelDurs[n]=(kernelDurs[n]||0)+(k.kernel_duration_ns||0)});
+  const topKernels=Object.entries(kernelDurs).sort((a,b)=>b[1]-a[1]).slice(0,6);
+  const totalRegs=kernels.length?Math.round(kernels.reduce((s,k)=>s+(k.registers_per_thread||0),0)/kernels.length):0;
+  const totalShmem=kernels.reduce((s,k)=>s+(k.shared_mem_bytes||0),0);
   return(
-    <div className="card" style={{margin:'0 12px 8px'}}>
-      <div className="card-title">GPU Activity</div>
-      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8,marginBottom:10}}>
-        {[{l:'Kernels',v:kernels.length,c:'var(--purple)'},{l:'Transfers',v:transfers.length,c:'var(--green)'},{l:'Data Moved',v:fmtB(xferBytes),c:'var(--cpu)'},{l:'Kernel Time',v:fmtNs(kDur),c:'var(--yellow)'}].map(({l,v,c})=>(
-          <div key={l} style={{background:'var(--card2)',border:'1px solid var(--border2)',borderRadius:6,padding:'7px 10px'}}>
-            <div style={{fontFamily:'var(--mono)',fontSize:14,fontWeight:600,color:c}}>{v}</div>
-            <div style={{fontFamily:'var(--mono)',fontSize:8,color:'var(--dim)',letterSpacing:'.08em',textTransform:'uppercase',marginTop:1}}>{l}</div>
+    <div className="card" style={{margin:'0 10px 8px'}}>
+      <div className="card-title">GPU Activity Summary</div>
+      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:7,marginBottom:10}}>
+        {[
+          {l:'Kernels',v:kernels.length,c:'var(--purple)'},
+          {l:'Transfers',v:transfers.length,c:'var(--green)'},
+          {l:'Data Moved',v:fmtB(xferBytes),c:'var(--cpu)'},
+          {l:'Kernel Time',v:fmtNs(kDur),c:'var(--yellow)'},
+          {l:'UM H→D',v:fmtB(umBytesH2D),c:'var(--teal)'},
+          {l:'UM D→H',v:fmtB(umBytesD2H),c:'var(--orange)'},
+          {l:'Page Faults',v:fmtN(totalPageFaults),c:'var(--red)'},
+          {l:'Peak Dev Mem',v:maxDevMem>0?`${maxDevMem} MB`:'—',c:'var(--text2)'},
+        ].map(({l,v,c})=>(
+          <div key={l} style={{background:'var(--card2)',border:'1px solid var(--border2)',borderRadius:5,padding:'6px 9px'}}>
+            <div style={{fontFamily:'var(--mono)',fontSize:13,fontWeight:600,color:c}}>{v}</div>
+            <div style={{fontFamily:'var(--mono)',fontSize:8,color:'var(--dim)',letterSpacing:'.06em',textTransform:'uppercase',marginTop:1}}>{l}</div>
           </div>
         ))}
       </div>
-      {streams.length>0&&<div style={{fontFamily:'var(--mono)',fontSize:9,color:'var(--dim)',marginBottom:6}}>streams: {streams.join(', ')}</div>}
-      {kNames.length>0&&<>{kNames.map(n=><div key={n} style={{fontFamily:'var(--mono)',fontSize:9,color:'var(--purple)',marginBottom:3,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{n}</div>)}</>}
-      {maxDevMem>0&&<div style={{fontFamily:'var(--mono)',fontSize:9,color:'var(--dim)',marginTop:6}}>peak device mem: <span style={{color:'var(--orange)'}}>{maxDevMem} MB</span></div>}
+      {streams.length>0&&<div style={{fontFamily:'var(--mono)',fontSize:9,color:'var(--dim)',marginBottom:8}}>active streams: {streams.join(', ')}</div>}
+      {kernels.length>0&&<>
+        <div style={{fontFamily:'var(--mono)',fontSize:8,color:'var(--dim)',letterSpacing:'.1em',textTransform:'uppercase',marginBottom:6}}>Kernel Occupancy (avg)</div>
+        <div style={{display:'flex',gap:12,marginBottom:8}}>
+          <div style={{fontFamily:'var(--mono)',fontSize:10}}><span style={{color:'var(--dim)'}}>regs/thread </span><span style={{color:'var(--yellow)'}}>{totalRegs}</span></div>
+          <div style={{fontFamily:'var(--mono)',fontSize:10}}><span style={{color:'var(--dim)'}}>shared mem </span><span style={{color:'var(--orange)'}}>{fmtB(totalShmem/Math.max(1,kernels.length))}</span></div>
+        </div>
+      </>}
+      {topKernels.length>0&&<>
+        <div style={{fontFamily:'var(--mono)',fontSize:8,color:'var(--dim)',letterSpacing:'.1em',textTransform:'uppercase',marginBottom:6}}>Kernels by Duration</div>
+        {topKernels.map(([n,d])=>(
+          <div key={n} style={{display:'flex',gap:6,marginBottom:4,alignItems:'baseline'}}>
+            <div style={{fontFamily:'var(--mono)',fontSize:9,color:'var(--purple)',flex:1,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{n}</div>
+            <div style={{fontFamily:'var(--mono)',fontSize:9,color:'var(--yellow)',flexShrink:0}}>{fmtNs(d)}</div>
+          </div>
+        ))}
+      </>}
     </div>
   );
 }
 
+// ── Callsite list ─────────────────────────────────────────────────────────────
 function CallsiteList({data,onSelect}){
   if(!data||!data.topCallsites.length)return(
-    <div style={{padding:'30px 16px',textAlign:'center'}}>
-      <div style={{fontFamily:'var(--mono)',fontSize:10,color:'var(--dim)',marginBottom:10}}>No callstack data in this session</div>
-      <div style={{fontSize:12,color:'var(--dim)',lineHeight:1.6,maxWidth:260,margin:'0 auto'}}>
-        Callstacks are captured by tracemalloc. Ensure PythonMemoryLayer is started with nframe&gt;0 and tracemalloc is running in the target process.
-      </div>
+    <div style={{padding:'28px 14px',textAlign:'center'}}>
+      <div style={{fontFamily:'var(--mono)',fontSize:10,color:'var(--dim)',marginBottom:8}}>No callstack data in this session</div>
+      <div style={{fontSize:12,color:'var(--dim)',lineHeight:1.6,maxWidth:240,margin:'0 auto'}}>Ensure PythonMemoryLayer is started with nframe&gt;0 before the workload begins.</div>
     </div>
   );
   const max=data.topCallsites[0]?.bytes||1;
   return(
     <div>
-      {data.topCallsites.slice(0,8).map((cs,i)=>{
+      {data.topCallsites.slice(0,10).map((cs,i)=>{
         const parts=cs.site.split('/');const fileName=parts[parts.length-1];const[file,line]=fileName.split(':');
         return(
-          <div key={i} style={{padding:'10px 14px',borderBottom:'1px solid var(--border)',cursor:'pointer',transition:'background .1s'}}
+          <div key={i} style={{padding:'9px 12px',borderBottom:'1px solid var(--border)',cursor:'pointer',transition:'background .1s'}}
             onMouseEnter={e=>e.currentTarget.style.background='var(--card)'}
             onMouseLeave={e=>e.currentTarget.style.background=''}
             onClick={()=>onSelect({type:'callsite',data:cs})}>
@@ -551,15 +871,25 @@ function CallsiteList({data,onSelect}){
   );
 }
 
+// ── Inspector ─────────────────────────────────────────────────────────────────
 function Inspector({selected,data,session}){
-  if(!selected)return<div className="scrollable"><div style={{padding:'40px 16px',textAlign:'center',fontFamily:'var(--mono)',fontSize:10,color:'var(--dim)',lineHeight:2}}>Select an item to inspect it.<br/>Click any bar, insight, type,<br/>or GPU event marker.</div></div>;
-  const Row=({k,v,cls})=><div className="irow"><span className="ik">{k}</span><span className={`iv ${cls||''}`}>{v??'—'}</span></div>;
+  if(!selected)return(
+    <div className="scrollable">
+      <div style={{padding:'36px 14px',textAlign:'center',fontFamily:'var(--mono)',fontSize:10,color:'var(--dim)',lineHeight:2.2}}>
+        Select an item<br/>to inspect it.<br/><br/>
+        <span style={{fontSize:9,color:'var(--border2)'}}>Click a bar, GPU marker,<br/>insight, type, or callsite.</span>
+      </div>
+    </div>
+  );
+
+  const Row=({k,v,cls})=><div className="irow"><span className="ik">{k}</span><span className={`iv${cls?' '+cls:''}`}>{v??'—'}</span></div>;
   const Sec=({title,children})=><div className="isec"><div className="isec-t">{title}</div>{children}</div>;
   const{type,sel}=selected;
   const baseNs=session?.start_time_ns||0;
 
   if(type==='cpu'){
-    const e=sel;const d=data?.deallocMap[e.alloc_address];
+    const e=sel;
+    const d=data?.deallocMap[e.alloc_address];
     const lifetime=e.lifetime_ns>0?e.lifetime_ns:(d?d.base.timestamp_ns-e.base.timestamp_ns:null);
     const corrs=data?.cpuCorrs[e.base.event_id]||[];
     const dispB=(e.buffer_nbytes||0)>0?e.buffer_nbytes:e.alloc_size_bytes;
@@ -567,40 +897,57 @@ function Inspector({selected,data,session}){
     const lifePct=lifetime?Math.min(100,lifetime/sessD*100):0;
     return(
       <div className="scrollable">
-        <div style={{padding:'14px'}}>
+        <div style={{padding:'12px'}}>
           <span className="badge badge-cpu">CPU Allocation</span>
           <Sec title="Object">
-            <Row k="type"      v={e.object_type}     cls="a"/>
-            <Row k="module"    v={e.module_name||'—'} cls="d"/>
-            <Row k="event_id"  v={e.base.event_id}   cls="d"/>
-            <Row k="gc gen"    v={e.gc_generation}/>
-            <Row k="ref count" v={e.ref_count}/>
+            <Row k="type"     v={e.object_type}      cls="a"/>
+            <Row k="module"   v={e.module_name||'—'} cls="d"/>
+            <Row k="event id" v={e.base.event_id}    cls="d"/>
+            <Row k="gc gen"   v={e.gc_generation===-1?'−1 (non-GC)':e.gc_generation} cls={e.gc_generation===-1?'p':''}/>
+            <Row k="ref count"v={e.ref_count}/>
           </Sec>
           <Sec title="Memory">
-            <Row k="address" v={fmtAddr(e.alloc_address)} cls="d"/>
-            <Row k="size"    v={fmtB(e.alloc_size_bytes)} cls="g"/>
-            {(e.buffer_nbytes||0)>0&&<><Row k="buffer" v={fmtB(e.buffer_nbytes)} cls="y"/><Row k="note" v="tracemalloc sees header only" cls="d"/></>}
+            <Row k="address"         v={fmtAddr(e.alloc_address)}  cls="d"/>
+            <Row k="size"            v={fmtB(e.alloc_size_bytes)}   cls="g"/>
+            {(e.tracemalloc_size||0)>0&&e.tracemalloc_size!==e.alloc_size_bytes&&
+              <Row k="tm size"       v={fmtB(e.tracemalloc_size)}  cls="d"/>}
+            {(e.buffer_nbytes||0)>0&&<Row k="buffer"v={fmtB(e.buffer_nbytes)} cls="y"/>}
+            {(e.pinned_address||0)>0&&<Row k="data ptr" v={fmtAddr(e.pinned_address)} cls="d"/>}
             {(e.peak_rss_kb||0)>0&&<Row k="RSS" v={fmtB(e.peak_rss_kb*1024)} cls="d"/>}
           </Sec>
+          {(e.array_shape||[]).length>0&&(
+            <Sec title="Array">
+              <Row k="shape"   v={`[${e.array_shape.join(' × ')}]`}   cls="y"/>
+              <Row k="dtype"   v={e.array_dtype||'—'}                  cls="g"/>
+              <Row k="is buf"  v={e.is_numpy_buffer?'yes':'no'}         cls="d"/>
+            </Sec>
+          )}
           <Sec title="Lifetime">
-            <Row k="allocated" v={'+'+fmtNs(e.base.timestamp_ns-baseNs)} cls="d"/>
-            <Row k="freed"     v={d?'+'+fmtNs(d.base.timestamp_ns-baseNs):'still alive'} cls={d?'d':'y'}/>
-            <Row k="duration"  v={lifetime?fmtNs(lifetime):'—'} cls="g"/>
-            {lifetime&&<div style={{height:4,background:'var(--border2)',borderRadius:2,margin:'6px 0 8px',overflow:'hidden'}}><div style={{width:`${lifePct}%`,height:'100%',background:'var(--green)',borderRadius:2}}/></div>}
+            <Row k="allocated" v={'+'+fmtNs(e.base.timestamp_ns-baseNs)}               cls="d"/>
+            <Row k="freed"     v={d?'+'+fmtNs(d.base.timestamp_ns-baseNs):'still live'} cls={d?'d':'y'}/>
+            <Row k="duration"  v={lifetime?fmtNs(lifetime):'—'}                         cls="g"/>
+            {lifetime&&<div style={{height:4,background:'var(--border)',borderRadius:2,margin:'4px 0 6px',overflow:'hidden'}}>
+              <div style={{width:`${lifePct}%`,height:'100%',background:'var(--green)',borderRadius:2}}/>
+            </div>}
           </Sec>
           {corrs.length>0&&(
             <Sec title={`GPU Correlations (${corrs.length})`}>
-              {corrs.slice(0,4).map((c,i)=>{
+              {corrs.slice(0,5).map((c,i)=>{
                 const ge=c.gpuEvent;
                 return(
                   <div key={i} className={`cpill ${c.confidence.toLowerCase()}`}>
-                    <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:3}}>
+                    <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:4}}>
                       <span className={`badge ${c.confidence==='HARD'?'badge-hard':'badge-weak'}`} style={{marginBottom:0,fontSize:7,padding:'2px 6px'}}>{c.confidence}</span>
-                      <span style={{fontFamily:'var(--mono)',fontSize:9,color:'var(--dim)',marginLeft:'auto'}}>{fmtNs(c.latency_ns)}</span>
+                      <span style={{fontFamily:'var(--mono)',fontSize:9,color:'var(--dim)'}}>{c.match_reason}</span>
+                      <span style={{fontFamily:'var(--mono)',fontSize:9,color:'var(--dim)',marginLeft:'auto'}}>Δ {fmtNs(c.latency_ns)}</span>
                     </div>
                     {ge&&<>
-                      <div style={{fontFamily:'var(--mono)',fontSize:9,color:'var(--text)'}}>{ge.base.event_type}: {ge.kernel_name||fmtB(ge.transfer_size_bytes)}</div>
-                      {ge.kernel_duration_ns>0&&<div style={{fontFamily:'var(--mono)',fontSize:8,color:'var(--dim)'}}>dur {fmtNs(ge.kernel_duration_ns)} · stream {ge.stream_id??'?'}</div>}
+                      <div style={{fontFamily:'var(--mono)',fontSize:9,color:'var(--text)',marginBottom:2}}>{ge.base.event_type}: {ge.kernel_name||fmtB(ge.transfer_size_bytes)}</div>
+                      {ge.kernel_duration_ns>0&&<div style={{fontFamily:'var(--mono)',fontSize:8,color:'var(--dim)',marginBottom:2}}>dur {fmtNs(ge.kernel_duration_ns)} · stream {ge.stream_id??'—'}</div>}
+                      {(ge.grid?.x||0)>0&&<div style={{fontFamily:'var(--mono)',fontSize:8,color:'var(--dim)',marginBottom:2}}>grid {ge.grid.x}×{ge.grid.y}×{ge.grid.z} · blk {ge.block.x}×{ge.block.y}×{ge.block.z}</div>}
+                      {(ge.registers_per_thread||0)>0&&<div style={{fontFamily:'var(--mono)',fontSize:8,color:'var(--dim)'}}>regs/thread {ge.registers_per_thread} · shmem {fmtB(ge.shared_mem_bytes)}</div>}
+                      {(ge.um_bytes_htod||0)>0&&<div style={{fontFamily:'var(--mono)',fontSize:8,color:'var(--teal)'}}>UM H→D {fmtB(ge.um_bytes_htod)}</div>}
+                      {(ge.um_bytes_dtoh||0)>0&&<div style={{fontFamily:'var(--mono)',fontSize:8,color:'var(--orange)'}}>UM D→H {fmtB(ge.um_bytes_dtoh)}</div>}
                     </>}
                   </div>
                 );
@@ -609,9 +956,9 @@ function Inspector({selected,data,session}){
           )}
           {(e.callstack||[]).length>0&&(
             <Sec title="Call Stack">
-              {e.callstack.slice(0,8).map((f,i)=>{
+              {e.callstack.slice(0,10).map((f,i)=>{
                 const isU=!f.includes('/lib/python')&&!f.includes('tracemalloc')&&!f.includes('importlib');
-                return<div key={i} className={`frame ${isU?'u':''}`}>{f.split('/').pop()}</div>;
+                return<div key={i} className={`frame ${isU?'u':''}`}>{f.split('/').slice(-2).join('/')}</div>;
               })}
             </Sec>
           )}
@@ -621,29 +968,61 @@ function Inspector({selected,data,session}){
   }
 
   if(type==='gpu'){
-    const e=sel;const isT=e.base.event_type==='TRANSFER';
+    const e=sel;
+    const isT=e.base.event_type==='TRANSFER';
+    const isK=e.base.event_type==='KERNEL';
+    const isPF=e.base.event_type==='PAGE_FAULT';
+    // Find correlated CPU events
+    const relatedCPU=(data?.corrs||[]).filter(c=>c.gpu_event_id===e.base.event_id);
     return(
       <div className="scrollable">
-        <div style={{padding:'14px'}}>
+        <div style={{padding:'12px'}}>
           <span className="badge badge-gpu">GPU {e.base.event_type}</span>
           <Sec title="Identity">
-            <Row k="event_id" v={e.base.event_id} cls="d"/>
-            <Row k="device"   v={`GPU:${e.device_id??0}`}/>
-            <Row k="stream"   v={e.stream_id??'—'}/>
-            <Row k="at"       v={'+'+fmtNs(e.base.timestamp_ns-baseNs)} cls="d"/>
+            <Row k="event id"  v={e.base.event_id}                          cls="d"/>
+            <Row k="device"    v={`GPU:${e.device_id??0}`}/>
+            <Row k="stream"    v={e.stream_id??'—'}/>
+            <Row k="at"        v={'+'+fmtNs(e.base.timestamp_ns-baseNs)}    cls="d"/>
+            {(e.correlation_id||0)>0&&<Row k="corr id" v={e.correlation_id} cls="d"/>}
           </Sec>
-          {isT?<Sec title="Transfer">
-            <Row k="kind"     v={e.transfer_kind}           cls="y"/>
-            <Row k="size"     v={fmtB(e.transfer_size_bytes)} cls="g"/>
-            <Row k="src"      v={fmtAddr(e.src_address)}    cls="d"/>
-            <Row k="dst"      v={fmtAddr(e.dst_address)}    cls="d"/>
+          {isT&&<Sec title="Transfer">
+            <Row k="kind"     v={e.transfer_kind}              cls="y"/>
+            <Row k="size"     v={fmtB(e.transfer_size_bytes)}  cls="g"/>
+            <Row k="src"      v={fmtAddr(e.src_address)}       cls="d"/>
+            <Row k="dst"      v={fmtAddr(e.dst_address)}       cls="d"/>
             {(e.kernel_duration_ns||0)>0&&<Row k="duration" v={fmtNs(e.kernel_duration_ns)} cls="p"/>}
-          </Sec>:<Sec title="Kernel">
-            <Row k="name"      v={e.kernel_name||'—'}         cls="p"/>
-            <Row k="duration"  v={fmtNs(e.kernel_duration_ns)} cls="g"/>
-            <Row k="pg faults" v={e.um_page_faults??0}/>
+            {(e.um_bytes_htod||0)>0&&<Row k="UM H→D" v={fmtB(e.um_bytes_htod)} cls="a"/>}
+            {(e.um_bytes_dtoh||0)>0&&<Row k="UM D→H" v={fmtB(e.um_bytes_dtoh)} cls="o"/>}
           </Sec>}
-          {(e.device_mem_used_mb||0)>0&&<Sec title="Device Mem"><Row k="in use" v={`${e.device_mem_used_mb} MB`} cls="y"/></Sec>}
+          {isK&&<Sec title="Kernel">
+            <Row k="name"     v={e.kernel_name||'—'}             cls="p"/>
+            <Row k="duration" v={fmtNs(e.kernel_duration_ns)}    cls="g"/>
+            <Row k="stream"   v={e.stream_id??'—'}               cls="d"/>
+          </Sec>}
+          {isK&&(e.grid?.x||0)>0&&<Sec title="Launch Config">
+            <Row k="grid"     v={`${e.grid.x} × ${e.grid.y} × ${e.grid.z}`}  cls="y"/>
+            <Row k="block"    v={`${e.block.x} × ${e.block.y} × ${e.block.z}`} cls="y"/>
+            <Row k="regs/thr" v={e.registers_per_thread||0}                   cls="o"/>
+            <Row k="shmem"    v={fmtB(e.shared_mem_bytes||0)}                 cls="teal"/>
+            <Row k="threads"  v={fmtN((e.grid?.x||0)*(e.grid?.y||1)*(e.grid?.z||1)*(e.block?.x||1)*(e.block?.y||1)*(e.block?.z||1))} cls="d"/>
+          </Sec>}
+          {isPF&&<Sec title="Page Faults">
+            <Row k="fault groups"    v={e.um_page_faults}           cls="r"/>
+            <Row k="address"         v={fmtAddr(e.src_address)}     cls="d"/>
+            <Row k="device"          v={e.device_id===0?'CPU':'GPU:'+e.device_id} cls="d"/>
+          </Sec>}
+          {(e.device_mem_used_mb||0)>0&&<Sec title="Device Memory"><Row k="in use" v={`${e.device_mem_used_mb} MB`} cls="y"/></Sec>}
+          {relatedCPU.length>0&&<Sec title={`Correlated CPU (${relatedCPU.length})`}>
+            {relatedCPU.slice(0,3).map((c,i)=>(
+              <div key={i} className="cpill" style={{marginBottom:5}}>
+                <div style={{display:'flex',gap:6,marginBottom:2}}>
+                  <span className={`badge ${c.confidence==='HARD'?'badge-hard':'badge-weak'}`} style={{marginBottom:0,fontSize:7,padding:'2px 5px'}}>{c.confidence}</span>
+                  <span style={{fontFamily:'var(--mono)',fontSize:9,color:'var(--dim)',marginLeft:'auto'}}>Δ {fmtNs(c.latency_ns)}</span>
+                </div>
+                <div style={{fontFamily:'var(--mono)',fontSize:8,color:'var(--dim)'}}>{c.match_reason} · cpu #{c.cpu_event_id}</div>
+              </div>
+            ))}
+          </Sec>}
         </div>
       </div>
     );
@@ -653,11 +1032,11 @@ function Inspector({selected,data,session}){
     const ins=sel;
     return(
       <div className="scrollable">
-        <div style={{padding:'14px'}}>
+        <div style={{padding:'12px'}}>
           <span className="badge badge-grp">{ins.sev==='hi'?'HIGH':ins.sev==='md'?'MEDIUM':ins.sev==='lo'?'LOW':'INFO'}</span>
           <div style={{fontSize:28,marginBottom:8}}>{ins.icon}</div>
-          <div style={{fontSize:15,fontWeight:600,color:'var(--text)',marginBottom:10}}>{ins.title}</div>
-          <div style={{fontSize:13,color:'var(--text2)',lineHeight:1.65,marginBottom:12}}>{ins.desc}</div>
+          <div style={{fontSize:14,fontWeight:600,color:'var(--text)',marginBottom:8}}>{ins.title}</div>
+          <div style={{fontSize:12,color:'var(--text2)',lineHeight:1.6,marginBottom:10}}>{ins.desc}</div>
           <div style={{fontFamily:'var(--mono)',fontSize:11,color:ins.color||'var(--cpu)'}}>{ins.stat}</div>
           {ins.burst&&<div style={{marginTop:12}}>
             <div className="isec-t">Burst Detail</div>
@@ -674,61 +1053,57 @@ function Inspector({selected,data,session}){
   if(type==='burst'){
     const b=sel;
     return(
-      <div className="scrollable">
-        <div style={{padding:'14px'}}>
-          <span className="badge badge-grp">Burst</span>
-          <div className="isec">
-            <div className="isec-t">Details</div>
-            <div className="irow"><span className="ik">type</span><span className="iv a">{b.type}</span></div>
-            <div className="irow"><span className="ik">count</span><span className="iv g">{b.count}</span></div>
-            <div className="irow"><span className="ik">size each</span><span className="iv y">{fmtB(b.size)}</span></div>
-            <div className="irow"><span className="ik">total</span><span className="iv g">{fmtB(b.count*b.size)}</span></div>
-            <div className="irow"><span className="ik">at</span><span className="iv d">{'+'+fmtNs(b.start-(data?.startNs||0))}</span></div>
-          </div>
-          <div style={{fontSize:12,color:'var(--text2)',lineHeight:1.6,marginTop:4}}>
-            Identical-size allocation bursts indicate a tight loop: numpy/pandas operations decomposing into Python wrapper objects, list comprehensions, or iterator materialization.
-          </div>
-        </div>
-      </div>
+      <div className="scrollable"><div style={{padding:'12px'}}>
+        <span className="badge badge-grp">Burst</span>
+        <Sec title="Details">
+          <Row k="type"     v={b.type}              cls="a"/>
+          <Row k="count"    v={b.count}              cls="g"/>
+          <Row k="size each"v={fmtB(b.size)}         cls="y"/>
+          <Row k="total"    v={fmtB(b.count*b.size)} cls="g"/>
+          <Row k="at"       v={'+'+fmtNs(b.start-(data?.startNs||0))} cls="d"/>
+        </Sec>
+        <div style={{fontSize:12,color:'var(--text2)',lineHeight:1.6}}>Identical-size allocation bursts indicate a tight loop: numpy/pandas operations, list comprehensions, or iterator materialization.</div>
+      </div></div>
     );
   }
 
   if(type==='callsite'){
     const cs=sel;
     return(
-      <div className="scrollable">
-        <div style={{padding:'14px'}}>
-          <span className="badge badge-cpu">Call Site</span>
-          <div className="isec">
-            <div className="isec-t">Location</div>
-            <div className="irow"><span className="ik">file</span><span className="iv a">{cs.site.split('/').pop()}</span></div>
-            <div className="irow"><span className="ik">allocs</span><span className="iv g">{cs.count}</span></div>
-            <div className="irow"><span className="ik">bytes</span><span className="iv y">{fmtB(cs.bytes)}</span></div>
-          </div>
-          <div className="isec">
-            <div className="isec-t">Types Allocated Here</div>
-            {cs.types.map(t=><div key={t} className="frame u">{t}</div>)}
-          </div>
-        </div>
-      </div>
+      <div className="scrollable"><div style={{padding:'12px'}}>
+        <span className="badge badge-cpu">Call Site</span>
+        <Sec title="Location">
+          <Row k="file"  v={cs.site.split('/').slice(-2).join('/')} cls="a"/>
+          <Row k="allocs"v={cs.count}                               cls="g"/>
+          <Row k="bytes" v={fmtB(cs.bytes)}                         cls="y"/>
+        </Sec>
+        <Sec title="Types Allocated Here">
+          {cs.types.map(t=><div key={t} className="frame u">{t}</div>)}
+        </Sec>
+      </div></div>
     );
   }
 
-  return <div className="scrollable"><div style={{padding:'40px',textAlign:'center',fontFamily:'var(--mono)',fontSize:10,color:'var(--dim)'}}>—</div></div>;
+  return <div className="scrollable"><div style={{padding:'36px',textAlign:'center',fontFamily:'var(--mono)',fontSize:10,color:'var(--dim)'}}>—</div></div>;
 }
 
+// ── Root App ──────────────────────────────────────────────────────────────────
 function App(){
-  const[session,setSession]=useState(null);
+  const[session, setSession] =useState(null);
   const[selected,setSelected]=useState(null);
-  const[filter,setFilter]=useState(null);
-  const[view,setView]=useState('timeline');
+  const[filter,  setFilter  ]=useState(null);
+  const[view,    setView    ]=useState('timeline');
+  const[search,  setSearch  ]=useState('');
   const data=useMemo(()=>analyzeSession(session),[session]);
+
   const loadFile=useCallback(file=>{
     if(!file)return;
     const r=new FileReader();
-    r.onload=e=>{try{const s=JSON.parse(e.target.result);setSession(s);setSelected(null);setFilter(null)}catch(err){alert('Invalid JSON: '+err.message)}};
+    r.onload=e=>{try{const s=JSON.parse(e.target.result);setSession(s);setSelected(null);setFilter(null);setSearch('')}catch(err){alert('Invalid JSON: '+err.message)}};
     r.readAsText(file);
   },[]);
+
+  // Drag-and-drop
   useEffect(()=>{
     const ov=document.getElementById('drop-ov');
     const over=e=>{e.preventDefault();ov.classList.add('show')};
@@ -737,54 +1112,66 @@ function App(){
     document.addEventListener('dragover',over);document.addEventListener('dragleave',leave);document.addEventListener('drop',drop);
     return()=>{document.removeEventListener('dragover',over);document.removeEventListener('dragleave',leave);document.removeEventListener('drop',drop)};
   },[loadFile]);
-  useEffect(()=>{const inp=document.getElementById('file-input');const h=e=>loadFile(e.target.files[0]);inp.addEventListener('change',h);return()=>inp.removeEventListener('change',h)},[loadFile]);
+
+  // File input
+  useEffect(()=>{
+    const inp=document.getElementById('file-input');
+    const h=e=>loadFile(e.target.files[0]);
+    inp.addEventListener('change',h);return()=>inp.removeEventListener('change',h);
+  },[loadFile]);
+
   const kpis=useMemo(()=>{
     if(!data)return[];
+    const hard=data.corrs.filter(c=>c.confidence==='HARD').length;
     return[
       {v:fmtN(data.allocs.length),l:'allocations',cls:'b'},
       {v:fmtN(data.deallocs.length),l:'freed',cls:''},
       {v:fmtB(data.totalBytes),l:'total bytes',cls:'g'},
       {v:data.gpu.length,l:'gpu events',cls:'p'},
-      {v:data.corrs.filter(c=>c.confidence==='HARD').length,l:'hard corr',cls:'g'},
+      {v:hard,l:'hard corr',cls:hard>0?'g':''},
       {v:fmtNs(data.dur),l:'duration',cls:''},
     ];
   },[data]);
-  const onSelect=useCallback((s)=>setSelected(s?{type:s.type,sel:s.data}:null),[]);
+
+  const onSelect=useCallback(s=>setSelected(s?{type:s.type,sel:s.data}:null),[]);
 
   return<>
     <div id="topbar">
-      <span className="logo">HPC<span className="s">/</span>Profiler</span>
+      <span className="logo">HPC<span className="s">/</span>Mem</span>
       {kpis.length>0&&<div className="vdiv"/>}
       {kpis.map((k,i)=><div key={i} className="kpi"><div className={`kpi-v ${k.cls}`}>{k.v}</div><div className="kpi-l">{k.l}</div></div>)}
       <div className="spacer"/>
       <button className="load-btn" onClick={()=>document.getElementById('file-input').click()}>Load JSON</button>
     </div>
     <div id="app">
+      {/* Left: type list */}
       <div className="panel" style={{borderRight:'1px solid var(--border)'}}>
-        <div className="ph"><span className="ph-title">Object Types</span><span className="ph-count">{data?fmtN(data.typeList.length)+' types':''}</span></div>
-        <TypeList data={data} filter={filter} onFilter={setFilter}/>
+        <div className="ph">
+          <span className="ph-title">Object Types</span>
+          <span className="ph-count">{data?fmtN(data.typeList.length)+' types':''}</span>
+        </div>
+        <TypeList data={data} filter={filter} onFilter={setFilter} searchQ={search} onSearch={setSearch}/>
       </div>
+
+      {/* Center: tabs + views */}
       <div className="panel">
         <div id="center-nav">
           <button className={`tab ${view==='timeline'?'on':''}`} onClick={()=>setView('timeline')}>Timeline</button>
-          <button className={`tab ${view==='insights'?'on':''}`} onClick={()=>setView('insights')}>Insights{data&&data.insights.length>0?` (${data.insights.length})`:''}</button>
+          <button className={`tab ${view==='insights'?'on':''}`} onClick={()=>setView('insights')}>
+            Insights{data&&data.insights.length>0?` (${data.insights.length})`:''}</button>
           <button className={`tab ${view==='callsites'?'on':''}`} onClick={()=>setView('callsites')}>Call Sites</button>
-          {view==='timeline'&&<div className="tab-right">
-            <div className="leg"><div className="dot" style={{background:'rgba(65,179,245,.9)'}}/> correlated</div>
-            <div className="leg"><div className="dot" style={{background:'rgba(65,179,245,.25)'}}/> alloc</div>
-            <div className="leg"><div className="dot" style={{background:'rgba(157,132,245,.6)'}}/> kernel</div>
-            <div className="leg"><div className="dot" style={{background:'rgba(46,204,152,.6)'}}/> xfer</div>
-          </div>}
         </div>
+
         {view==='timeline'&&<>
           <Timeline data={data} filter={filter} onSelect={onSelect} selected={selected}/>
           <PressureStrip data={data}/>
         </>}
-        {view==='insights'&&<div style={{flex:1,overflowY:'auto'}}>
+
+        {view==='insights'&&<div className="scrollable">
           <WorkloadNarrative data={data}/>
           {data?.insights.map(ins=>(
             <div key={ins.id} className={`insight ${selected?.sel?.id===ins.id?'sel':''}`}
-              style={{borderLeftColor:selected?.sel?.id===ins.id?ins.color:ins.sev==='hi'?ins.color:undefined}}
+              style={{borderLeftColor:ins.sev==='hi'||selected?.sel?.id===ins.id?ins.color:undefined}}
               onClick={()=>onSelect({type:'insight',data:ins})}>
               <div className="insight-head">
                 <span className="insight-icon">{ins.icon}</span>
@@ -796,25 +1183,32 @@ function App(){
               <div className="ibar"><div className="ibar-fill" style={{width:`${(ins.pct||0)*100}%`,background:ins.color}}/></div>
             </div>
           ))}
-          {data&&!data.insights.length&&<div style={{padding:'30px',textAlign:'center',fontFamily:'var(--mono)',fontSize:10,color:'var(--dim)'}}>No significant issues detected.</div>}
-          {!data&&<div style={{padding:'30px',textAlign:'center',fontFamily:'var(--mono)',fontSize:10,color:'var(--dim)'}}>Load a session to see insights.</div>}
+          {data&&!data.insights.length&&<div style={{padding:'24px',textAlign:'center',fontFamily:'var(--mono)',fontSize:10,color:'var(--dim)'}}>No significant issues detected.</div>}
+          {!data&&<div style={{padding:'24px',textAlign:'center',fontFamily:'var(--mono)',fontSize:10,color:'var(--dim)'}}>Load a session to see insights.</div>}
           {data&&<GcChart data={data}/>}
           {data&&<SizeDistChart data={data}/>}
           {data&&<RateChart data={data}/>}
           {data&&<BurstPanel data={data} onSelect={onSelect}/>}
         </div>}
-        {view==='callsites'&&<div style={{flex:1,overflowY:'auto'}}>
+
+        {view==='callsites'&&<div className="scrollable">
           <CallsiteList data={data} onSelect={onSelect}/>
           <GpuPanel data={data}/>
         </div>}
       </div>
+
+      {/* Right: inspector */}
       <div className="panel" style={{borderLeft:'1px solid var(--border)'}}>
-        <div className="ph"><span className="ph-title">Inspector</span></div>
+        <div className="ph"><span className="ph-title">Inspector</span>
+          {selected&&<button onClick={()=>setSelected(null)}
+            style={{marginLeft:'auto',background:'none',border:'none',color:'var(--dim)',cursor:'pointer',fontFamily:'var(--mono)',fontSize:11,padding:'2px 4px'}}>✕</button>}
+        </div>
         <Inspector selected={selected} data={data} session={session}/>
       </div>
     </div>
   </>;
 }
+
 ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
 </script>
 </body>

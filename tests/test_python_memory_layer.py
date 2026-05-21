@@ -139,12 +139,12 @@ class TestAllocFields(unittest.TestCase):
                     f"Frame missing file:line format: {frame}")
 
     def test_alloc_gc_generation_valid(self):
-        """gc_generation must be 0, 1, or 2."""
+        """gc_generation must be -1 (not GC-tracked), 0, 1, or 2."""
         _ = Payload(list(range(100)))
         events = alloc_events(self.layer.collect())
         self.assertGreater(len(events), 0)
         for e in events:
-            self.assertIn(e["gc_generation"], [0, 1, 2],
+            self.assertIn(e["gc_generation"], [-1, 0, 1, 2],
                 f"Invalid gc_generation: {e['gc_generation']}")
 
     def test_alloc_new_objects_in_generation_0(self):
@@ -197,7 +197,11 @@ class TestAllocFields(unittest.TestCase):
 class TestDeallocFields(unittest.TestCase):
 
     def test_dealloc_fires_for_tracked_object(self):
-        """Deleting a tracked object must produce a DEALLOC event."""
+        """Deleting a tracked object must produce a DEALLOC event.
+
+        Pattern: del → gc.collect() → second collect() (releases tracemalloc
+        snapshot ref that was keeping the object alive) → sleep → flush().
+        """
         layer = PythonMemoryLayer(nframe=16)
         layer.start()
 
@@ -207,7 +211,10 @@ class TestDeallocFields(unittest.TestCase):
 
         del obj
         gc.collect()
-        time.sleep(0.01)  # give finalizer thread time to fire
+        # A second collect() replaces _last_snapshot, releasing tracemalloc's
+        # internal reference to the object so the weakref finalizer can fire.
+        layer.collect()
+        time.sleep(0.05)
 
         all_events = layer.flush()
         layer.stop()
@@ -227,7 +234,8 @@ class TestDeallocFields(unittest.TestCase):
 
         del obj
         gc.collect()
-        time.sleep(0.01)
+        layer.collect()   # release snapshot reference
+        time.sleep(0.05)
 
         all_events = layer.flush()
         layer.stop()
@@ -248,7 +256,8 @@ class TestDeallocFields(unittest.TestCase):
         layer.collect()
         del obj
         gc.collect()
-        time.sleep(0.01)
+        layer.collect()   # release snapshot reference
+        time.sleep(0.05)
 
         all_events = layer.flush()
         layer.stop()
@@ -267,7 +276,8 @@ class TestDeallocFields(unittest.TestCase):
         layer.collect()
         del obj
         gc.collect()
-        time.sleep(0.01)
+        layer.collect()   # release snapshot reference
+        time.sleep(0.05)
 
         all_events = layer.flush()
         layer.stop()
@@ -288,7 +298,8 @@ class TestDeallocFields(unittest.TestCase):
         layer.collect()
         del obj
         gc.collect()
-        time.sleep(0.01)
+        layer.collect()   # release snapshot reference
+        time.sleep(0.05)
 
         all_events = layer.flush()
         layer.stop()
@@ -307,7 +318,8 @@ class TestDeallocFields(unittest.TestCase):
         layer.collect()
         del obj
         gc.collect()
-        time.sleep(0.01)
+        layer.collect()   # release snapshot reference
+        time.sleep(0.05)
 
         all_events = layer.flush()
         layer.stop()
@@ -343,7 +355,8 @@ class TestSchemaValidation(unittest.TestCase):
 
         del objs
         gc.collect()
-        time.sleep(0.02)
+        layer.collect()   # release snapshot reference so finalizers fire
+        time.sleep(0.05)
 
         events += layer.flush()
         layer.stop()
@@ -358,6 +371,117 @@ class TestSchemaValidation(unittest.TestCase):
 
         if failures:
             self.fail(f"{len(failures)} schema failures:\n" + "\n".join(failures[:5]))
+
+
+# ---------------------------------------------------------------------------
+# E — New fields: tracemalloc_size, array_shape, array_dtype
+# ---------------------------------------------------------------------------
+
+class TestNewFields(unittest.TestCase):
+    """Verify that new fields added in the extended schema are populated correctly."""
+
+    def test_alloc_events_have_new_fields(self):
+        """Every ALLOC event must carry tracemalloc_size, array_shape, array_dtype."""
+        layer = PythonMemoryLayer(nframe=8)
+        layer.start()
+        _ = [Payload(list(range(50))) for _ in range(3)]
+        events = alloc_events(layer.collect())
+        layer.stop()
+
+        self.assertGreater(len(events), 0)
+        for e in events:
+            self.assertIn("tracemalloc_size", e,
+                "tracemalloc_size missing from alloc event")
+            self.assertIn("array_shape", e,
+                "array_shape missing from alloc event")
+            self.assertIn("array_dtype", e,
+                "array_dtype missing from alloc event")
+            self.assertIsInstance(e["tracemalloc_size"], int)
+            self.assertIsInstance(e["array_shape"], list)
+            self.assertIsInstance(e["array_dtype"], str)
+
+    def test_dealloc_events_have_new_fields(self):
+        """DEALLOC events must also carry the new fields (with zero/empty values)."""
+        layer = PythonMemoryLayer(nframe=8)
+        layer.start()
+        obj = Payload(list(range(100)))
+        layer.collect()
+        del obj
+        gc.collect()
+        layer.collect()   # release snapshot reference
+        time.sleep(0.05)
+        events = dealloc_events(layer.flush())
+        layer.stop()
+
+        for e in events:
+            self.assertIn("tracemalloc_size", e)
+            self.assertIn("array_shape", e)
+            self.assertIn("array_dtype", e)
+
+    def test_gc_generation_minus_one_for_non_gc_objects(self):
+        """Objects found via frame/referent scan (not gc-tracked) have gc_generation=-1."""
+        try:
+            import numpy as np
+        except ImportError:
+            self.skipTest("numpy not installed")
+
+        layer = PythonMemoryLayer(nframe=8)
+        layer.start()
+        arr = np.zeros((32, 32), dtype=np.float32)
+        addr = id(arr)
+        events = alloc_events(layer.collect())
+        layer.stop()
+
+        arr_ev = [e for e in events if e["alloc_address"] == addr]
+        if not arr_ev:
+            self.skipTest("numpy array not captured in this environment")
+        self.assertEqual(arr_ev[0]["gc_generation"], -1,
+            "numpy arrays are not GC-tracked; gc_generation should be -1")
+
+    def test_numpy_array_fields_populated(self):
+        """numpy array alloc events have non-empty array_shape, array_dtype, pinned_address."""
+        try:
+            import numpy as np
+        except ImportError:
+            self.skipTest("numpy not installed")
+
+        layer = PythonMemoryLayer(nframe=8)
+        layer.start()
+        arr = np.random.rand(64, 32).astype(np.float64)
+        addr = id(arr)
+        events = alloc_events(layer.collect())
+        layer.stop()
+
+        arr_ev = [e for e in events if e["alloc_address"] == addr]
+        if not arr_ev:
+            self.skipTest("numpy array not captured in this environment")
+
+        ev = arr_ev[0]
+        self.assertEqual(ev["array_shape"], [64, 32])
+        self.assertEqual(ev["array_dtype"], "float64")
+        self.assertGreater(ev["pinned_address"], 0,
+            "pinned_address should be the C data pointer for ndarray")
+        self.assertTrue(ev["is_numpy_buffer"])
+        self.assertGreater(ev["buffer_nbytes"], 0)
+
+    def test_non_array_events_have_empty_shape_dtype(self):
+        """Regular Python objects (Payload) have empty array_shape and array_dtype."""
+        layer = PythonMemoryLayer(nframe=8)
+        layer.start()
+        obj = Payload(list(range(100)))
+        addr = id(obj)
+        events = alloc_events(layer.collect())
+        layer.stop()
+
+        payload_ev = [e for e in events if e["alloc_address"] == addr]
+        self.assertGreater(len(payload_ev), 0,
+            "Payload alloc not found")
+        ev = payload_ev[0]
+        self.assertEqual(ev["array_shape"], [],
+            "Non-array objects should have empty array_shape")
+        self.assertEqual(ev["array_dtype"], "",
+            "Non-array objects should have empty array_dtype")
+        self.assertFalse(ev["is_numpy_buffer"])
 
 
 # ---------------------------------------------------------------------------

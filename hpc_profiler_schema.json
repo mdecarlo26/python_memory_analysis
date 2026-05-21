@@ -107,9 +107,9 @@
         },
         "gc_generation": {
           "type": "integer",
-          "minimum": 0,
+          "minimum": -1,
           "maximum": 2,
-          "description": "Python GC generation (0, 1, or 2). Indicates object age and collection frequency."
+          "description": "Python GC generation (0, 1, or 2). -1 means the object is not GC-tracked (e.g. numpy ndarrays found via frame scan or referent scan). New objects start at generation 0."
         },
         "is_dealloc": {
           "type": "boolean",

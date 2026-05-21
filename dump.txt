@@ -1,0 +1,64 @@
+src
+├── correlator
+│   ├── correlator.py
+│   └── __pycache__
+│       └── correlator.cpython-312.pyc
+├── cpp
+│   ├── build.py
+│   ├── ring_buffer.cpp
+│   └── ring_buffer.so
+├── gpu
+│   ├── build_gpu.py
+│   ├── cupti_layer.cpp
+│   ├── cupti_layer.so
+│   └── run_gpu_test.sh
+├── python
+│   ├── attach.py
+│   ├── bridge.py
+│   ├── gpu_attach.py
+│   ├── gpu_bridge.py
+│   ├── graph.py
+│   ├── __pycache__
+│   │   ├── attach.cpython-312.pyc
+│   │   ├── bridge.cpython-312.pyc
+│   │   ├── gpu_attach.cpython-312.pyc
+│   │   ├── gpu_bridge.cpython-312.pyc
+│   │   ├── graph.cpython-312.pyc
+│   │   └── python_memory_layer.cpython-312.pyc
+│   └── python_memory_layer.py
+└── ui
+    └── index.html
+tests/
+├── integration
+│   ├── __pycache__
+│   │   ├── test_correlator_integration.cpython-312-pytest-9.0.3.pyc
+│   │   └── test_integration.cpython-312-pytest-9.0.3.pyc
+│   ├── session_output.json
+│   ├── test_correlator_integration.py
+│   ├── test_integration.py
+│   ├── workload_gpu.py
+│   └── workload_numpy.py
+├── __pycache__
+│   ├── test_attach.cpython-312-pytest-9.0.3.pyc
+│   ├── test_bridge.cpython-312-pytest-9.0.3.pyc
+│   ├── test_correlator.cpython-312-pytest-9.0.3.pyc
+│   ├── test_gpu_attach.cpython-312-pytest-9.0.3.pyc
+│   ├── test_graph.cpython-312-pytest-9.0.3.pyc
+│   └── test_python_memory_layer.cpython-312-pytest-9.0.3.pyc
+├── test_attach.py
+├── test_bridge.py
+├── test_correlator.py
+├── test_gpu
+├── test_gpu_attach.py
+├── test_gpu.cu
+├── test_graph.py
+└── test_python_memory_layer.py
+tools
+├── mock_event_generator.py
+└── __pycache__
+    └── mock_event_generator.cpython-312.pyc
+
+hpc_profiler_schema.json
+conftest.py
+run_profiler.py
+14 directories, 45 files

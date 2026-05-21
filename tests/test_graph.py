@@ -27,26 +27,34 @@ def make_alloc(addr, size, obj_type, ts, gen=0, ref=1, callstack=None):
     return {
         "base": {"event_id": addr, "timestamp_ns": ts, "event_type": "ALLOC",
                  "process_id": 1, "thread_id": 1},
-        "alloc_address": addr,
+        "alloc_address":    addr,
         "alloc_size_bytes": size,
-        "object_type": obj_type,
-        "ref_count": ref,
-        "gc_generation": gen,
-        "is_dealloc": False,
-        "callstack": callstack or [f"file.py:{ts}"],
+        "object_type":      obj_type,
+        "ref_count":        ref,
+        "gc_generation":    gen,
+        "is_dealloc":       False,
+        "callstack":        callstack or [f"file.py:{ts}"],
+        "pinned_address":   0,
+        "tracemalloc_size": size,
+        "array_shape":      [],
+        "array_dtype":      "",
     }
 
 def make_dealloc(addr, size, obj_type, ts):
     return {
         "base": {"event_id": addr + 10000, "timestamp_ns": ts,
                  "event_type": "DEALLOC", "process_id": 1, "thread_id": 1},
-        "alloc_address": addr,
+        "alloc_address":    addr,
         "alloc_size_bytes": size,
-        "object_type": obj_type,
-        "ref_count": 0,
-        "gc_generation": 0,
-        "is_dealloc": True,
-        "callstack": [],
+        "object_type":      obj_type,
+        "ref_count":        0,
+        "gc_generation":    0,
+        "is_dealloc":       True,
+        "callstack":        [],
+        "pinned_address":   0,
+        "tracemalloc_size": 0,
+        "array_shape":      [],
+        "array_dtype":      "",
     }
 
 
@@ -374,7 +382,8 @@ class TestLayerIntegration(unittest.TestCase):
 
         del obj
         gc.collect()
-        time.sleep(0.01)
+        layer.collect()   # release tracemalloc snapshot reference
+        time.sleep(0.05)
 
         remaining = layer.flush()
         layer.stop()
@@ -425,6 +434,13 @@ def make_gpu_transfer_event(eid, ts, src=0, size=0):
         "kernel_duration_ns":  0,
         "stream_id":           0,
         "device_mem_used_mb":  0,
+        "um_bytes_htod":       size,
+        "um_bytes_dtoh":       0,
+        "grid":                {"x": 0, "y": 0, "z": 0},
+        "block":               {"x": 0, "y": 0, "z": 0},
+        "registers_per_thread": 0,
+        "shared_mem_bytes":    0,
+        "correlation_id":      eid,
     }
 
 
@@ -442,6 +458,13 @@ def make_gpu_kernel_event(eid, ts, name="volta_sgemm"):
         "kernel_duration_ns":  80_000,
         "stream_id":           2,
         "device_mem_used_mb":  512,
+        "um_bytes_htod":       0,
+        "um_bytes_dtoh":       0,
+        "grid":                {"x": 128, "y": 1, "z": 1},
+        "block":               {"x": 256, "y": 1, "z": 1},
+        "registers_per_thread": 32,
+        "shared_mem_bytes":    4096,
+        "correlation_id":      eid,
     }
 
 
@@ -456,9 +479,7 @@ def make_corr(cpu_eid, gpu_eid, confidence="HARD", reason="ADDRESS_MATCH", laten
 
 
 class TestGpuCorrelations(unittest.TestCase):
-    """
-    [G] gpu_correlations field on nodes and merge_gpu_correlations().
-    """
+    """[G] gpu_correlations on nodes and merge_gpu_correlations()."""
 
     def test_new_node_has_empty_gpu_correlations(self):
         """Every freshly-built node starts with an empty gpu_correlations list."""
@@ -469,26 +490,23 @@ class TestGpuCorrelations(unittest.TestCase):
         self.assertEqual(len(node.gpu_correlations), 0)
 
     def test_gpu_correlations_in_to_dict(self):
-        """to_dict() must include gpu_correlations key on every node dict."""
+        """to_dict() must include gpu_correlations on every node dict."""
         g = ObjectGraph()
         g.ingest([make_alloc(2000, 128, "dict", 200)])
-        d = g.to_dict()
-        node = d["nodes"][0]
-        self.assertIn("gpu_correlations", node,
-            "gpu_correlations key missing from node.to_dict()")
+        node = g.to_dict()["nodes"][0]
+        self.assertIn("gpu_correlations", node)
         self.assertIsInstance(node["gpu_correlations"], list)
 
     def test_merge_gpu_correlations_populates_node(self):
-        """merge_gpu_correlations must attach a GPU event to the correct node."""
+        """merge_gpu_correlations attaches the correct GPU event to the right node."""
         g = ObjectGraph()
-        cpu_event = make_alloc(1000, 64, "ndarray", 100)
-        cpu_event["base"]["event_id"] = 7   # event_id distinct from alloc_address
-        g.ingest([cpu_event])
+        cpu_ev = make_alloc(1000, 64, "ndarray", 100)
+        cpu_ev["base"]["event_id"] = 7
+        g.ingest([cpu_ev])
 
         gpu_ev = make_gpu_transfer_event(eid=99, ts=200, src=1000, size=64)
         corr   = make_corr(cpu_eid=7, gpu_eid=99, latency=100)
-
-        g.merge_gpu_correlations([corr], [gpu_ev], [cpu_event])
+        g.merge_gpu_correlations([corr], [gpu_ev], [cpu_ev])
 
         node = g.get_node(1000)
         self.assertEqual(len(node.gpu_correlations), 1)
@@ -500,8 +518,8 @@ class TestGpuCorrelations(unittest.TestCase):
         self.assertEqual(c["gpu_event_type"],      "TRANSFER")
         self.assertEqual(c["transfer_size_bytes"], 64)
 
-    def test_merge_gpu_correlations_kernel_event(self):
-        """Kernel events must also attach to CPU nodes via WEAK correlations."""
+    def test_merge_kernel_event_with_new_fields(self):
+        """Kernel GPU events pass grid/block/registers through gpu_correlations."""
         g = ObjectGraph()
         cpu_ev = make_alloc(2000, 256, "Tensor", 500)
         cpu_ev["base"]["event_id"] = 11
@@ -510,19 +528,48 @@ class TestGpuCorrelations(unittest.TestCase):
         kernel_ev = make_gpu_kernel_event(eid=55, ts=600, name="relu_forward")
         corr = make_corr(cpu_eid=11, gpu_eid=55, confidence="WEAK",
                          reason="TIMESTAMP_ONLY", latency=100)
-
         g.merge_gpu_correlations([corr], [kernel_ev], [cpu_ev])
 
         node = g.get_node(2000)
         self.assertEqual(len(node.gpu_correlations), 1)
         c = node.gpu_correlations[0]
-        self.assertEqual(c["confidence"],       "WEAK")
-        self.assertEqual(c["kernel_name"],      "relu_forward")
+        self.assertEqual(c["confidence"],         "WEAK")
+        self.assertEqual(c["kernel_name"],        "relu_forward")
         self.assertEqual(c["kernel_duration_ns"], 80_000)
-        self.assertEqual(c["stream_id"],        2)
+        self.assertEqual(c["stream_id"],          2)
+        # New fields must be present in the correlation annotation
+        self.assertIn("um_bytes_htod", c)
+        self.assertIn("grid",          c)
+        self.assertIn("block",         c)
+        self.assertIn("registers_per_thread", c)
+        self.assertIn("shared_mem_bytes",     c)
+        self.assertIn("correlation_id",       c)
+        self.assertEqual(c["grid"],  {"x": 128, "y": 1, "z": 1})
+        self.assertEqual(c["block"], {"x": 256, "y": 1, "z": 1})
+        self.assertEqual(c["registers_per_thread"], 32)
+        self.assertEqual(c["shared_mem_bytes"],     4096)
+
+    def test_merge_transfer_event_with_um_bytes(self):
+        """Transfer events carry um_bytes_htod/dtoh into gpu_correlations."""
+        g = ObjectGraph()
+        cpu_ev = make_alloc(3000, 512, "ndarray", 1000)
+        cpu_ev["base"]["event_id"] = 20
+        g.ingest([cpu_ev])
+
+        gpu_ev = make_gpu_transfer_event(eid=101, ts=1100, src=3000, size=512)
+        corr   = make_corr(cpu_eid=20, gpu_eid=101, latency=100)
+        g.merge_gpu_correlations([corr], [gpu_ev], [cpu_ev])
+
+        node = g.get_node(3000)
+        self.assertEqual(len(node.gpu_correlations), 1)
+        c = node.gpu_correlations[0]
+        self.assertIn("um_bytes_htod", c)
+        self.assertIn("um_bytes_dtoh", c)
+        self.assertEqual(c["um_bytes_htod"], 512)
+        self.assertEqual(c["um_bytes_dtoh"], 0)
 
     def test_merge_multiple_gpu_events_same_node(self):
-        """A single CPU node can accumulate multiple GPU correlations."""
+        """One CPU node can accumulate both a TRANSFER and a KERNEL correlation."""
         g = ObjectGraph()
         cpu_ev = make_alloc(3000, 512, "ndarray", 1000)
         cpu_ev["base"]["event_id"] = 20
@@ -535,7 +582,6 @@ class TestGpuCorrelations(unittest.TestCase):
             make_corr(cpu_eid=20, gpu_eid=102, confidence="WEAK",
                       reason="TIMESTAMP_ONLY", latency=200),
         ]
-
         g.merge_gpu_correlations(corrs, [gpu1, gpu2], [cpu_ev])
 
         node = g.get_node(3000)
@@ -544,52 +590,39 @@ class TestGpuCorrelations(unittest.TestCase):
         self.assertEqual(gpu_ids, {101, 102})
 
     def test_merge_unknown_cpu_event_id_safe(self):
-        """
-        A CorrelatedEvent referencing a cpu_event_id not in the graph
-        must not raise — it is silently skipped.
-        """
+        """Dangling cpu_event_id references are silently skipped."""
         g = ObjectGraph()
         g.ingest([make_alloc(4000, 64, "list", 100)])
-
         gpu_ev = make_gpu_transfer_event(eid=200, ts=200, src=9999, size=64)
-        corr   = make_corr(cpu_eid=9999, gpu_eid=200)  # 9999 is not in the graph
-
+        corr   = make_corr(cpu_eid=9999, gpu_eid=200)
         try:
             g.merge_gpu_correlations([corr], [gpu_ev], [])
         except Exception as e:
             self.fail(f"merge_gpu_correlations raised on unknown cpu_event_id: {e}")
-
-        # Node 4000 should be untouched
         self.assertEqual(len(g.get_node(4000).gpu_correlations), 0)
 
     def test_merge_unknown_gpu_event_id_safe(self):
-        """
-        A CorrelatedEvent referencing a gpu_event_id not in gpu_events
-        must not raise — it is silently skipped.
-        """
+        """Dangling gpu_event_id references are silently skipped."""
         g = ObjectGraph()
         cpu_ev = make_alloc(5000, 64, "list", 100)
         cpu_ev["base"]["event_id"] = 30
         g.ingest([cpu_ev])
-
-        corr = make_corr(cpu_eid=30, gpu_eid=9999)   # 9999 not in gpu_events
-
+        corr = make_corr(cpu_eid=30, gpu_eid=9999)
         try:
             g.merge_gpu_correlations([corr], [], [cpu_ev])
         except Exception as e:
             self.fail(f"merge_gpu_correlations raised on unknown gpu_event_id: {e}")
-
         self.assertEqual(len(g.get_node(5000).gpu_correlations), 0)
 
     def test_merge_empty_inputs_safe(self):
-        """merge_gpu_correlations with empty lists must not raise."""
+        """merge_gpu_correlations with all-empty inputs must not raise."""
         g = ObjectGraph()
         g.ingest([make_alloc(6000, 64, "list", 100)])
         g.merge_gpu_correlations([], [], [])
         self.assertEqual(len(g.get_node(6000).gpu_correlations), 0)
 
     def test_gpu_correlated_nodes_returns_only_matched(self):
-        """gpu_correlated_nodes() returns only nodes that have ≥1 GPU correlation."""
+        """gpu_correlated_nodes() returns only nodes with ≥1 GPU correlation."""
         g = ObjectGraph()
         cpu_a = make_alloc(7000, 64, "ndarray", 100)
         cpu_b = make_alloc(8000, 64, "list",    200)
@@ -599,7 +632,6 @@ class TestGpuCorrelations(unittest.TestCase):
 
         gpu_ev = make_gpu_transfer_event(eid=300, ts=150, src=7000, size=64)
         corr   = make_corr(cpu_eid=40, gpu_eid=300)
-
         g.merge_gpu_correlations([corr], [gpu_ev], [cpu_a, cpu_b])
 
         matched = g.gpu_correlated_nodes()
@@ -607,13 +639,13 @@ class TestGpuCorrelations(unittest.TestCase):
         self.assertEqual(matched[0].node_id, 7000)
 
     def test_gpu_correlated_nodes_empty_when_no_correlations(self):
-        """gpu_correlated_nodes() is empty when no correlations have been merged."""
+        """gpu_correlated_nodes() returns [] when no merges have been done."""
         g = ObjectGraph()
         g.ingest([make_alloc(9000, 64, "list", 100)])
         self.assertEqual(g.gpu_correlated_nodes(), [])
 
     def test_merge_gpu_correlations_json_serializable(self):
-        """to_dict() after merge must remain JSON-serializable."""
+        """to_dict() after merge remains fully JSON-serializable."""
         g = ObjectGraph()
         cpu_ev = make_alloc(10000, 128, "ndarray", 1000)
         cpu_ev["base"]["event_id"] = 50
@@ -628,6 +660,19 @@ class TestGpuCorrelations(unittest.TestCase):
             json.dumps(d)
         except TypeError as e:
             self.fail(f"to_dict() not JSON-serializable after merge: {e}")
+
+    def test_node_to_dict_has_all_expected_fields(self):
+        """to_dict() node dict has all expected fields including new gpu_correlations."""
+        g = ObjectGraph()
+        g.ingest([make_alloc(1000, 64, "list", 100, gen=0, ref=2,
+                             callstack=["main.py:10", "util.py:5"])])
+        node_dict = g.to_dict()["nodes"][0]
+        for field in ["node_id", "object_type", "size_bytes", "ref_count",
+                      "gc_generation", "alive", "first_seen_ns",
+                      "last_seen_ns", "lifetime_ns", "callstack",
+                      "gpu_correlations"]:
+            self.assertIn(field, node_dict, f"Missing field: {field}")
+        self.assertIsInstance(node_dict["gpu_correlations"], list)
 
 
 if __name__ == "__main__":

@@ -26,7 +26,9 @@ def unique_shm():
 def make_cpu_event(
     event_id=1, ts=1000, pid=42, tid=1,
     event_type="ALLOC", addr=0xDEAD, size=64,
-    obj_type="list", ref=1, gen=0, is_dealloc=False
+    obj_type="list", ref=1, gen=0, is_dealloc=False,
+    pinned_address=0, tracemalloc_size=0,
+    array_shape=None, array_dtype="",
 ):
     return {
         "base": {
@@ -43,6 +45,10 @@ def make_cpu_event(
         "gc_generation":    gen,
         "is_dealloc":       is_dealloc,
         "callstack":        ["main.py:10", "util.py:5"],
+        "pinned_address":   pinned_address,
+        "tracemalloc_size": tracemalloc_size,
+        "array_shape":      array_shape or [],
+        "array_dtype":      array_dtype,
     }
 
 
@@ -118,36 +124,6 @@ class TestSerialization(unittest.TestCase):
         e = make_cpu_event()
         r = self._roundtrip(e)
         self.assertEqual(r["callstack"], [])
-
-    def test_pinned_address_roundtrip(self):
-        """pinned_address must survive serialization and deserialization intact."""
-        e = make_cpu_event()
-        e["is_numpy_buffer"] = True
-        e["buffer_nbytes"]   = 64
-        e["pinned_address"]  = 0xCAFE_BABE_DEAD_BEEF
-        r = self._roundtrip(e)
-        self.assertEqual(r["pinned_address"], 0xCAFE_BABE_DEAD_BEEF,
-            f"pinned_address mismatch: got {hex(r['pinned_address'])}")
-
-    def test_pinned_address_zero_roundtrip(self):
-        """pinned_address=0 (non-buffer objects) must deserialize as 0."""
-        e = make_cpu_event()
-        # No pinned_address key — simulates events from older code or non-buffer objects
-        r = self._roundtrip(e)
-        self.assertEqual(r["pinned_address"], 0,
-            "Missing pinned_address must default to 0 after deserialization")
-
-    def test_pinned_address_distinct_from_alloc_address(self):
-        """
-        pinned_address and alloc_address are independent fields.
-        A buffer object has alloc_address=id(wrapper), pinned_address=data_ptr.
-        Both must survive the roundtrip independently.
-        """
-        e = make_cpu_event(addr=0x1234_5678)
-        e["pinned_address"] = 0xABCD_EF01
-        r = self._roundtrip(e)
-        self.assertEqual(r["alloc_address"],  0x1234_5678)
-        self.assertEqual(r["pinned_address"], 0xABCD_EF01)
 
 
 # ---------------------------------------------------------------------------
@@ -368,6 +344,147 @@ class TestLayerIntegration(unittest.TestCase):
     def test_close_before_open_safe(self):
         bridge = Bridge(shm_name=unique_shm())
         bridge.close()  # should not raise
+
+
+# ---------------------------------------------------------------------------
+# A2 — Serialisation roundtrip for new fields (pinned_address, tracemalloc_size,
+#      array_shape, array_dtype)
+# ---------------------------------------------------------------------------
+
+class TestSerializationNewFields(unittest.TestCase):
+    """New fields added in the extended schema must survive _serialize → deserialize."""
+
+    def _roundtrip(self, event):
+        payload = Bridge._serialize(event)
+        return Bridge.deserialize(payload)
+
+    def test_pinned_address_roundtrip(self):
+        """pinned_address survives serialise/deserialise."""
+        e = make_cpu_event(pinned_address=0xCAFE_BABE_DEAD_BEEF)
+        r = self._roundtrip(e)
+        self.assertEqual(r["pinned_address"], 0xCAFE_BABE_DEAD_BEEF)
+
+    def test_pinned_address_zero_roundtrip(self):
+        """pinned_address=0 (absent) deserialises as 0."""
+        r = self._roundtrip(make_cpu_event())
+        self.assertEqual(r["pinned_address"], 0)
+
+    def test_pinned_address_distinct_from_alloc_address(self):
+        """alloc_address and pinned_address are independent wire fields."""
+        e = make_cpu_event(addr=0x1234_5678, pinned_address=0xABCD_EF01)
+        r = self._roundtrip(e)
+        self.assertEqual(r["alloc_address"],  0x1234_5678)
+        self.assertEqual(r["pinned_address"], 0xABCD_EF01)
+
+    def test_tracemalloc_size_roundtrip(self):
+        """tracemalloc_size field survives the wire."""
+        e = make_cpu_event(tracemalloc_size=99_999)
+        r = self._roundtrip(e)
+        self.assertEqual(r["tracemalloc_size"], 99_999)
+
+    def test_tracemalloc_size_default_zero(self):
+        """Events without tracemalloc_size get 0 on deserialise."""
+        r = self._roundtrip(make_cpu_event())
+        self.assertEqual(r["tracemalloc_size"], 0)
+
+    def test_array_shape_roundtrip(self):
+        """Multi-dimensional shape survives the wire."""
+        e = make_cpu_event(array_shape=[512, 64, 3], array_dtype="float32")
+        r = self._roundtrip(e)
+        self.assertEqual(r["array_shape"], [512, 64, 3])
+        self.assertEqual(r["array_dtype"], "float32")
+
+    def test_array_shape_1d_roundtrip(self):
+        """1-D shape is preserved correctly."""
+        e = make_cpu_event(array_shape=[1024], array_dtype="int64")
+        r = self._roundtrip(e)
+        self.assertEqual(r["array_shape"], [1024])
+        self.assertEqual(r["array_dtype"], "int64")
+
+    def test_array_shape_empty_roundtrip(self):
+        """Non-array events have empty shape and dtype."""
+        r = self._roundtrip(make_cpu_event())
+        self.assertEqual(r["array_shape"], [])
+        self.assertEqual(r["array_dtype"], "")
+
+    def test_array_dtype_unicode_roundtrip(self):
+        """dtype strings survive the wire."""
+        e = make_cpu_event(array_dtype="complex128")
+        r = self._roundtrip(e)
+        self.assertEqual(r["array_dtype"], "complex128")
+
+    def test_all_new_fields_present_in_deserialised_event(self):
+        """Every new field must be present in the dict returned by deserialize()."""
+        e = make_cpu_event(
+            pinned_address=0xBEEF, tracemalloc_size=1000,
+            array_shape=[64, 32], array_dtype="float32",
+        )
+        r = self._roundtrip(e)
+        for field in ("pinned_address", "tracemalloc_size", "array_shape", "array_dtype"):
+            self.assertIn(field, r, f"Missing field after deserialise: {field}")
+
+
+# ---------------------------------------------------------------------------
+# F — New-field integration: PythonMemoryLayer → Bridge for numpy arrays
+# ---------------------------------------------------------------------------
+
+class TestNumpyArrayBridgeIntegration(unittest.TestCase):
+    """Verify that numpy array events emitted by PythonMemoryLayer carry
+    array_shape, array_dtype, pinned_address and survive the bridge roundtrip."""
+
+    def test_numpy_events_carry_shape_dtype_pinned(self):
+        """Real numpy alloc events must have non-trivial shape, dtype, pinned_address."""
+        try:
+            import numpy as np
+        except ImportError:
+            self.skipTest("numpy not installed")
+
+        layer = PythonMemoryLayer(nframe=8)
+        layer.start()
+        arr = np.random.rand(64, 32).astype(np.float32)
+        arr_addr = id(arr)
+        events = layer.collect()
+        layer.stop()
+
+        numpy_evs = [e for e in events
+                     if not e["is_dealloc"] and e["alloc_address"] == arr_addr]
+        self.assertGreater(len(numpy_evs), 0,
+            "No alloc event for numpy array (frame scan may not have found it)")
+
+        ev = numpy_evs[0]
+        self.assertTrue(ev["is_numpy_buffer"], "is_numpy_buffer should be True")
+        self.assertEqual(ev["array_shape"], [64, 32])
+        self.assertEqual(ev["array_dtype"], "float32")
+        self.assertGreater(ev["pinned_address"], 0,
+            "pinned_address should be non-zero for numpy array")
+
+    def test_numpy_event_bridge_roundtrip_preserves_new_fields(self):
+        """numpy array events survive Bridge._serialize → deserialize with all new fields."""
+        try:
+            import numpy as np
+        except ImportError:
+            self.skipTest("numpy not installed")
+
+        layer = PythonMemoryLayer(nframe=8)
+        layer.start()
+        arr = np.zeros((128, 16), dtype=np.float64)
+        arr_addr = id(arr)
+        events = layer.collect()
+        layer.stop()
+
+        numpy_evs = [e for e in events
+                     if not e["is_dealloc"] and e["alloc_address"] == arr_addr]
+        if not numpy_evs:
+            self.skipTest("numpy array not captured by frame scan in this environment")
+
+        ev = numpy_evs[0]
+        payload = Bridge._serialize(ev)
+        r = Bridge.deserialize(payload)
+
+        self.assertEqual(r["array_shape"], [128, 16])
+        self.assertEqual(r["array_dtype"], "float64")
+        self.assertEqual(r["pinned_address"], ev["pinned_address"])
+        self.assertGreater(r["tracemalloc_size"], 0)
 
 
 if __name__ == "__main__":

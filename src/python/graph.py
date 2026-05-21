@@ -262,7 +262,7 @@ class ObjectGraph:
             if gpu_ev is None:
                 continue
 
-            # Attach a compact annotation to the node
+            # Attach a compact annotation to the node including all new fields
             node.gpu_correlations.append({
                 "confidence":          corr["confidence"],
                 "match_reason":        corr["match_reason"],
@@ -276,6 +276,14 @@ class ObjectGraph:
                 "kernel_duration_ns":  gpu_ev.get("kernel_duration_ns", 0),
                 "stream_id":           gpu_ev.get("stream_id", 0),
                 "device_id":           gpu_ev.get("device_id", 0),
+                # New fields from extended GPU event
+                "um_bytes_htod":          gpu_ev.get("um_bytes_htod", 0),
+                "um_bytes_dtoh":          gpu_ev.get("um_bytes_dtoh", 0),
+                "grid":                   gpu_ev.get("grid",  {"x": 0, "y": 0, "z": 0}),
+                "block":                  gpu_ev.get("block", {"x": 0, "y": 0, "z": 0}),
+                "registers_per_thread":   gpu_ev.get("registers_per_thread", 0),
+                "shared_mem_bytes":       gpu_ev.get("shared_mem_bytes", 0),
+                "correlation_id":         gpu_ev.get("correlation_id", 0),
             })
 
     # ------------------------------------------------------------------
