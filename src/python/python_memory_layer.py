@@ -244,12 +244,9 @@ class PythonMemoryLayer:
         new_allocs: list = []
 
         if stat_by_tb:
-            # Snapshot _live keys once so all three passes and the candidate
-            # builder can skip already-tracked addresses with a fast O(1) set
-            # check, eliminating per-object lock acquisitions and avoiding
-            # the expensive tracemalloc.get_object_traceback() on objects we
-            # already know about.  This prevents exponential collect() growth
-            # when the layer is reused across many consecutive calls.
+            # Snapshot _live keys once: pre-seeds seen_addrs so already-tracked
+            # objects are skipped at the fast addr-in-set check before the
+            # expensive tracemalloc.get_object_traceback() call.
             with self._live_lock:
                 live_snapshot: set = set(self._live.keys())
             seen_addrs: set = set(live_snapshot)
@@ -257,48 +254,78 @@ class PythonMemoryLayer:
             candidates: list = []
 
             # ── Pass A: gc.get_objects() scan ─────────────────────────
-            # New allocations captured by tracemalloc's snapshot diff are
-            # always in GC generation 0 — they haven't survived a GC cycle
-            # yet.  Objects promoted to gen1/gen2 were created before our
-            # baseline snapshot and cannot appear in stat_by_tb.  Limiting
-            # the scan to gen0 reduces the iteration set from O(all gc objects)
-            # to O(recently-allocated objects), which is typically 10-50x
-            # smaller and prevents the scan from growing with session length.
-            # Track how many objects we still need per traceback so we can
-            # break out early once all quotas are satisfied.
+            # Scans all three GC generations in reverse order (newest objects
+            # last in CPython, so reversed() finds recent allocations first).
+            # tb_remaining / tb_low: quota-based early-exit per traceback.
+            # High-count tracebacks (count_diff > 5) are Python bulk-allocations
+            # (module imports, C-extension internals); we cap them at count_diff
+            # so the scan doesn't get stuck collecting thousands of useless
+            # Python-internal objects.  Low-count tracebacks (<=5) are treated
+            # as user-object allocations and collected without a quota cap so
+            # user objects in gen1/gen2 (promoted after a GC cycle) are not
+            # silently dropped.  The scan breaks out once both sets are empty.
+            _HIGH_COUNT_THRESHOLD = 5
             tb_remaining: dict = {
-                tb: max(stat.count_diff, 1)
+                tb: stat.count_diff
                 for tb, stat in stat_by_tb.items()
+                if stat.count_diff > _HIGH_COUNT_THRESHOLD
+            }
+            tb_low: set = {
+                tb for tb, stat in stat_by_tb.items()
+                if stat.count_diff <= _HIGH_COUNT_THRESHOLD
             }
             new_gc_objects: list = []  # (addr, obj) for Passes B→referents
-            try:
-                for obj in reversed(gc.get_objects(0)):
-                    if not tb_remaining:
-                        break
-                    if isinstance(obj, _NO_WEAKREF_TYPES):
-                        continue
-                    addr = id(obj)
-                    if addr in seen_addrs:
-                        continue
-                    seen_addrs.add(addr)
-                    try:
-                        tb = tracemalloc.get_object_traceback(obj)
-                    except Exception:
-                        continue
-                    if tb is None:
-                        continue
-                    if tb in tb_remaining:
-                        candidates.append((obj, tb, stat_by_tb[tb], 0))
-                        new_gc_objects.append((addr, obj))
-                        tb_remaining[tb] -= 1
-                        if tb_remaining[tb] <= 0:
-                            del tb_remaining[tb]
-            except Exception:
-                pass
+            for gen in range(3):
+                # After gen0: only continue for high-count tracebacks (tb_remaining).
+                # gen1/gen2 objects at low-count tracebacks are either already in
+                # _live or are Python internals — scanning them wastes O(7k+ obj).
+                if gen > 0 and not tb_remaining:
+                    break
+                try:
+                    for obj in reversed(gc.get_objects(gen)):
+                        # In gen0: break only when ALL high-count quotas are met.
+                        # Never break mid-gen0 on tb_low depletion — the Payload
+                        # may share a traceback with earlier objects, causing
+                        # tb_low to empty before reaching the Payload.
+                        if gen > 0 and not tb_remaining:
+                            break
+                        if isinstance(obj, _NO_WEAKREF_TYPES):
+                            continue
+                        addr = id(obj)
+                        if addr in seen_addrs:
+                            continue
+                        seen_addrs.add(addr)
+                        try:
+                            tb = tracemalloc.get_object_traceback(obj)
+                        except Exception:
+                            continue
+                        if tb is None:
+                            continue
+                        if tb in tb_remaining:
+                            candidates.append((obj, tb, stat_by_tb[tb], gen))
+                            new_gc_objects.append((addr, obj))
+                            tb_remaining[tb] -= 1
+                            if tb_remaining[tb] <= 0:
+                                del tb_remaining[tb]
+                        elif tb in tb_low:
+                            candidates.append((obj, tb, stat_by_tb[tb], gen))
+                            new_gc_objects.append((addr, obj))
+                            # Do NOT discard from tb_low — multiple objects may
+                            # share this traceback (e.g. the Payload and its
+                            # internal list both allocated at the same line).
+                except Exception:
+                    continue
 
             # ── Pass B: cross-thread frame scan ──────────────────────
             # Finds buffer objects (ndarrays, tensors) stored as local
             # variables in any running thread, including the main workload.
+            # IMPORTANT: only buffer objects (those with __array_interface__
+            # or __cuda_array_interface__) are added to candidates.  Walking
+            # frames captures every Python-local variable, the vast majority
+            # of which are Python-internal objects already covered by Pass A
+            # or not worth tracking.  Adding non-buffers here causes
+            # exponential collect() growth because stat_by_tb matches thousands
+            # of Python-internal locals that are never freed.
             try:
                 for _tid, frame in sys._current_frames().items():
                     f = frame
@@ -311,6 +338,12 @@ class PythonMemoryLayer:
                                 if isinstance(v, _NO_WEAKREF_TYPES):
                                     seen_addrs.add(addr)
                                     continue
+                                # Only track buffer objects from frames
+                                if not (hasattr(v, '__array_interface__') or
+                                        hasattr(v, '__cuda_array_interface__') or
+                                        (hasattr(v, 'data_ptr') and callable(v.data_ptr))):
+                                    seen_addrs.add(addr)
+                                    continue
                                 seen_addrs.add(addr)
                                 try:
                                     tb = tracemalloc.get_object_traceback(v)
@@ -318,23 +351,6 @@ class PythonMemoryLayer:
                                     continue
                                 if tb and tb in stat_by_tb:
                                     candidates.append((v, tb, stat_by_tb[tb], -1))
-                                # Also check one level of container contents
-                                if isinstance(v, (list, tuple)):
-                                    for item in list(v):
-                                        iid = id(item)
-                                        if iid in seen_addrs:
-                                            continue
-                                        if isinstance(item, _NO_WEAKREF_TYPES):
-                                            seen_addrs.add(iid)
-                                            continue
-                                        seen_addrs.add(iid)
-                                        try:
-                                            tb2 = tracemalloc.get_object_traceback(item)
-                                        except Exception:
-                                            continue
-                                        if tb2 and tb2 in stat_by_tb:
-                                            candidates.append(
-                                                (item, tb2, stat_by_tb[tb2], -1))
                         except Exception:
                             pass
                         f = f.f_back
@@ -342,7 +358,8 @@ class PythonMemoryLayer:
                 pass
 
             # ── Pass C: referents of new GC objects ───────────────────
-            # Catches ndarrays / tensors stored as class attributes.
+            # Catches buffer objects stored as class attributes.
+            # Also buffer-only for the same reason as Pass B.
             for _addr, obj in new_gc_objects:
                 try:
                     for ref in gc.get_referents(obj):
@@ -350,6 +367,11 @@ class PythonMemoryLayer:
                         if rid in seen_addrs:
                             continue
                         if isinstance(ref, _NO_WEAKREF_TYPES):
+                            seen_addrs.add(rid)
+                            continue
+                        if not (hasattr(ref, '__array_interface__') or
+                                hasattr(ref, '__cuda_array_interface__') or
+                                (hasattr(ref, 'data_ptr') and callable(ref.data_ptr))):
                             seen_addrs.add(rid)
                             continue
                         seen_addrs.add(rid)
@@ -365,9 +387,8 @@ class PythonMemoryLayer:
             # ── Build events for all candidates ───────────────────────
             for obj, tb, stat, gen in candidates:
                 addr = id(obj)
-                # Final duplicate guard (candidates may overlap across passes).
-                # Use live_snapshot (taken once above) instead of acquiring
-                # the lock thousands of times.
+                # Final duplicate guard using the snapshot taken above —
+                # avoids one lock acquisition per candidate.
                 if addr in live_snapshot:
                     continue
 

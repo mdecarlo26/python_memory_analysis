@@ -55,7 +55,7 @@ if _cpu_shm and _rb_so and _src_py:
             while getattr(sys, "_hpc_profiler_active", False):
                 for e in _hpc_layer.collect():
                     _hpc_bridge.write(e)
-                time.sleep(0.05)
+                time.sleep(0.005)  # 5 ms — workload loop is 50 ms, giving ~10 polls per iteration
             _hpc_layer.stop()
             _hpc_bridge.close()
 
