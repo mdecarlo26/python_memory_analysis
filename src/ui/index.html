@@ -8,17 +8,17 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.development.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,300;0,400;0,500;0,600;1,400&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%}
 :root{
-  --bg:#07090e; --panel:#0c0f18; --card:#111520; --card2:#161b28;
+  --bg:#060810; --panel:#09101a; --card:#111520; --card2:#161b28;
   --border:#1c2235; --border2:#232c42;
   --text:#c4cfdf; --text2:#8899b0; --dim:#3d4f68;
-  --cpu:#41b3f5; --green:#2ecc98; --yellow:#f5c542; --purple:#9d84f5;
+  --cpu:#38bdf8; --green:#34d399; --yellow:#f5c542; --purple:#9d84f5;
   --red:#f56565; --orange:#f59c42; --pink:#f56bb4; --teal:#42d4c8;
-  --mono:'JetBrains Mono',monospace; --sans:'Space Grotesk',sans-serif;
+  --mono:'IBM Plex Mono',monospace; --sans:'IBM Plex Sans',sans-serif;
 }
 body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14px;overflow:hidden;display:flex;flex-direction:column;height:100vh}
 
@@ -156,6 +156,51 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14
 /* ── Drop overlay ────────────────────────────────────────── */
 #drop-ov{position:fixed;inset:0;background:rgba(7,9,14,.96);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;opacity:0;pointer-events:none;transition:opacity .15s}
 #drop-ov.show{opacity:1;pointer-events:all}
+
+/* ── Scanline texture ────────────────────────────────────── */
+body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.025) 2px,rgba(0,0,0,.025) 4px);pointer-events:none;z-index:1000}
+
+/* ── Type list scroll + kbd nav ──────────────────────────── */
+.type-list-inner{flex:1;overflow-y:auto;overflow-x:hidden;outline:none}
+.type-list-inner::-webkit-scrollbar{width:4px}
+.type-list-inner::-webkit-scrollbar-track{background:transparent}
+.type-list-inner::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+.type-list-inner::-webkit-scrollbar-thumb:hover{background:var(--dim)}
+.type-row.kbd-focus{background:rgba(65,179,245,.07);border-left-color:rgba(65,179,245,.5);outline:none}
+.type-row.kbd-focus .tr-name{color:var(--cpu)}
+
+/* ── Per-type sparkline bars ─────────────────────────────── */
+.tr-spark{display:flex;align-items:flex-end;gap:1px;height:16px;width:36px;flex-shrink:0}
+.tr-spark-bar{flex:1;border-radius:1px 1px 0 0;min-height:1px;transition:opacity .12s}
+.type-row:hover .tr-spark-bar{opacity:.85!important}
+
+/* ── Wheel-scroll hint strip ─────────────────────────────── */
+.wheel-hint{padding:4px 12px;border-top:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:8px;color:var(--dim);letter-spacing:.04em}
+.wheel-hint kbd{background:var(--card2);border:1px solid var(--border2);border-radius:3px;padding:1px 5px;font-size:8px;color:var(--text2)}
+
+/* ── Graph tab ───────────────────────────────────────────── */
+#graph-outer{flex:1;display:flex;flex-direction:column;overflow:hidden;min-height:0}
+#graph-wrap{flex:1;position:relative;overflow:hidden;background:var(--bg)}
+#graph-wrap svg{display:block;width:100%;height:100%}
+.graph-toolbar{height:34px;background:var(--panel);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 12px;gap:8px;flex-shrink:0}
+.graph-mode-btn{font-family:var(--mono);font-size:9px;letter-spacing:.06em;text-transform:uppercase;padding:4px 10px;border-radius:4px;border:1px solid var(--border2);background:transparent;color:var(--dim);cursor:pointer;transition:all .12s}
+.graph-mode-btn.on{color:var(--cpu);border-color:rgba(65,179,245,.4);background:rgba(65,179,245,.07)}
+.graph-mode-btn:not(.on):hover{color:var(--text2);background:var(--card)}
+.graph-legend{margin-left:auto;display:flex;align-items:center;gap:12px}
+.gleg{display:flex;align-items:center;gap:5px;font-family:var(--mono);font-size:8px;color:var(--dim);white-space:nowrap}
+.gleg-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.gleg-dash{width:14px;height:0;border-top:1.5px dashed;flex-shrink:0}
+
+/* ── RSS overlay note in legend ──────────────────────────── */
+.leg-rss-line{width:18px;height:2px;background:rgba(245,197,66,.5);border-radius:1px;flex-shrink:0}
+
+/* ── Pulse ring on drop overlay ──────────────────────────── */
+.drop-ring{width:80px;height:80px;border-radius:50%;border:2px solid var(--cpu);display:flex;align-items:center;justify-content:center;margin-bottom:14px;animation:ring-pulse 1.8s ease-in-out infinite}
+@keyframes ring-pulse{0%,100%{box-shadow:0 0 0 0 rgba(65,179,245,.45)}50%{box-shadow:0 0 0 14px rgba(65,179,245,0)}}
+
+/* ── Inspector anim-in ───────────────────────────────────── */
+@keyframes fadeSlideUp{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+.anim-in{animation:fadeSlideUp .18s ease both}
 </style>
 </head>
 <body>
@@ -211,6 +256,8 @@ function analyzeSession(session){
     else if(gen>=0&&gen<=2)g.gcGens[gen+1]++;
     if(cpuCorrs[e.base.event_id]?.length)g.corrCount++;
     if(g.events.length<5)g.events.push(e);
+    // sparkline: 20 time buckets
+    if(dur>0){const b=Math.min(19,Math.floor(((e.base.timestamp_ns-startNs)/dur)*20));g.spark=g.spark||new Array(20).fill(0);g.spark[b]++;}
   });
   const typeList=Object.values(byType).sort((a,b)=>b.count-a.count);
   const totalBytes=typeList.reduce((s,t)=>s+(t.bufBytes||t.totalBytes),0);
@@ -414,37 +461,86 @@ function BurstPanel({data,onSelect}){
 
 // ── Type list (left panel) ─────────────────────────────────────────────────────
 function TypeList({data,filter,onFilter,searchQ,onSearch}){
+  const scrollRef=useRef(null);
+  const [kbdIdx,setKbdIdx]=useState(-1);
   const list=data?data.typeList:[];
+  const filtered=useMemo(()=>searchQ?list.filter(t=>t.type.toLowerCase().includes(searchQ.toLowerCase())):list,[list,searchQ]);
+  const allItems=[null,...filtered]; // null = "All types" row
+
+  // Keyboard navigation
+  useEffect(()=>{
+    const el=scrollRef.current; if(!el) return;
+    const onKey=e=>{
+      if(e.key==='ArrowDown'){e.preventDefault();setKbdIdx(i=>Math.min(allItems.length-1,i+1));}
+      else if(e.key==='ArrowUp'){e.preventDefault();setKbdIdx(i=>Math.max(0,i-1));}
+      else if(e.key==='Enter'&&kbdIdx>=0){onFilter(allItems[kbdIdx]?.type??null);}
+      else if(e.key==='Escape'){onFilter(null);setKbdIdx(-1);}
+    };
+    el.addEventListener('keydown',onKey);
+    return()=>el.removeEventListener('keydown',onKey);
+  },[kbdIdx,allItems,onFilter]);
+
+  // Auto-scroll focused row into view
+  useEffect(()=>{
+    if(kbdIdx<0||!scrollRef.current)return;
+    const rows=scrollRef.current.querySelectorAll('.type-row');
+    rows[kbdIdx]?.scrollIntoView({block:'nearest',behavior:'smooth'});
+  },[kbdIdx]);
+
   const maxC=list[0]?.count||1;
-  const filtered=searchQ?list.filter(t=>t.type.toLowerCase().includes(searchQ.toLowerCase())):list;
   return(
     <div style={{display:'flex',flexDirection:'column',height:'100%',overflow:'hidden'}}>
+      {/* Search box */}
       <div style={{padding:'6px 10px',borderBottom:'1px solid var(--border)',flexShrink:0}}>
-        <input value={searchQ} onChange={e=>onSearch(e.target.value)} placeholder="Filter types…"
+        <input value={searchQ} onChange={e=>{onSearch(e.target.value);setKbdIdx(-1);}}
+          placeholder="Filter types…"
           style={{width:'100%',background:'var(--card)',border:'1px solid var(--border2)',borderRadius:5,padding:'5px 9px',fontFamily:'var(--mono)',fontSize:10,color:'var(--text)',outline:'none'}}
           onFocus={e=>e.target.style.borderColor='rgba(65,179,245,.4)'}
           onBlur={e=>e.target.style.borderColor='var(--border2)'}
         />
       </div>
+      {/* Scrollable list — tabIndex so keydown fires on this div */}
       {!data?<div className="scrollable" style={{display:'flex',alignItems:'center',justifyContent:'center'}}><span style={{fontFamily:'var(--mono)',fontSize:10,color:'var(--dim)'}}>—</span></div>:(
-        <div className="scrollable">
-          <div className={`type-row ${!filter?'sel':''}`} onClick={()=>onFilter(null)}>
-            <div className="tr-dot" style={{background:'var(--dim)'}}/>
-            <div className="tr-info">
-              <div className="tr-name" style={{color:'var(--text2)'}}>All types</div>
-              <div className="tr-sub">{fmtN(data.allocs.length)} allocs · {fmtB(data.totalBytes)}</div>
-            </div>
-            <div className="tr-num">{fmtN(data.allocs.length)}</div>
-          </div>
-          {filtered.map(t=>{
+        <div className="type-list-inner" ref={scrollRef} tabIndex={0}
+          onMouseEnter={()=>scrollRef.current?.focus({preventScroll:true})}
+        >
+          {/* "All types" row */}
+          {(()=>{
+            const isKbd=kbdIdx===0;
+            return(
+              <div className={`type-row${!filter?' sel':''}${isKbd?' kbd-focus':''}`}
+                   onClick={()=>{onFilter(null);setKbdIdx(0);}}>
+                <div className="tr-dot" style={{background:'var(--dim)'}}/>
+                <div className="tr-info">
+                  <div className="tr-name" style={{color:'var(--text2)'}}>All types</div>
+                  <div className="tr-sub">{fmtN(data.allocs.length)} allocs · {fmtB(data.totalBytes)}</div>
+                  <div className="tr-bar"><div className="tr-bar-fill" style={{width:'100%',background:'var(--dim)'}}/></div>
+                </div>
+                {/* micro sparkline for overall rate */}
+                <div className="tr-spark">
+                  {data.rateSeries.slice(0,20).map((b,i)=>{
+                    const maxR=Math.max(1,...data.rateSeries.map(x=>x.count));
+                    const h=Math.max(1,Math.round((b.count/maxR)*16));
+                    return<div key={i} className="tr-spark-bar" style={{height:h,background:'var(--dim)',opacity:.5}}/>;
+                  })}
+                </div>
+                <div className="tr-num">{fmtN(data.allocs.length)}</div>
+              </div>
+            );
+          })()}
+          {/* Per-type rows */}
+          {filtered.map((t,idx)=>{
             const col=tc(t.type);
             const dispB=t.bufBytes>0?t.bufBytes:t.totalBytes;
             const isN=t.module==='numpy'||t.type.includes('ndarray')||t.type.includes('Tensor');
             const avg=t.sizes.length?Math.round(t.sizes.reduce((a,b)=>a+b,0)/t.sizes.length):0;
             const dominantGen=t.gcGens.indexOf(Math.max(...t.gcGens));
             const genLabel=['-1','0','1','2'][dominantGen];
+            const sparkMax=Math.max(1,...(t.spark||[1]));
+            const iKbd=idx+1;
             return(
-              <div key={t.type} className={`type-row ${filter===t.type?'sel':''}`} onClick={()=>onFilter(filter===t.type?null:t.type)}>
+              <div key={t.type} className={`type-row${filter===t.type?' sel':''}${kbdIdx===iKbd?' kbd-focus':''}`}
+                   onClick={()=>{onFilter(filter===t.type?null:t.type);setKbdIdx(iKbd);}}>
                 <div className="tr-dot" style={{background:col}}/>
                 <div className="tr-info">
                   <div style={{display:'flex',alignItems:'center',gap:4}}>
@@ -455,10 +551,26 @@ function TypeList({data,filter,onFilter,searchQ,onSearch}){
                   <div className="tr-sub">{fmtB(dispB)} · avg {fmtB(avg)} · gen {genLabel}</div>
                   <div className="tr-bar"><div className="tr-bar-fill" style={{width:`${(t.count/maxC)*100}%`,background:col}}/></div>
                 </div>
+                {/* per-type sparkline */}
+                <div className="tr-spark">
+                  {(t.spark||new Array(20).fill(0)).map((v,i)=>{
+                    const h=Math.max(1,Math.round((v/sparkMax)*16));
+                    return<div key={i} className="tr-spark-bar" style={{height:h,background:col,opacity:v>0?.7:.15}}/>;
+                  })}
+                </div>
                 <div className="tr-num" style={{color:col}}>{fmtN(t.count)}</div>
               </div>
             );
           })}
+        </div>
+      )}
+      {/* Wheel-scroll hint */}
+      {data&&(
+        <div className="wheel-hint">
+          <span>🖱 scroll</span>
+          <kbd>↑↓</kbd><span>navigate</span>
+          <kbd>Enter</kbd><span>select</span>
+          <kbd>Esc</kbd><span>clear</span>
         </div>
       )}
     </div>
@@ -897,7 +1009,7 @@ function Inspector({selected,data,session}){
     const lifePct=lifetime?Math.min(100,lifetime/sessD*100):0;
     return(
       <div className="scrollable">
-        <div style={{padding:'12px'}}>
+        <div style={{padding:'12px'}} className="anim-in">
           <span className="badge badge-cpu">CPU Allocation</span>
           <Sec title="Object">
             <Row k="type"     v={e.object_type}      cls="a"/>
@@ -1087,6 +1199,237 @@ function Inspector({selected,data,session}){
   return <div className="scrollable"><div style={{padding:'36px',textAlign:'center',fontFamily:'var(--mono)',fontSize:10,color:'var(--dim)'}}>—</div></div>;
 }
 
+
+// ── Graph view ─────────────────────────────────────────────────────────────────
+function GraphView({data,filter,onSelect}){
+  const wrapRef=useRef(null);
+  const svgRef=useRef(null);
+  const simRef=useRef(null);
+  const [mode,setMode]=useState('bubbles'); // 'bubbles' | 'corr'
+
+  useEffect(()=>{
+    if(!svgRef.current||!wrapRef.current||!data)return;
+    const W=wrapRef.current.clientWidth||700;
+    const H=wrapRef.current.clientHeight||400;
+    const svg=d3.select(svgRef.current);
+    svg.selectAll('*').remove();
+    svg.attr('width',W).attr('height',H);
+    if(simRef.current){simRef.current.stop();simRef.current=null;}
+
+    const tooltip=document.getElementById('tl-tooltip');
+    const showTip=(evt,html)=>{if(!tooltip)return;tooltip.className='show';tooltip.innerHTML=html;tooltip.style.left=`${evt.clientX+14}px`;tooltip.style.top=`${evt.clientY-10}px`;};
+    const hideTip=()=>{if(tooltip)tooltip.className='';};
+
+    if(mode==='bubbles'){
+      // Type bubble force graph — size ∝ bytes, GPU-correlated types get solid border
+      const types=filter?data.typeList.filter(t=>t.type===filter):data.typeList.slice(0,Math.min(35,data.typeList.length));
+      const maxBytes=Math.max(1,...types.map(t=>t.totalBytes));
+      const nodes=types.map(t=>({
+        id:t.type, label:t.type.split('.').pop(),
+        r:Math.max(10,Math.sqrt((t.totalBytes/maxBytes)*3200)),
+        bytes:t.totalBytes, count:t.count, color:tc(t.type),
+        isGpu:t.corrCount>0, isNp:t.bufBytes>0,
+        ev:t.events[0]||null,
+      }));
+
+      // Edges: types that share a GPU operation (via correlation)
+      const gpuTypeSets={};
+      data.corrs.forEach(c=>{
+        const cpu=data.allocs.find(e=>e.base.event_id===c.cpu_event_id);
+        if(!cpu)return;
+        if(!gpuTypeSets[c.gpu_event_id])gpuTypeSets[c.gpu_event_id]=new Set();
+        gpuTypeSets[c.gpu_event_id].add(cpu.object_type);
+      });
+      const edgeSet=new Set();
+      const edges=[];
+      Object.values(gpuTypeSets).forEach(s=>{
+        const arr=[...s].filter(t=>nodes.find(n=>n.id===t));
+        for(let i=0;i<arr.length;i++) for(let j=i+1;j<arr.length;j++){
+          const k=[arr[i],arr[j]].sort().join('||');
+          if(!edgeSet.has(k)){edgeSet.add(k);edges.push({source:arr[i],target:arr[j]});}
+        }
+      });
+
+      const sim=d3.forceSimulation(nodes)
+        .force('link',d3.forceLink(edges).id(d=>d.id).distance(120).strength(0.25))
+        .force('charge',d3.forceManyBody().strength(d=>-d.r*12))
+        .force('center',d3.forceCenter(W/2,H/2))
+        .force('collision',d3.forceCollide().radius(d=>d.r+6));
+      simRef.current=sim;
+
+      const g=svg.append('g');
+      const zoom=d3.zoom().scaleExtent([0.3,4]).on('zoom',e=>g.attr('transform',e.transform));
+      svg.call(zoom);
+
+      const link=g.append('g').selectAll('line').data(edges).join('line')
+        .attr('stroke','rgba(65,179,245,.12)').attr('stroke-width',1.2)
+        .attr('stroke-dasharray','4,3');
+
+      const node=g.append('g').selectAll('g').data(nodes).join('g')
+        .style('cursor','pointer')
+        .call(d3.drag()
+          .on('start',(e,d)=>{if(!e.active)sim.alphaTarget(0.3).restart();d.fx=d.x;d.fy=d.y;})
+          .on('drag', (e,d)=>{d.fx=e.x;d.fy=e.y;})
+          .on('end',  (e,d)=>{if(!e.active)sim.alphaTarget(0);d.fx=null;d.fy=null;}));
+
+      // Glow filter for GPU-correlated types
+      const defs=svg.append('defs');
+      const glow=defs.append('filter').attr('id','glow');
+      glow.append('feGaussianBlur').attr('stdDeviation','3').attr('result','blur');
+      glow.append('feMerge').selectAll('feMergeNode').data(['blur','SourceGraphic']).join('feMergeNode').attr('in',d=>d);
+
+      node.append('circle')
+        .attr('r',d=>d.r)
+        .attr('fill',d=>`${d.color}15`)
+        .attr('stroke',d=>d.color)
+        .attr('stroke-width',d=>d.isGpu?2:0.8)
+        .attr('stroke-dasharray',d=>d.isGpu?'none':'4,3')
+        .attr('filter',d=>d.isGpu?'url(#glow)':'none');
+
+      node.append('text')
+        .attr('text-anchor','middle').attr('dominant-baseline','middle')
+        .attr('font-family','JetBrains Mono,monospace')
+        .attr('font-size',d=>Math.max(8,Math.min(12,d.r*0.5)))
+        .attr('fill',d=>d.color).attr('pointer-events','none')
+        .text(d=>d.label.length>10?d.label.slice(0,9)+'…':d.label);
+
+      node.append('text')
+        .attr('text-anchor','middle').attr('dominant-baseline','middle')
+        .attr('dy',d=>d.r+11)
+        .attr('font-family','JetBrains Mono,monospace').attr('font-size',8)
+        .attr('fill','var(--dim)').attr('pointer-events','none')
+        .text(d=>fmtN(d.count));
+
+      node
+        .on('mousemove',(evt,d)=>showTip(evt,`<div class="tt-type">${d.label}</div><div class="tt-row"><span class="tt-k">count</span><span class="tt-v">${fmtN(d.count)}</span></div><div class="tt-row"><span class="tt-k">bytes</span><span class="tt-v">${fmtB(d.bytes)}</span></div>${d.isGpu?'<div class="tt-row"><span class="tt-k" style="color:var(--green)">GPU-corr</span><span class="tt-v" style="color:var(--green)">✓</span></div>':''}${d.isNp?'<div class="tt-row"><span class="tt-k" style="color:var(--yellow)">buffer</span><span class="tt-v" style="color:var(--yellow)">✓</span></div>':''}`))
+        .on('mouseleave',hideTip)
+        .on('click',(_,d)=>{if(d.ev)onSelect({type:'cpu',data:d.ev});});
+
+      sim.on('tick',()=>{
+        link
+          .attr('x1',d=>d.source.x).attr('y1',d=>d.source.y)
+          .attr('x2',d=>d.target.x).attr('y2',d=>d.target.y);
+        node.attr('transform',d=>`translate(${Math.max(d.r,Math.min(W-d.r,d.x))},${Math.max(d.r,Math.min(H-d.r,d.y))})`);
+      });
+
+    } else {
+      // CPU↔GPU bipartite correlation graph
+      const hardCorrs=data.corrs.filter(c=>c.confidence==='HARD').slice(0,50);
+      if(!hardCorrs.length){
+        svg.append('text').attr('x',W/2).attr('y',H/2)
+          .attr('text-anchor','middle').attr('font-family','JetBrains Mono,monospace')
+          .attr('font-size',11).attr('fill','var(--dim)')
+          .text('No HARD-correlated events in this session');
+        return;
+      }
+
+      const cpuIdSet=new Set(hardCorrs.map(c=>c.cpu_event_id));
+      const gpuIdSet=new Set(hardCorrs.map(c=>c.gpu_event_id));
+      const cpuEvs=data.allocs.filter(e=>cpuIdSet.has(e.base.event_id));
+      const gpuEvs=data.gpu.filter(e=>gpuIdSet.has(e.base.event_id));
+
+      const nodes=[
+        ...cpuEvs.map(e=>({id:'cpu:'+e.base.event_id,side:'cpu',
+          label:e.object_type.split('.').pop(),
+          sub:fmtB(e.alloc_size_bytes),
+          color:tc(e.object_type),ev:e})),
+        ...gpuEvs.map(e=>({id:'gpu:'+e.base.event_id,side:'gpu',
+          label:e.base.event_type==='KERNEL'?(e.kernel_name||'kernel').split('::').pop().slice(0,12):(e.transfer_kind||'xfer'),
+          sub:e.base.event_type==='KERNEL'?fmtNs(e.kernel_duration_ns):fmtB(e.transfer_size_bytes),
+          color:e.base.event_type==='KERNEL'?'var(--purple)':'var(--green)',ev:e})),
+      ];
+      const edges=hardCorrs.map(c=>({source:'cpu:'+c.cpu_event_id,target:'gpu:'+c.gpu_event_id,latency:c.latency_ns}));
+
+      const sim=d3.forceSimulation(nodes)
+        .force('link',d3.forceLink(edges).id(d=>d.id).distance(160).strength(0.5))
+        .force('charge',d3.forceManyBody().strength(-80))
+        .force('center',d3.forceCenter(W/2,H/2))
+        .force('collision',d3.forceCollide(28))
+        .force('xSide',d3.forceX(d=>d.side==='cpu'?W*0.28:W*0.72).strength(0.35));
+      simRef.current=sim;
+
+      const g=svg.append('g');
+      const zoom=d3.zoom().scaleExtent([0.3,4]).on('zoom',e=>g.attr('transform',e.transform));
+      svg.call(zoom);
+
+      // Column labels
+      svg.append('text').attr('x',W*0.28).attr('y',22)
+        .attr('text-anchor','middle').attr('font-family','JetBrains Mono,monospace').attr('font-size',9)
+        .attr('fill','rgba(65,179,245,.35)').attr('letter-spacing','3').text('CPU ALLOCS');
+      svg.append('text').attr('x',W*0.72).attr('y',22)
+        .attr('text-anchor','middle').attr('font-family','JetBrains Mono,monospace').attr('font-size',9)
+        .attr('fill','rgba(46,204,152,.35)').attr('letter-spacing','3').text('GPU EVENTS');
+
+      const link=g.append('g').selectAll('line').data(edges).join('line')
+        .attr('stroke','rgba(46,204,152,.25)').attr('stroke-width',1.2)
+        .attr('stroke-dasharray','5,4');
+
+      const node=g.append('g').selectAll('g').data(nodes).join('g')
+        .style('cursor','pointer')
+        .call(d3.drag()
+          .on('start',(e,d)=>{if(!e.active)sim.alphaTarget(0.3).restart();d.fx=d.x;d.fy=d.y;})
+          .on('drag', (e,d)=>{d.fx=e.x;d.fy=e.y;})
+          .on('end',  (e,d)=>{if(!e.active)sim.alphaTarget(0);d.fx=null;d.fy=null;}));
+
+      node.append('rect')
+        .attr('x',-22).attr('y',-14).attr('width',44).attr('height',28).attr('rx',5)
+        .attr('fill',d=>d.side==='cpu'?'rgba(65,179,245,.08)':'rgba(46,204,152,.06)')
+        .attr('stroke',d=>d.color).attr('stroke-width',0.8);
+
+      node.append('text').attr('text-anchor','middle').attr('dominant-baseline','middle').attr('dy',-3)
+        .attr('font-family','JetBrains Mono,monospace').attr('font-size',8)
+        .attr('fill',d=>d.color).attr('pointer-events','none')
+        .text(d=>d.label.slice(0,9));
+
+      node.append('text').attr('text-anchor','middle').attr('dominant-baseline','middle').attr('dy',8)
+        .attr('font-family','JetBrains Mono,monospace').attr('font-size',7)
+        .attr('fill','var(--dim)').attr('pointer-events','none')
+        .text(d=>d.sub);
+
+      node
+        .on('mousemove',(evt,d)=>showTip(evt,`<div class="tt-type" style="color:${d.color}">${d.label}</div><div class="tt-row"><span class="tt-k">side</span><span class="tt-v">${d.side.toUpperCase()}</span></div><div class="tt-row"><span class="tt-k">size/dur</span><span class="tt-v">${d.sub}</span></div>`))
+        .on('mouseleave',hideTip)
+        .on('click',(_,d)=>onSelect({type:d.side,data:d.ev}));
+
+      sim.on('tick',()=>{
+        link
+          .attr('x1',d=>d.source.x).attr('y1',d=>d.source.y)
+          .attr('x2',d=>d.target.x).attr('y2',d=>d.target.y);
+        node.attr('transform',d=>`translate(${d.x},${d.y})`);
+      });
+    }
+
+    return()=>{if(simRef.current){simRef.current.stop();simRef.current=null;}};
+  },[data,filter,mode]);
+
+  const modeLabel=mode==='bubbles'?'Type Bubbles':'CPU↔GPU';
+  return(
+    <div id="graph-outer">
+      <div className="graph-toolbar">
+        <button className={`graph-mode-btn${mode==='bubbles'?' on':''}`} onClick={()=>setMode('bubbles')}>Type Bubbles</button>
+        <button className={`graph-mode-btn${mode==='corr'?' on':''}`}    onClick={()=>setMode('corr')}>CPU↔GPU Corr</button>
+        <span style={{fontFamily:'var(--mono)',fontSize:8,color:'var(--dim)',marginLeft:4}}>drag nodes · scroll to zoom</span>
+        <div className="graph-legend">
+          {mode==='bubbles'&&<>
+            <div className="gleg"><div className="gleg-dot" style={{background:'var(--cpu)'}}/> type</div>
+            <div className="gleg"><div className="gleg-dot" style={{background:'var(--cpu)',boxShadow:'0 0 5px var(--cpu)'}}/> GPU-correlated</div>
+            <div className="gleg"><div className="gleg-dash" style={{borderColor:'rgba(65,179,245,.35)'}}/> shared GPU op</div>
+          </>}
+          {mode==='corr'&&<>
+            <div className="gleg"><div className="gleg-dot" style={{background:'var(--cpu)'}}/> CPU alloc</div>
+            <div className="gleg"><div className="gleg-dot" style={{background:'var(--green)'}}/> GPU event</div>
+            <div className="gleg"><div className="gleg-dash" style={{borderColor:'rgba(46,204,152,.4)'}}/> HARD match</div>
+          </>}
+        </div>
+      </div>
+      <div id="graph-wrap" ref={wrapRef}>
+        {!data&&<div className="empty"><div className="empty-t">No session loaded</div><div className="empty-s">Load a session.json to begin</div></div>}
+        <svg ref={svgRef}/>
+      </div>
+    </div>
+  );
+}
+
 // ── Root App ──────────────────────────────────────────────────────────────────
 function App(){
   const[session, setSession] =useState(null);
@@ -1160,6 +1503,7 @@ function App(){
           <button className={`tab ${view==='insights'?'on':''}`} onClick={()=>setView('insights')}>
             Insights{data&&data.insights.length>0?` (${data.insights.length})`:''}</button>
           <button className={`tab ${view==='callsites'?'on':''}`} onClick={()=>setView('callsites')}>Call Sites</button>
+          <button className={`tab ${view==='graph'?'on':''}`} onClick={()=>setView('graph')}>Graph</button>
         </div>
 
         {view==='timeline'&&<>
